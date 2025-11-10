@@ -10,6 +10,7 @@ type Lesson = {
   mini_quiz?: string[];
 };
 type ModuleT = { title: string; goal: string; lessons: Lesson[] };
+
 type Emphasis = {
   statement: string;
   why: string;
@@ -17,6 +18,22 @@ type Emphasis = {
   evidence: string;
   confidence: number; // 0..1
 };
+type AlignItem = {
+  topic: string;
+  concepts: string[];
+  in_both: boolean;
+  emphasis_level: "high" | "medium" | "low";
+  lecture_quotes: string[];
+  slide_refs: string[];
+  duration_min: number;
+  confidence: number;
+};
+type Alignment = {
+  summary_chatty?: string;
+  average_duration_min?: number;
+  items?: AlignItem[];
+};
+
 type Plan = {
   topic?: string;
   key_concepts?: string[];
@@ -25,6 +42,7 @@ type Plan = {
   resources?: string[];
   emphases?: Emphasis[];
   seed_quiz?: string[];
+  alignment?: Alignment;
 };
 
 /** -------- Config -------- */
@@ -40,7 +58,13 @@ function prettyMinutes(min?: number) {
 }
 
 /** -------- Modes -------- */
-type ModeId = "plan" | "lecturer-note" | "quiz" | "deep-dive" | "exam-sprint";
+type ModeId =
+  | "plan"
+  | "alignment"
+  | "lecturer-note"
+  | "quiz"
+  | "deep-dive"
+  | "exam-sprint";
 
 function getInitialMode(): ModeId {
   const sp = new URLSearchParams(window.location.search);
@@ -60,14 +84,14 @@ export default function App() {
   const [err, setErr] = useState<string | null>(null);
 
   const [mode, setMode] = useState<ModeId>(getInitialMode());
-  const [quiz, setQuiz] = useState<string[]>([]); // sayfada gösterilecek quiz
+  const [quiz, setQuiz] = useState<string[]>([]);
 
   const canSubmit = useMemo(
     () => !loading && lectureText.trim().length > 0 && slidesText.trim().length > 0,
     [loading, lectureText, slidesText]
   );
 
-  // ---- Global UX Styles + Layout (aynen)
+  // ---- Global UX Styles + Layout
   const uxFix = `
     html,body,#root{ background:#f5f5f7; }
     .lc-container{ max-width:1360px; margin:0 auto; padding:0 16px 32px; }
@@ -91,9 +115,11 @@ export default function App() {
     .lc-chipset{display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 14px;}
     .lc-chip{ border:1px solid #e5e5ea; background:#fff; border-radius:999px; padding:6px 10px; font-size:13px; }
     .lc-section{ background:#fff; border:1px solid #e5e5ea; border-radius:20px; padding:16px; box-shadow:0 6px 18px rgba(0,0,0,.03); }
-    .quiz-list li{ margin: 6px 0; }
-    .emphasis-row{ display:grid; grid-template-columns: 1fr auto auto; gap:8px; align-items:center; }
     .pill{ padding:3px 8px; border:1px solid #e5e5ea; border-radius:999px; font-size:12px; }
+    .aligned-table{ width:100%; border-collapse: collapse; }
+    .aligned-table th, .aligned-table td{ border-bottom:1px dashed #eee; padding:8px 6px; text-align:left; vertical-align:top; }
+    .aligned-table th{ font-size:12px; opacity:.6; font-weight:700; }
+    .aligned-table .muted{ opacity:.65; font-size:12px; }
   `;
 
   // URL & localStorage senkronu
@@ -104,11 +130,18 @@ export default function App() {
     localStorage.setItem("lc.mode", mode);
   }, [mode]);
 
-  // Kısayollar: 1..5
+  // Kısayollar: 1..6
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement)?.closest("input,textarea,[contenteditable=true]")) return;
-      const map: Record<string, ModeId> = { "1": "plan", "2": "lecturer-note", "3": "quiz", "4": "deep-dive", "5": "exam-sprint" };
+      const map: Record<string, ModeId> = {
+        "1": "plan",
+        "2": "alignment",
+        "3": "lecturer-note",
+        "4": "quiz",
+        "5": "deep-dive",
+        "6": "exam-sprint",
+      };
       if (map[e.key]) setMode(map[e.key]);
     };
     window.addEventListener("keydown", handler);
@@ -138,9 +171,8 @@ export default function App() {
 
       const p = j.plan as Plan;
       setPlan(p);
-      // plan ile gelen seed_quiz varsa quiz paneline koy
       if (p.seed_quiz?.length) setQuiz(p.seed_quiz.slice(0, 12));
-      setMode("plan"); // üretimden sonra Plan sekmesine geç
+      setMode("alignment"); // üretim sonrası direkt eşleştirme sekmesine geç
     } catch (e: any) {
       setErr(e?.message || "İstek hatası");
     } finally {
@@ -166,17 +198,15 @@ export default function App() {
       <div className="lc-container">
         {/* Hero */}
         <header style={st.hero}>
-          <h1 style={st.h1}>Öğretmen Metni + Slayttan Öğrenme Yolu</h1>
-          <p style={st.sub}>
-            Hocanın konuşması ve slayt metnini gir. Yapay zekâ, sade ve uygulanabilir bir plan üretsin.
-          </p>
+          <h1 style={st.h1}>Öğretmen Metni + Slayt Eşleştirme & Vurgular</h1>
+          <p style={st.sub}>Konuşma ve PDF içeriğini karşılaştır; vurguları ve süreleri beraber görelim.</p>
         </header>
 
         <div className="lc-shell">
           {/* Sol: Sticky Form */}
           <div className="lc-sticky">
             <form style={st.card} onSubmit={handleSubmit}>
-              <label style={st.label}>Hocanın Metni</label>
+              <label style={st.label}>Hocanın Konuşma Metni</label>
               <textarea
                 className="lc-textarea"
                 value={lectureText}
@@ -186,12 +216,12 @@ export default function App() {
                 style={st.textarea}
               />
 
-              <label style={st.label}>Slayt Metni</label>
+              <label style={st.label}>PDF/Slayt Metni</label>
               <textarea
                 className="lc-textarea"
                 value={slidesText}
                 onChange={(e) => setSlidesText(e.target.value)}
-                placeholder="SLIDE: slayt sayfalarının metni buraya..."
+                placeholder="SLIDE: PDF'ten alınmış metin (başlıklar, maddeler...)"
                 rows={8}
                 style={st.textarea}
               />
@@ -202,7 +232,7 @@ export default function App() {
                   disabled={!canSubmit}
                   style={canSubmit ? st.button : st.buttonDisabled}
                 >
-                  {loading ? "Üretiliyor…" : "Öğrenme Yolunu Oluştur"}
+                  {loading ? "Analiz ediliyor…" : "Plan + Eşleştirme Oluştur"}
                 </button>
                 {err && <span style={st.error}>❌ {err}</span>}
               </div>
@@ -219,6 +249,16 @@ export default function App() {
               ) : (
                 <div className="lc-section" style={{ opacity: 0.6 }}>
                   Henüz plan yok. Soldaki metinlerle bir plan üretin.
+                </div>
+              )
+            )}
+
+            {mode === "alignment" && (
+              plan ? (
+                <AlignmentPane plan={plan} />
+              ) : (
+                <div className="lc-section" style={{ opacity: 0.6 }}>
+                  Henüz eşleştirme yok. Soldan üret.
                 </div>
               )
             )}
@@ -241,7 +281,6 @@ export default function App() {
             )}
 
             {mode === "deep-dive" && <DeepDivePane />}
-
             {mode === "exam-sprint" && <ExamSprintPane />}
           </div>
         </div>
@@ -256,6 +295,7 @@ export default function App() {
 function ModeRibbon({ mode, setMode }: { mode: ModeId; setMode: (m: ModeId) => void }) {
   const tabs: { id: ModeId; label: string }[] = [
     { id: "plan", label: "Plan" },
+    { id: "alignment", label: "Eşleştirme & Vurgular" },
     { id: "lecturer-note", label: "Hoca Notu" },
     { id: "quiz", label: "Quiz" },
     { id: "deep-dive", label: "Derinleşme" },
@@ -282,7 +322,7 @@ function ModeRibbon({ mode, setMode }: { mode: ModeId; setMode: (m: ModeId) => v
               color: mode === t.id ? "#fff" : "#111",
               fontWeight: 800, fontSize: 13,
             }}
-            title={`Kısayol: ${["plan","lecturer-note","quiz","deep-dive","exam-sprint"].indexOf(t.id)+1}`}
+            title={`Kısayol: ${["plan","alignment","lecturer-note","quiz","deep-dive","exam-sprint"].indexOf(t.id)+1}`}
           >
             {t.label}
           </button>
@@ -292,7 +332,7 @@ function ModeRibbon({ mode, setMode }: { mode: ModeId; setMode: (m: ModeId) => v
   );
 }
 
-/** -------- Right Pane: Plan -------- */
+/** -------- Plan -------- */
 function PlanPane({ plan }: { plan: Plan }) {
   return (
     <div style={{ display: "grid", gap: 16 }}>
@@ -375,7 +415,78 @@ function ModuleAccordion({
   );
 }
 
-/** -------- Lecturer Note (auto-emphasis) -------- */
+/** -------- Alignment (eşleştirme & süreler) -------- */
+function AlignmentPane({ plan }: { plan: Plan }) {
+  const a = plan.alignment;
+  const avg = a?.average_duration_min ?? average(a?.items?.map(i => i.duration_min) || []);
+
+  return (
+    <div style={{ display:"grid", gap:12 }}>
+      <section className="lc-section" style={{ display:"grid", gap:10 }}>
+        <div style={{ fontWeight: 800, fontSize: 18 }}>Eşleştirme Özeti</div>
+        {a?.summary_chatty ? (
+          <p style={{ margin:0 }}>{a.summary_chatty}</p>
+        ) : (
+          <p className="muted" style={{ margin:0, opacity:.7 }}>
+            Özet metni bulunamadı. Yine de aşağıdaki tablo eşleşmeleri ve süreleri gösterir.
+          </p>
+        )}
+        <div className="lc-chipset">
+          <div className="lc-chip">Ortalama süre: ~{Number.isFinite(avg) ? `${avg.toFixed(1)} dk` : "—"}</div>
+        </div>
+      </section>
+
+      <section className="lc-section">
+        <table className="aligned-table">
+          <thead>
+            <tr>
+              <th>Konu / Kavramlar</th>
+              <th>Vurgu</th>
+              <th>Kaynaklar</th>
+              <th>Süre (dk)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(a?.items || []).map((it, i) => (
+              <tr key={i}>
+                <td>
+                  <div style={{ fontWeight:700 }}>{it.topic}</div>
+                  {!!it.concepts?.length && (
+                    <div className="muted"> {it.concepts.join(", ")} </div>
+                  )}
+                </td>
+                <td>
+                  <div className="lc-chipset" style={{ margin:0 }}>
+                    <span className="pill">{it.in_both ? "Konuşma+Slayt" : "Tek kaynak"}</span>
+                    <span className="pill">Emphasis: {it.emphasis_level}</span>
+                    <span className="pill">Güven: %{Math.round((it.confidence ?? 0)*100)}</span>
+                  </div>
+                </td>
+                <td>
+                  {it.lecture_quotes?.slice(0,2).map((q,qi)=>(<div key={qi} className="muted">“{q}”</div>))}
+                  {it.slide_refs?.slice(0,2).map((s,si)=>(<div key={si} className="muted">• {s}</div>))}
+                </td>
+                <td style={{ fontWeight:700 }}>{Number.isFinite(it.duration_min) ? it.duration_min.toFixed(1) : "—"}</td>
+              </tr>
+            ))}
+            {!a?.items?.length && (
+              <tr><td colSpan={4} className="muted">Eşleşme bulunamadı.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </section>
+    </div>
+  );
+}
+
+function average(ns: number[]) {
+  if (!ns.length) return NaN;
+  const s = ns.reduce((a,b)=>a+(Number.isFinite(b)?b:0),0);
+  const c = ns.filter(n => Number.isFinite(n)).length;
+  return c ? s / c : NaN;
+}
+
+/** -------- Lecturer Note (emphases listesi) -------- */
 function LecturerNotePane({
   lectureText, slidesText, emphases,
 }: { lectureText: string; slidesText: string; emphases: Emphasis[] }) {
@@ -386,10 +497,9 @@ function LecturerNotePane({
           Aşağıda otomatik çıkarılan vurgular var. Düzenleyip görev oluşturabilirsin.
         </div>
 
-        {/* Otomatik tespit listesi */}
         <div className="lc-section" style={{ display:"grid", gap:10 }}>
           {emphases?.length ? emphases.map((e, i) => (
-            <div key={i} className="emphasis-row">
+            <div key={i} style={{ display:"grid", gridTemplateColumns:"1fr auto auto", gap:8, alignItems:"center" }}>
               <div>
                 <div style={{ fontWeight: 700 }}>{e.statement}</div>
                 <div style={{ opacity:.75, fontSize:13 }}>{e.why}</div>
@@ -401,7 +511,6 @@ function LecturerNotePane({
           )) : <div style={{ opacity:.65 }}>Henüz vurgu çıkarımı yok. Plan ürettikten sonra burada listelenir.</div>}
         </div>
 
-        {/* Manuel not alanları */}
         <div style={{ display: "grid", gap: 8 }}>
           <input className="lc-textarea" placeholder="Konu/Başlık" style={{ minHeight: 44 }} />
           <textarea className="lc-textarea" placeholder="Neden önemli? (Sınavda kısa cevap olabilir...)" rows={4} />
@@ -412,8 +521,7 @@ function LecturerNotePane({
           </div>
         </div>
 
-        {/* Kaynak önizleme */}
-        <div style={{ fontSize: 12, opacity: 0.5 }}>Girdilerinden örnekler (salt okuma):</div>
+        <div style={{ fontSize: 12, opacity: 0.5 }}>Girdilerinden örnekler:</div>
         <pre className="lc-textarea" style={{ whiteSpace: "pre-wrap", minHeight: 80 }}>
           {lectureText.slice(0, 400) || "LEC boş"}
         </pre>
@@ -425,7 +533,7 @@ function LecturerNotePane({
   );
 }
 
-/** -------- Quiz (page render, no alert) -------- */
+/** -------- Quiz -------- */
 function QuizPane({
   quiz, setQuiz, hasPlan, plan,
 }: { quiz: string[]; setQuiz: (q: string[]) => void; hasPlan: boolean; plan: Plan | null }) {
@@ -444,7 +552,6 @@ function QuizPane({
             disabled={!hasPlan}
             onClick={async () => {
               try {
-                // İstersen sadece plan.seed_quiz'i kullan; fakat burada opsiyonel rota ile yeniliyoruz
                 const r = await fetch(`${API_BASE}/api/quiz-from-plan`, {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
@@ -464,9 +571,7 @@ function QuizPane({
           <button
             style={quiz.length ? st.button : st.buttonDisabled}
             disabled={!quiz.length}
-            onClick={() => {
-              navigator.clipboard?.writeText(quiz.map((q, i) => `${i + 1}. ${q}`).join("\n"));
-            }}
+            onClick={() => navigator.clipboard?.writeText(quiz.map((q, i) => `${i + 1}. ${q}`).join("\n"))}
           >
             Kopyala
           </button>
@@ -476,11 +581,11 @@ function QuizPane({
 
         <div className="lc-section" style={{ paddingTop: 8 }}>
           {quiz.length ? (
-            <ol className="quiz-list" style={{ paddingLeft: 18 }}>
-              {quiz.map((q, i) => <li key={i}>{q}</li>)}
+            <ol style={{ paddingLeft: 18, margin: 0 }}>
+              {quiz.map((q, i) => <li key={i} style={{ margin:"6px 0" }}>{q}</li>)}
             </ol>
           ) : (
-            <div style={{ opacity: 0.65 }}>Henüz soru yok. “10 Soru Üret / Yenile”ye tıkla veya plan üretiminden gelen seed sorular otomatik görünür.</div>
+            <div style={{ opacity: 0.65 }}>Henüz soru yok. “10 Soru Üret / Yenile”ye tıkla veya plandan gelen seed sorular görüntülenir.</div>
           )}
         </div>
       </Section>
@@ -488,7 +593,7 @@ function QuizPane({
   );
 }
 
-/** -------- DeepDive / ExamSprint (aynı) -------- */
+/** -------- Diğer paneller -------- */
 function DeepDivePane() {
   return (
     <div style={{ display: "grid", gap: 12 }}>
@@ -509,28 +614,12 @@ function ExamSprintPane() {
   return (
     <div style={{ display: "grid", gap: 12 }}>
       <Section title="Sınav Sprinti">
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <input className="lc-textarea" placeholder="Gün sayısı (7–14)" style={{ minHeight: 44, maxWidth: 160 }} />
-          <button
-            style={st.button}
-            onClick={async () => {
-              try {
-                const r = await fetch(`${API_BASE}/api/sprint-schedule`, { method: "POST" });
-                const j = await r.json();
-                alert(j.ok ? j.schedule?.slice(0,7).join("\n") : j.error || "Üretilemedi");
-              } catch (e: any) {
-                alert(e?.message || "İstek hatası");
-              }
-            }}
-          >
-            7 Günlük Takvim Öner
-          </button>
-        </div>
         <div className="lc-chipset">
           <div className="lc-chip">Pomodoro 40–10</div>
           <div className="lc-chip">Son 48 saat: hafif tekrar</div>
           <div className="lc-chip">Yanlışlar listesi</div>
         </div>
+        <div className="lc-section" style={{ opacity:.65 }}>Detaylar yakında.</div>
       </Section>
     </div>
   );
@@ -548,32 +637,109 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 /** -------- Styles -------- */
 const st: Record<string, React.CSSProperties> = {
-  page: { background: "#f5f5f7", color: "#0b0b0c", minHeight: "100dvh", fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, Segoe UI, Roboto, Helvetica, Arial' },
-  nav: { display: "flex", alignItems: "center", gap: 12, padding: "14px 20px", position: "sticky", top: 0, backdropFilter: "saturate(180%) blur(16px)", background: "rgba(255,255,255,0.65)", borderBottom: "1px solid #e5e5ea", zIndex: 10 },
+  page: {
+    background: "#f5f5f7",
+    color: "#0b0b0c",
+    minHeight: "100dvh",
+    fontFamily:
+      '-apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, Segoe UI, Roboto, Helvetica, Arial',
+  },
+  nav: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    padding: "14px 20px",
+    position: "sticky",
+    top: 0,
+    backdropFilter: "saturate(180%) blur(16px)",
+    background: "rgba(255,255,255,0.65)",
+    borderBottom: "1px solid #e5e5ea",
+    zIndex: 10,
+  },
   brand: { display: "flex", alignItems: "center", gap: 8 },
-  brandDot: { width: 12, height: 12, borderRadius: 18, background: "#111", boxShadow: "0 0 0 3px #999 inset" },
+  brandDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 18,
+    background: "#111",
+    boxShadow: "0 0 0 3px #999 inset",
+  },
   brandText: { fontWeight: 800, letterSpacing: 0.2 },
-  pill: { padding: "6px 12px", borderRadius: 999, border: "1px solid #e5e5ea", background: "#fff", fontSize: 13 },
+  pill: {
+    padding: "6px 12px",
+    borderRadius: 999,
+    border: "1px solid #e5e5ea",
+    background: "#fff",
+    fontSize: 13,
+  },
+
   hero: { margin: "40px 0 14px" },
   h1: { fontSize: 34, fontWeight: 800, letterSpacing: -0.3, margin: 0 },
   sub: { opacity: 0.7, marginTop: 8, marginBottom: 0 },
-  card: { padding: 16, background: "#fff", border: "1px solid #e5e5ea", borderRadius: 24, boxShadow: "0 10px 30px rgba(0,0,0,.04)" },
+
+  card: {
+    padding: 16,
+    background: "#fff",
+    border: "1px solid #e5e5ea",
+    borderRadius: 24,
+    boxShadow: "0 10px 30px rgba(0,0,0,.04)",
+  },
   label: { fontWeight: 700, marginTop: 6, marginBottom: 6, display: "block" },
   textarea: { width: "100%", resize: "vertical", minHeight: 140 },
-  actions: { display: "flex", alignItems: "center", gap: 12, marginTop: 14, flexWrap: "wrap" },
-  button: { background: "#111", color: "#fff", border: "1px solid #111", padding: "10px 16px", borderRadius: 12, cursor: "pointer", fontWeight: 800 },
-  buttonDisabled: { background: "#c7c7cc", color: "#fff", border: "1px solid #c7c7cc", padding: "10px 16px", borderRadius: 12, cursor: "not-allowed", fontWeight: 800 },
+
+  actions: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    marginTop: 14,
+    flexWrap: "wrap",
+  },
+  button: {
+    background: "#111",
+    color: "#fff",
+    border: "1px solid #111",
+    padding: "10px 16px",
+    borderRadius: 12,
+    cursor: "pointer",
+    fontWeight: 800,
+  },
+  buttonDisabled: {
+    background: "#c7c7cc",
+    color: "#fff",
+    border: "1px solid #c7c7cc",
+    padding: "10px 16px",
+    borderRadius: 12,
+    cursor: "not-allowed",
+    fontWeight: 800,
+  },
   error: { color: "#c62828", fontWeight: 600 },
-  planHeader: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 },
+
+  planHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
   planTitle: { fontSize: 26, fontWeight: 800, letterSpacing: -0.2 },
   planMeta: { opacity: 0.6 },
+
   list: { margin: 0, paddingLeft: 18 },
   listItem: { margin: "4px 0" },
   actType: { fontWeight: 800 },
-  quizBox: { background: "#fafafa", border: "1px solid #efeff4", borderRadius: 14, padding: 10, marginTop: 6 },
+
+  quizBox: {
+    background: "#fafafa",
+    border: "1px solid #efeff4",
+    borderRadius: 14,
+    padding: 10,
+    marginTop: 6,
+  },
   quizTitle: { fontWeight: 800, marginBottom: 6 },
+
   resourcesTitle: { fontWeight: 800, marginBottom: 8 },
+
   ul: { paddingLeft: 18, margin: 0 },
   ol: { paddingLeft: 18, margin: 0 },
+
   footer: { textAlign: "center", opacity: 0.5, padding: "24px 0" },
 };
