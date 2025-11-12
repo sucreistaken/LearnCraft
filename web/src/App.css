@@ -1,42 +1,666 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+/* =========================================
+   LearnCraft – Premium Light UI (Full-Width)
+   ========================================= */
+
+/* ---- Light Theme Tokens (force light) ---- */
+:root{
+  --bg: #f5f5f7;          /* Apple grey */
+  --card: #ffffff;
+  --text: #0b0b0c;
+  --muted: #6b7280;
+  --border: #e6e6ea;
+  --hair: #ececf2;
+  --accent: #111111;      /* pills/buttons default */
+  --accent-2: #007aff;    /* iOS blue */
+  --ring: rgba(0,122,255,.16);
+
+  --shadow-1: 0 8px 24px rgba(0,0,0,.05);
+  --shadow-2: 0 12px 36px rgba(0,0,0,.08);
+
+  --radius-xl: 24px;
+  --radius-lg: 18px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+
+  --fs-12: 12px;
+  --fs-13: 13px;
+  --fs-18: 18px;
+  --fw-700: 700;
+  --fw-800: 800;
+}
+
+*{ box-sizing:border-box; }
+html, body, #root { height:100%; background:var(--bg); }
+body{
+  margin:0; color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+}
+
+/* ---------- Utilities ---------- */
+.flex-1{ flex:1; }
+.grid-gap-16{ display:grid; gap:16px; }
+.grid-gap-12{ display:grid; gap:12px; }
+.grid-gap-10{ display:grid; gap:10px; }
+.flex-gap-8{ display:flex; gap:8px; flex-wrap:wrap; }
+.m-0{ margin:0; } .mt-6{ margin-top:6px; } .mt-8{ margin-top:8px; }
+.pad-b-10{ padding-bottom:10px; } .pad-top-8{ padding-top:8px; }
+.fw-700{ font-weight:var(--fw-700); } .fw-800{ font-weight:var(--fw-800); }
+.fs-18{ font-size:var(--fs-18); } .fs-13{ font-size:var(--fs-13); } .fs-12{ font-size:var(--fs-12); }
+.op-50{opacity:.5;} .op-60{opacity:.6;} .op-65{opacity:.65;} .op-70{opacity:.7;} .op-75{opacity:.75;}
+pre, code, .lc-textarea{ overflow-wrap:anywhere; }
+
+/* ---------- Page & Layout ---------- */
+.page{ min-height:100vh; background:var(--bg); }
+.lc-container{ max-width:1420px; margin:0 auto; padding:0 20px 32px; }
+
+/* iki sütun: ≥1100; tek sütun: <1100 */
+.lc-shell{ display:grid; gap:16px; align-items:start; }
+@media (min-width:1100px){ .lc-shell{ grid-template-columns: 420px 1fr; } }
+
+.lc-sticky{ position:sticky; top:72px; }
+
+/* Sağ panelde iç scroll KALDIRILDI → sayfa akıyor */
+.lc-plan-pane{ min-width:0; }
+
+/* ---------- Navbar ---------- */
+.nav{
+  position:sticky; top:0; z-index:10;
+  display:flex; align-items:center; gap:12px;
+  padding:14px 20px;
+  backdrop-filter:saturate(180%) blur(16px);
+  background: rgba(255,255,255,.7);
+  border-bottom:1px solid var(--border);
+}
+.brand{ display:flex; align-items:center; gap:8px; }
+.brand-dot{ width:12px; height:12px; border-radius:18px; background:#111; box-shadow:0 0 0 3px #a3a3a3 inset; }
+.brand-text{ font-weight:var(--fw-800); letter-spacing:.2px; }
+@media (max-width:768px){ .nav{ padding:12px 14px; gap:8px; } .brand-text{ font-size:14px; } }
+
+/* ---------- Hero ---------- */
+.hero{ margin:28px 0 12px; }          /* daha kompakt – üst boşluk sorunu çözüldü */
+.h1{ font-size:32px; font-weight:var(--fw-800); letter-spacing:-.3px; margin:0; }
+.sub{ opacity:.7; margin:8px 0 0; }
+@media (max-width:768px){ .h1{ font-size:24px; } .sub{ font-size:14px; } }
+
+/* ---------- Cards / Form ---------- */
+.card{
+  padding:16px; background:var(--card);
+  border:1px solid var(--border); border-radius:var(--radius-xl); box-shadow:var(--shadow-1);
+}
+.label{ font-weight:var(--fw-700); margin:6px 0; display:block; }
+
+.lc-textarea{
+  background:#fbfbfe; border:1px solid #d6d6de; color:var(--text);
+  border-radius:16px; padding:12px; outline:none;
+  box-shadow: inset 0 1px 0 rgba(0,0,0,.02);
+  transition: box-shadow .2s, border-color .2s, background .2s;
+}
+.lc-textarea::placeholder{ color:#8e8e93; }
+.lc-textarea:focus{ background:#fff; border-color:var(--accent-2); box-shadow: 0 0 0 6px var(--ring), inset 0 1px 0 rgba(0,0,0,.02); }
+.textarea{ width:100%; resize:vertical; min-height:140px; }
+.input{ min-height:44px; }
+.input.narrow{ max-width:220px; }
+.preview{ white-space:pre-wrap; min-height:80px; max-height:240px; overflow:auto; background:#fcfcfd; }
+
+/* ---------- Buttons ---------- */
+.btn{
+  background:var(--accent); color:#fff; border:1px solid var(--accent);
+  padding:10px 16px; border-radius:12px; cursor:pointer; font-weight:var(--fw-800);
+  transition: transform .06s ease, box-shadow .2s ease, background .2s ease, border-color .2s;
+}
+.btn:hover{ box-shadow:0 6px 18px rgba(0,0,0,.10); }
+.btn:active{ transform: translateY(1px); }
+.btn:focus-visible{ outline:none; box-shadow:0 0 0 6px var(--ring); }
+.btn--disabled, .btn:disabled{ background:#c7c7cc!important; border-color:#c7c7cc!important; cursor:not-allowed!important; }
+.btn-primary{ background:linear-gradient(180deg,#f6fbff,#eaf3ff); color:#0b0b0c; border-color:rgba(0,122,255,.35); }
+.btn-ghost{ background:transparent; color:#0b0b0c; border-color:var(--border); }
+
+/* ---------- Sections ---------- */
+.lc-section{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius-xl);
+  padding:16px;
+  box-shadow: var(--shadow-1);
+}
+.muted-block{ opacity:.65; }
+
+/* ---------- Chips / Pills ---------- */
+.lc-chipset{ display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 14px; }
+.lc-chip{
+  border:1px solid var(--border);
+  background:var(--card);
+  border-radius:999px;
+  padding:6px 10px;
+  font-size:var(--fs-13);
+}
+.pill{
+  padding:4px 10px; border:1px solid var(--border);
+  border-radius:999px; font-size:var(--fs-12); background:var(--card);
+}
+
+/* ---------- Mode Ribbon (Tabs) ---------- */
+.mode-ribbon{
+  position:sticky; top:0; z-index:5;
+  background: rgba(245,245,247,0.88);
+  backdrop-filter: blur(8px);
+  padding:8px 0; margin-bottom:8px; border-bottom:1px solid var(--border);
+}
+.tabs{ display:flex; gap:8px; flex-wrap:wrap; }
+.tab{
+  padding:6px 12px; border-radius:999px; border:1px solid var(--border);
+  background:#fff; color:#111; font-weight:var(--fw-800); font-size:13px;
+  transition: background .2s, color .2s, border-color .2s, transform .05s;
+}
+.tab:hover{ transform: translateY(-1px); }
+.tab--active{ background:#111; color:#fff; border-color:#111; }
+@media (max-width:768px){ .tabs{ gap:6px; } .tab{ padding:6px 10px; font-size:12px; } }
+
+/* ---------- Plan & Lessons list ---------- */
+.plan-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.plan-title{ font-size:26px; font-weight:var(--fw-800); letter-spacing:-.2px; }
+.plan-meta{ opacity:.6; }
+.resources-title{ font-weight:var(--fw-800); margin-bottom:8px; }
+.ul, .ol{ padding-left:18px; margin:0; }
+.list{ margin:0; padding-left:18px; }
+.list-item{ margin:4px 0; }
+.act-type{ font-weight:var(--fw-800); }
+.lc-lesson-grid{ display:grid; gap:12px; grid-template-columns:1fr; }
+@media (min-width:900px){ .lc-lesson-grid{ grid-template-columns: repeat(2, minmax(300px,1fr)); } }
+.lc-lesson{
+  border:1px solid var(--hair); border-radius:var(--radius-lg);
+  background:var(--card); padding:12px; box-shadow: var(--shadow-1);
+}
+.lc-lesson-head{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:6px; }
+.lc-badge{ background:var(--accent); color:#fff; border-radius:999px; font-size:12px; padding:4px 10px; line-height:1.2; }
+.lc-obj{ opacity:.85; margin:2px 0 6px; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; }
+
+/* ---------- Accordion ---------- */
+.lc-acc{
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--radius-lg); box-shadow: var(--shadow-1); overflow:hidden;
+}
+.lc-acc-head{ display:flex; align-items:center; justify-content:space-between; padding:14px 16px; cursor:pointer; }
+.lc-acc-title{ font-weight:var(--fw-800); font-size:18px; }
+.lc-acc-sub{ opacity:.6; font-size:13px; }
+.lc-acc-body{ padding:10px 12px 14px; border-top:1px dashed var(--hair); }
+
+/* ---------- Alignment Table ---------- */
+.aligned-table{ width:max-content; max-width:100%; border-collapse:collapse; }
+.aligned-table th, .aligned-table td{ border-bottom:1px dashed var(--hair); padding:8px 6px; text-align:left; vertical-align:top; }
+.aligned-table th{ font-size:12px; opacity:.7; font-weight:700; }
+.muted{ opacity:.65; font-size:12px; }
+
+/* ---------- Quiz ---------- */
+.ol-reset{ padding-left:18px; margin:0; }
+.q-item{ margin:12px 0; }
+.answer-card{ margin-top:8px; }
+.small{ font-size:12px; }
+.evidence{ font-size:12px; opacity:.78; margin-top:8px; }
+.quiz-box{ background:#fafafa; border:1px solid var(--hair); border-radius:var(--radius-md); padding:10px; margin-top:6px; }
+.quiz-title{ font-weight:var(--fw-800); margin-bottom:6px; }
+
+/* ---------- Three-column helper ---------- */
+.row-3col{ display:grid; grid-template-columns:1fr auto auto; gap:8px; align-items:center; }
+@media (max-width:768px){ .row-3col{ grid-template-columns:1fr; } }
+
+/* ---------- Footer ---------- */
+.footer{ text-align:center; opacity:.5; padding:24px 0; }
+
+/* =======================================================
+   DERSLERİM (HISTORY) – tamamen açık/aydınlık tasarım
+   ======================================================= */
+.history-toolbar{
+  display:flex; gap:12px; align-items:center; justify-content:space-between;
+  padding:8px 2px; flex-wrap:wrap;
+}
+.history-toolbar__inputs{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.history-toolbar__actions{ display:flex; gap:8px; align-items:center; }
+
+.field-group{
+  display:flex; align-items:center; gap:8px;
+  background: #f7f7fb;
+  border: 1px solid var(--border);
+  padding: 10px 12px; border-radius: 12px;
+  transition: border .2s, background .2s, box-shadow .2s;
+}
+.field-group:focus-within{
+  border-color: var(--accent-2);
+  box-shadow: 0 0 0 6px var(--ring);
+}
+.field-icon{ opacity:.55; font-size:14px; }
+.input-plain{
+  border:0; outline:none; background:transparent; min-width:240px;
+  font: inherit; color: inherit;
+}
+.select-plain{
+  border:1px solid var(--border); background:#fff;
+  padding:10px 12px; border-radius:12px; font:inherit;
+}
+
+.history-grid{ display:grid; grid-template-columns:1fr; gap:16px; }
+@media (min-width:1100px){ .history-grid{ grid-template-columns:340px 1fr; } }
+
+.history-list{
+  max-height: 72vh; overflow:auto; padding-right:6px;
+}
+.history-list::-webkit-scrollbar{ width:10px; }
+.history-list::-webkit-scrollbar-thumb{ background:#d1d1d6; border-radius:8px; }
+
+.history-card{
+  background:#fff; border:1px solid var(--border);
+  border-radius:16px; padding:12px 14px; margin-bottom:10px; cursor:pointer;
+  transition: transform .06s ease, box-shadow .2s ease, border-color .2s ease;
+  box-shadow: 0 1px 0 rgba(0,0,0,.02);
+}
+.history-card:hover{ transform: translateY(-1px); box-shadow: 0 10px 22px rgba(0,0,0,.06); }
+.history-card--active{
+  border-color: rgba(0,122,255,.35);
+  box-shadow: 0 10px 26px rgba(0,122,255,.10), inset 0 0 0 1px rgba(0,122,255,.18);
+}
+.history-card__title{ font-weight:700; line-height:1.25; }
+.history-card__meta{ font-size:12px; opacity:.6; margin-top:4px; }
+.history-card__chips{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+
+.history-detail{ display:grid; gap:14px; min-height:60vh; }
+.panel{
+  background:#fff; border:1px solid var(--border);
+  border-radius:18px; padding:16px; box-shadow: var(--shadow-1);
+}
+.panel--summary{ background: linear-gradient(180deg, rgba(0,0,0,.02), transparent) #fff; }
+.panel__title{ font-weight:800; font-size:18px; letter-spacing:.2px; }
+.panel__meta{ font-size:12px; opacity:.6; margin-top:2px; }
+.panel__text{ margin-top:10px; line-height:1.65; }
+.panel__subtitle{ font-weight:700; margin-bottom:8px; }
+.panel__caption{ font-weight:600; opacity:.85; margin:10px 0 6px; }
+
+.preview-grid{ display:grid; gap:10px; grid-template-columns:1fr; }
+@media (min-width:860px){ .preview-grid{ grid-template-columns:1fr 1fr; } }
+.preview-box{
+  background:#f8f9fb; border:1px dashed var(--border);
+  border-radius:12px; padding:10px 12px; max-height:260px; overflow:auto; white-space:pre-wrap;
+}
+
+.vlist{ display:grid; gap:10px; }
+.vlist__row{
+  display:grid; gap:10px; grid-template-columns:1fr; align-items:start;
+  border:1px solid var(--border); border-radius:12px; padding:12px; background:#fafbff;
+}
+@media (min-width:720px){ .vlist__row{ grid-template-columns:1fr auto; } }
+.vlist__title{ font-weight:700; }
+.vlist__desc{ opacity:.75; font-size:13px; margin-top:4px; }
+.vlist__evi{ opacity:.6; font-size:12px; margin-top:4px; }
+.vlist__chips{ display:flex; gap:6px; flex-wrap:wrap; }
+
+.chip{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:6px 10px; border-radius:999px; font-size:12px;
+  background:#f2f3f7; border:1px solid var(--border);
+}
+.chip--soft{ background:#eef6ff; border-color:rgba(0,122,255,.25); }
+.chip--outline{ background:transparent; }
+
+/* ---------- Reduced Motion ---------- */
+@media (prefers-reduced-motion: reduce){ *{ transition:none !important; animation:none !important; } }
+/* ======= RESPONSIVE HOTFIX: overflow & layout safety ======= */
+
+/* 0) Hiçbir şey yatay taşmasın */
+html, body { overflow-x: hidden; }
+.page, .lc-container, .lc-shell, .lc-plan-pane, .panel { min-width: 0; }
+
+/* 1) Medya ve uzun metin güvenliği */
+img, video, canvas, svg, table { max-width: 100%; height: auto; }
+pre, code, .preview-box, .lc-textarea, .aligned-table {
+  max-width: 100%;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* 2) Konteyner genişliği ve tam ekran */
+.lc-container { width: min(100%, 1320px); padding-inline: 16px; }
+
+/* 3) Shell kırılımı: tek sütun → iki sütun */
+.lc-shell { grid-template-columns: 1fr; }
+@media (min-width: 1120px) {
+  .lc-shell { grid-template-columns: minmax(320px, 440px) 1fr; }
+}
+
+/* 4) Sticky yalnızca büyük ekranda */
+.lc-sticky { position: static; top: auto; }
+@media (min-width: 1120px) {
+  .lc-sticky { position: sticky; top: 76px; }
+}
+
+/* 5) Derslerim grid’i taşmasın */
+.history-grid { grid-template-columns: 1fr; }
+@media (min-width: 1120px) {
+  .history-grid { grid-template-columns: minmax(300px, 360px) 1fr; }
+}
+.history-list { overflow-x: hidden; }
+.history-card { width: 100%; }
+
+/* 6) Toolbar ve inputlar esnesin */
+.history-toolbar__inputs, .history-toolbar__actions { min-width: 0; }
+.field-group, .input-plain, .select-plain { max-width: 100%; }
+.input-plain { width: clamp(180px, 32vw, 520px); }
+
+/* 7) Sekmeler ve yongalar çok satır sarılsın */
+.tabs, .lc-chipset, .chipset-wrap, .history-card__chips, .vlist__chips { flex-wrap: wrap; }
+.tab { max-width: 100%; }
+
+/* 8) Önizleme ve tablolar güvenli grid */
+.preview-grid { grid-template-columns: 1fr; }
+@media (min-width: 980px) {
+  .preview-grid { grid-template-columns: 1fr 1fr; }
+}
+.aligned-table { display: block; overflow-x: auto; }
+
+/* 9) Form alanları küçük ekranda %100 */
+.lc-textarea.input, .select-plain, .field-group, .btn { width: auto; max-width: 100%; }
+.textarea { min-height: 120px; }
+
+/* 10) Üst boşluk: hero kompakt, sağ panel iç-scroll yok */
+.lc-plan-pane { overflow: visible; }
+.hero { margin-top: 20px; }
+
+/* 11) Aşırı uzun chip/metin balonları satır kırabilsin */
+.lc-chip, .chip { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+/* ===== FIX: Sağ panel içi scroll + kompakt alignment ===== */
+
+/* 1) Sağ panel masaüstünde kendi içinde scroll yapsın, tabs sticky çalışsın */
+@media (min-width: 1100px){
+  .lc-plan-pane{
+    max-height: calc(100vh - 140px);
+    overflow: auto;
+    padding-right: 6px;   /* zarif scrollbar aralığı */
+  }
+  .lc-plan-pane::-webkit-scrollbar{ width: 10px; }
+  .lc-plan-pane::-webkit-scrollbar-thumb{
+    background: rgba(0,0,0,.15);
+    border-radius: 8px;
+  }
+}
+
+/* 2) ModeRibbon, panel scroll’unda da yapışkan kalsın */
+.mode-ribbon{ top: 0; position: sticky; z-index: 5; }
+
+/* 3) Alignment özetini iki satırda kırp (isteyen detay tablodan bakar) */
+.lc-section .m-0.op-70,
+.lc-section .m-0:not(.op-70){
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;  /* 2 satır */
+  overflow: hidden;
+}
+
+/* 4) Alignment tabloyu kompaktlaştır, satırlar taşmasın */
+.aligned-table{
+  display: block;         /* küçük ekranda güvenli kaydırma */
+  max-width: 100%;
+  overflow-x: auto;
+}
+.aligned-table th, .aligned-table td{
+  padding: 6px 8px;
+  vertical-align: top;
+  word-break: break-word;
+}
+.aligned-table td .lc-chipset{ gap:6px; }
+
+/* 5) Çok uzun chip/metinler balon içinde kırpılsın */
+.pill, .lc-chip, .chip{
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 6) Sağ panel içindeki section’lar arası boşluğu küçült */
+.lc-plan-pane .lc-section{ margin-bottom: 10px; }
+
+/* 7) Mobilde doğal akış; masaüstünde iki sütun sabit kalsın */
+@media (max-width: 1099px){
+  .lc-plan-pane{ max-height: none; overflow: visible; }
+}
+/* ===== EŞLEŞTİRME & VURGULAR – overflow fix ===== */
+
+/* Tablo asla sağa taşmasın; sabit yerleşim + sarmalama */
+.aligned-table{
+  width: 100%;
+  table-layout: fixed;          /* sütun genişliklerini sabitle */
+  border-collapse: collapse;
+  display: table;               /* bazı tarayıcılar için güvenlik */
+  overflow: hidden;             /* iç taşmaları gizle */
+}
+
+/* Sütun genişliklerini dengeli dağıt */
+.aligned-table thead th:nth-child(1),
+.aligned-table tbody td:nth-child(1){ width: 34%; }  /* Konu/Kavramlar */
+.aligned-table thead th:nth-child(2),
+.aligned-table tbody td:nth-child(2){ width: 26%; }  /* Vurgu */
+.aligned-table thead th:nth-child(3),
+.aligned-table tbody td:nth-child(3){ width: 28%; }  /* Kaynaklar */
+.aligned-table thead th:nth-child(4),
+.aligned-table tbody td:nth-child(4){ width: 12%; text-align:right; } /* Süre */
+
+/* Uzun metinler ve chipler güvenle sarılsın */
+.aligned-table th,
+.aligned-table td{
+  padding: 8px 10px;
+  vertical-align: top;
+  white-space: normal !important;
+  word-break: break-word;       /* uzun kelimeleri kır */
+  overflow-wrap: anywhere;      /* URL / uzun token kır */
+}
+
+/* Vurgu/Kaynak hücrelerindeki balonlar taşmasın */
+.aligned-table td .lc-chipset,
+.aligned-table td .pill,
+.aligned-table td .lc-chip{
+  max-width: 100%;
+  flex-wrap: wrap;
+  white-space: normal;
+}
+
+/* “Konu/Kavramlar” içindeki ikincil satırı kırp (çok uzunsa) */
+.aligned-table td .muted{
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;        /* 2 satırda kes */
+  overflow: hidden;
+}
+
+/* Küçük ekranlarda tablo kartlara dönüşsün (yatay kaydırma yok) */
+@media (max-width: 900px){
+  .aligned-table thead{ display:none; }
+  .aligned-table, .aligned-table tbody, .aligned-table tr, .aligned-table td{
+    display:block; width: 100%;
+  }
+  .aligned-table tr{
+    border:1px solid var(--border);
+    border-radius: 14px;
+    background:#fff;
+    padding:10px 12px;
+    margin:10px 0;
+  }
+  .aligned-table td{
+    padding:6px 0;
+    border-bottom: 1px dashed var(--hair);
+  }
+  .aligned-table td:last-child{
+    border-bottom: 0;
+    text-align:left;             /* “Süre” de sola gelsin mobilde */
+  }
+}
+/* ====== DERSLERİM (Sade Stil) ====== */
+
+/* Kartlar artık beyaz ve gölgesiz */
+.history-card{
+  background: #fff !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 14px !important;
+  padding: 12px 14px !important;
+  box-shadow: none !important;
+  transition: background .2s ease, border-color .2s ease;
+}
+
+/* Hover'da sadece çok hafif gri zemin */
+.history-card:hover{
+  background: #f9f9fb !important;
+  border-color: var(--border) !important;
+  transform: none !important;
+}
+
+/* Seçili kartta artık mavi parıltı yok, sadece gri çerçeve */
+.history-card--active{
+  background: #f2f3f5 !important;
+  border-color: #d2d2d7 !important;
+  box-shadow: none !important;
+}
+
+/* Yazılar ve chip'ler genel tonla uyumlu */
+.history-card__title{ font-weight:600; color:#111; }
+.history-card__meta{ opacity:.55; font-size:12px; }
+.history-card__chips .pill, 
+.history-card__chips .chip{
+  background:#f6f6f8 !important;
+  border-color:var(--border) !important;
+  color:#333 !important;
+}
+
+/* Detay panel de gölgesiz ve beyaz */
+.history-detail .panel{
+  background:#fff !important;
+  border:1px solid var(--border) !important;
+  box-shadow:none !important;
+}
+
+/* Chip'ler pastel ve sade */
+.chip, .lc-chip{
+  background:#f6f6f8 !important;
+  border:1px solid var(--border) !important;
+  color:#333;
+  box-shadow:none !important;
+}
+.chip--soft{ background:#f6f6f8 !important; border-color:var(--border) !important; }
+.chip--outline{ border-color:var(--border) !important; }
+
+/* Butonlar da düzleşsin */
+.btn, .btn-primary, .btn-ghost{
+  box-shadow:none !important;
+  border:1px solid var(--border) !important;
+  background:#fff !important;
+  color:#111 !important;
+}
+.btn:hover{
+  background:#f9f9fb !important;
+  transform:none !important;
+}
+
+/* Arka plan tonları eşit */
+.history-list{ background:transparent !important; }
+.history-detail{ background:transparent !important; }
+/* ===== New Lesson Modal ===== */
+/* ======== Apple Glass Modal (macOS Ventura style) ======== */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: saturate(180%) blur(18px);
+  -webkit-backdrop-filter: saturate(180%) blur(18px);
+  animation: modalFadeIn 0.25s ease-out both;
+}
+@keyframes modalFadeIn {
+  from { opacity: 0; } to { opacity: 1; }
+}
+
+.modal {
+  width: min(400px, 90vw);
+  background: linear-gradient(180deg, #fff 0%, #f9f9fb 100%);
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 20px;
+  box-shadow:
+    0 30px 60px rgba(0,0,0,0.25),
+    0 4px 18px rgba(0,0,0,0.07);
+  padding: 22px 20px 18px;
+  transform-origin: 50% 45%;
+  animation: modalPop 0.25s cubic-bezier(.18,.9,.25,1) both;
   text-align: center;
 }
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+@keyframes modalPop {
+  from { transform: translateY(10px) scale(.96); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.modal-title {
+  font-weight: 800;
+  font-size: 17px;
+  margin-bottom: 14px;
+  letter-spacing: .2px;
+  color: #111;
+  text-align:center;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.modal .lc-textarea.input {
+  border-radius: 14px;
+  border: 1px solid #e5e5ec;
+  background: #f7f7fb;
+  padding: 5px 20px;
+  font: inherit;
+  transition: border-color .2s, box-shadow .2s, background .2s;
+}
+.modal .lc-textarea.input:focus {
+  background: #fff;
+  border-color: #b5d5ff;
+  box-shadow: 0 0 0 6px rgba(0,122,255,.15);
+  outline: none;
+    text-align: center;
+
 }
 
-.card {
-  padding: 2em;
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 16px;
+  
+
+}
+.modal .btn {
+  border-radius: 12px;
+  padding: 8px 14px;
+  border: 1px solid rgba(0,0,0,0.08);
+  background: #fff;
+  color: #111;
+  font-weight: 500;
+  font-size: 14px;
+  box-shadow: none;
+  transition: background .2s, transform .1s;
+}
+.modal .btn:hover {
+  background: #f6f6f9;
+}
+.modal .btn:active {
+  transform: scale(.97);
+}
+.modal .btn-primary {
+  background: #007aff;
+  border-color: #007aff;
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(0,122,255,.25);
+}
+.modal .btn-primary:hover {
+  filter: brightness(1.05);
 }
 
-.read-the-docs {
-  color: #888;
+/* Reduce motion support */
+@media (prefers-reduced-motion: reduce) {
+  .modal, .modal-backdrop { animation: none !important; }
 }
