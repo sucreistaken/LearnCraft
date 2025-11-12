@@ -1,4 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
+import "./App.css";
+import { generateQuiz, submitQuiz } from "./lib/api"; // opsiyonel
+import LessonsHistoryPane from "./components/LessonsHistoryPane";
 
 /** -------- Types -------- */
 type Activity = { type: string; prompt: string; expected_outcome?: string };
@@ -64,7 +67,8 @@ type ModeId =
   | "lecturer-note"
   | "quiz"
   | "deep-dive"
-  | "exam-sprint";
+  | "exam-sprint"
+  | "history";
 
 function getInitialMode(): ModeId {
   const sp = new URLSearchParams(window.location.search);
@@ -86,41 +90,24 @@ export default function App() {
   const [mode, setMode] = useState<ModeId>(getInitialMode());
   const [quiz, setQuiz] = useState<string[]>([]);
 
+  // 🔹 Ders listesi & seçim
+  const [lessons, setLessons] = useState<
+    Array<{ id: string; title: string; createdAt?: string; progress?: { percent?: number; lastMode?: string } }>
+  >([]);
+  const [currentLessonId, setCurrentLessonId] = useState<string | null>(
+    localStorage.getItem("lc.lastLessonId")
+  );
+
+  // 🔹 Yeni Ders Modal state
+  const [showNewLessonModal, setShowNewLessonModal] = useState(false);
+  const [newLessonTitle, setNewLessonTitle] = useState("");
+  const [draftTitle, setDraftTitle] = useState<string>(""); // isim alındı ama id yoksa
+  const [lastSelectedLessonId, setLastSelectedLessonId] = useState<string | null>(null);
+
   const canSubmit = useMemo(
     () => !loading && lectureText.trim().length > 0 && slidesText.trim().length > 0,
     [loading, lectureText, slidesText]
   );
-
-  // ---- Global UX Styles + Layout
-  const uxFix = `
-    html,body,#root{ background:#f5f5f7; }
-    .lc-container{ max-width:1360px; margin:0 auto; padding:0 16px 32px; }
-    .lc-shell{ display:grid; gap:16px; }
-    @media (min-width:1200px){ .lc-shell{ grid-template-columns: 420px 1fr; align-items:start; } }
-    .lc-sticky{ position:sticky; top:72px; }
-    .lc-plan-pane{ min-width:0; max-height: calc(100dvh - 72px - 120px); overflow:auto; padding-right:4px; }
-    .lc-plan-pane::-webkit-scrollbar{ width:10px; } .lc-plan-pane::-webkit-scrollbar-thumb{ background:#d1d1d6; border-radius:8px; }
-    .lc-textarea{ background:#fbfbfd; border:1px solid #d1d1d6; color:#111; border-radius:16px; padding:12px; outline:none; box-shadow: inset 0 1px 0 rgba(0,0,0,.02); transition:.15s; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,system-ui; }
-    .lc-textarea::placeholder{ color:#8e8e93; } .lc-textarea:focus{ background:#fff; border-color:#007aff; box-shadow: 0 0 0 4px rgba(0,122,255,.12), inset 0 1px 0 rgba(0,0,0,.02); }
-    .lc-acc{ background:#fff; border:1px solid #e5e5ea; border-radius:16px; box-shadow: 0 6px 18px rgba(0,0,0,.03); overflow:hidden; }
-    .lc-acc-head{ display:flex; align-items:center; justify-content:space-between; padding:14px 16px; cursor:pointer; }
-    .lc-acc-title{ font-weight:800; font-size:18px; } .lc-acc-sub{ opacity:.6; font-size:13px; } .lc-acc-body{ padding:10px 12px 14px; border-top:1px dashed #eee; }
-    .lc-lesson-grid{ display:grid; gap:12px; grid-template-columns: 1fr; }
-    @media (min-width:900px){ .lc-lesson-grid{ grid-template-columns: repeat(2, minmax(260px, 1fr)); } }
-    @media (min-width:1400px){ .lc-lesson-grid{ grid-template-columns: repeat(2, minmax(320px, 1fr)); } }
-    .lc-lesson{ border:1px solid #efeff4; border-radius:14px; background:#fff; padding:12px; }
-    .lc-lesson-head{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:6px; }
-    .lc-badge{ background:#111; color:#fff; border-radius:999px; font-size:12px; padding:4px 10px; line-height:1.2; }
-    .lc-obj{ opacity:.85; margin:2px 0 6px; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; }
-    .lc-chipset{display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 14px;}
-    .lc-chip{ border:1px solid #e5e5ea; background:#fff; border-radius:999px; padding:6px 10px; font-size:13px; }
-    .lc-section{ background:#fff; border:1px solid #e5e5ea; border-radius:20px; padding:16px; box-shadow:0 6px 18px rgba(0,0,0,.03); }
-    .pill{ padding:3px 8px; border:1px solid #e5e5ea; border-radius:999px; font-size:12px; }
-    .aligned-table{ width:100%; border-collapse: collapse; }
-    .aligned-table th, .aligned-table td{ border-bottom:1px dashed #eee; padding:8px 6px; text-align:left; vertical-align:top; }
-    .aligned-table th{ font-size:12px; opacity:.6; font-weight:700; }
-    .aligned-table .muted{ opacity:.65; font-size:12px; }
-  `;
 
   // URL & localStorage senkronu
   useEffect(() => {
@@ -130,7 +117,7 @@ export default function App() {
     localStorage.setItem("lc.mode", mode);
   }, [mode]);
 
-  // Kısayollar: 1..6
+  // Kısayollar: 1..7
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement)?.closest("input,textarea,[contenteditable=true]")) return;
@@ -141,6 +128,7 @@ export default function App() {
         "4": "quiz",
         "5": "deep-dive",
         "6": "exam-sprint",
+        "7": "history",
       };
       if (map[e.key]) setMode(map[e.key]);
     };
@@ -148,31 +136,101 @@ export default function App() {
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
+  // 🔹 Dersleri yükle
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await fetch(`${API_BASE}/api/lessons`);
+        const j = await r.json();
+        if (Array.isArray(j)) setLessons(j);
+        // hiç ders yoksa seçiciden "Yeni Ders" açıldığında modal gelsin
+      } catch (err) {
+        console.warn("ders listesi alınamadı:", err);
+      }
+    })();
+  }, []);
+
+  // 🔹 Bir ders seçilince formu doldur
+  useEffect(() => {
+    if (!currentLessonId) return;
+    (async () => {
+      try {
+        const r = await fetch(`${API_BASE}/api/lessons/${currentLessonId}`);
+        if (!r.ok) return;
+        const l = await r.json();
+        if (typeof l?.transcript === "string") setLectureText(l.transcript);
+        if (typeof l?.slideText === "string") setSlidesText(l.slideText);
+        if (l?.plan) setPlan(l.plan);
+      } catch (e) {
+        console.warn("ders detayı çekilemedi:", e);
+      }
+    })();
+  }, [currentLessonId]);
+
+  // Taslak modunda formu temiz tut (güvence)
+  useEffect(() => {
+    if (!currentLessonId && draftTitle) {
+      setLectureText("");
+      setSlidesText("");
+      setPlan(null);
+      setQuiz([]);
+    }
+  }, [currentLessonId, draftTitle]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSubmit) return;
+
     setLoading(true);
     setErr(null);
     setPlan(null);
     setQuiz([]);
 
     try {
+      const titleGuess =
+        draftTitle || (plan as any)?.topic || `Lecture ${new Date().toLocaleDateString()}`;
+
       const r = await fetch(`${API_BASE}/api/plan-from-text`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lectureText, slidesText }),
+        body: JSON.stringify({
+          lectureText,
+          slidesText,
+          title: titleGuess,
+          lessonId: currentLessonId ?? undefined,
+        }),
       });
 
-      const txt = await r.text();
-      let j: any = null;
-      try { j = JSON.parse(txt); } catch {}
-      if (!r.ok) throw new Error(j?.error || txt || "Sunucu hatası");
-      if (!j?.ok) throw new Error(j?.error || "Plan üretilemedi");
+      const j = await r.json().catch(() => null);
+
+      if (!r.ok || !j?.ok) {
+        throw new Error(j?.error || "Sunucu hatası");
+      }
+
+      if (j.lessonId) {
+        const isNewlyCreated = !currentLessonId;
+        setCurrentLessonId(j.lessonId);
+        localStorage.setItem("lc.lastLessonId", j.lessonId);
+
+        // Listeyi anında senkronla
+        setLessons((ls) => {
+          const exists = ls.some((x) => x.id === j.lessonId);
+          if (exists) {
+            return ls.map((x) => (x.id === j.lessonId ? { ...x, title: titleGuess } : x));
+          } else if (isNewlyCreated) {
+            return [{ id: j.lessonId, title: titleGuess, date: new Date().toISOString() }, ...ls];
+          }
+          return ls;
+        });
+
+        setDraftTitle(""); // taslak bitti
+      }
 
       const p = j.plan as Plan;
       setPlan(p);
-      if (p.seed_quiz?.length) setQuiz(p.seed_quiz.slice(0, 12));
-      setMode("alignment"); // üretim sonrası direkt eşleştirme sekmesine geç
+      if (p?.seed_quiz?.length) setQuiz(p.seed_quiz.slice(0, 12));
+
+      setMode("alignment");
     } catch (e: any) {
       setErr(e?.message || "İstek hatası");
     } finally {
@@ -181,60 +239,98 @@ export default function App() {
   }
 
   return (
-    <div style={st.page}>
-      <style dangerouslySetInnerHTML={{ __html: uxFix }} />
-
+    <div className="page">
       {/* Navbar */}
-      <div style={st.nav}>
-        <div style={st.brand}>
-          <div style={st.brandDot} />
-          <span style={st.brandText}>LearnCraft</span>
+      <div className="nav">
+        <div className="brand">
+          <div className="brand-dot" />
+          <span className="brand-text">LearnCraft</span>
         </div>
-        <div style={{ flex: 1 }} />
-        <div style={st.pill}>Planlar</div>
-        <div style={st.pill}>İçgörüler</div>
+        <div className="flex-1" />
+        <div className="pill">Planlar</div>
+        <div className="pill">İçgörüler</div>
       </div>
 
       <div className="lc-container">
         {/* Hero */}
-        <header style={st.hero}>
-          <h1 style={st.h1}>Öğretmen Metni + Slayt Eşleştirme & Vurgular</h1>
-          <p style={st.sub}>Konuşma ve PDF içeriğini karşılaştır; vurguları ve süreleri beraber görelim.</p>
+        <header className="hero">
+          <h1 className="h1">Öğretmen Metni + Slayt Eşleştirme & Vurgular</h1>
+          <p className="sub">Konuşma ve PDF içeriğini karşılaştır; vurguları ve süreleri beraber görelim.</p>
         </header>
 
         <div className="lc-shell">
           {/* Sol: Sticky Form */}
           <div className="lc-sticky">
-            <form style={st.card} onSubmit={handleSubmit}>
-              <label style={st.label}>Hocanın Konuşma Metni</label>
+            <form className="card" onSubmit={handleSubmit}>
+              {/* Ders Seçici */}
+              <label className="label">Ders Seç</label>
+              <select
+                className="lc-select"
+                value={currentLessonId ?? "__none__"}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setLastSelectedLessonId(currentLessonId);
+
+                  if (val === "__new__") {
+                    // Yeni ders akışı → modal
+                    setNewLessonTitle("");
+                    setShowNewLessonModal(true);
+                    return;
+                  }
+                  if (val === "__none__") {
+                    setCurrentLessonId(null);
+                    localStorage.removeItem("lc.lastLessonId");
+                    return;
+                  }
+                  // Mevcut derse geçiş
+                  setCurrentLessonId(val);
+                  localStorage.setItem("lc.lastLessonId", val);
+                }}
+              >
+                <option value="__new__">➕ Yeni Ders Oluştur</option>
+                {/* görünmez no-selection durumu (controlled select için) */}
+                <option value="__none__" style={{ display: "none" }}>—</option>
+                {/* Taslak varsa (modalda isim alındı ama id yok) kullanıcı görsün */}
+                {draftTitle ? (
+                  <option value="__none__">📝 Taslak: {draftTitle}</option>
+                ) : null}
+                {lessons.map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {l.title}
+                    {typeof l?.progress?.percent === "number"
+                      ? ` • %${Math.round(l.progress.percent)}`
+                      : ""}
+                  </option>
+                ))}
+              </select>
+
+              <label className="label">Hocanın Konuşma Metni</label>
               <textarea
-                className="lc-textarea"
+                className="lc-textarea textarea"
                 value={lectureText}
                 onChange={(e) => setLectureText(e.target.value)}
                 placeholder="LEC: ders konuşma metni buraya..."
                 rows={8}
-                style={st.textarea}
               />
 
-              <label style={st.label}>PDF/Slayt Metni</label>
+              <label className="label">PDF/Slayt Metni</label>
               <textarea
-                className="lc-textarea"
+                className="lc-textarea textarea"
                 value={slidesText}
                 onChange={(e) => setSlidesText(e.target.value)}
                 placeholder="SLIDE: PDF'ten alınmış metin (başlıklar, maddeler...)"
                 rows={8}
-                style={st.textarea}
               />
 
-              <div style={st.actions}>
+              <div className="actions">
                 <button
                   type="submit"
                   disabled={!canSubmit}
-                  style={canSubmit ? st.button : st.buttonDisabled}
+                  className={canSubmit ? "btn" : "btn btn--disabled"}
                 >
                   {loading ? "Analiz ediliyor…" : "Plan + Eşleştirme Oluştur"}
                 </button>
-                {err && <span style={st.error}>❌ {err}</span>}
+                {err && <span className="error">❌ {err}</span>}
               </div>
             </form>
           </div>
@@ -247,7 +343,7 @@ export default function App() {
               plan ? (
                 <PlanPane plan={plan} />
               ) : (
-                <div className="lc-section" style={{ opacity: 0.6 }}>
+                <div className="lc-section muted-block">
                   Henüz plan yok. Soldaki metinlerle bir plan üretin.
                 </div>
               )
@@ -257,7 +353,7 @@ export default function App() {
               plan ? (
                 <AlignmentPane plan={plan} />
               ) : (
-                <div className="lc-section" style={{ opacity: 0.6 }}>
+                <div className="lc-section muted-block">
                   Henüz eşleştirme yok. Soldan üret.
                 </div>
               )
@@ -277,6 +373,21 @@ export default function App() {
                 setQuiz={setQuiz}
                 hasPlan={!!plan}
                 plan={plan}
+                lectureText={lectureText}
+                slidesText={slidesText}
+              />
+            )}
+
+            {mode === "history" && (
+              <LessonsHistoryPane
+                setMode={setMode}
+                setQuiz={setQuiz}
+                onSelectLesson={(id: string) => {
+                  // 🔹 Geçmişten derse tıklanınca App’e bildir → dersi yükle & Plan moduna geç
+                  setCurrentLessonId(id);
+                  localStorage.setItem("lc.lastLessonId", id);
+                  setMode("plan");
+                }}
               />
             )}
 
@@ -285,8 +396,86 @@ export default function App() {
           </div>
         </div>
 
-        <footer style={st.footer}>© {new Date().getFullYear()} LearnCraft</footer>
+        <footer className="footer">© {new Date().getFullYear()} LearnCraft</footer>
       </div>
+
+      {/* Yeni Ders Modalı */}
+      {showNewLessonModal && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true">
+          <div className="modal">
+            <div className="modal-title">Yeni ders adı nedir?</div>
+            <input
+              autoFocus
+              className="lc-textarea input"
+              placeholder="Örn: PHYS 101"
+              value={newLessonTitle}
+              onChange={(e)=>setNewLessonTitle(e.target.value)}
+              onKeyDown={(e)=>{
+                if (e.key === "Enter") (document.getElementById("createLessonBtn") as HTMLButtonElement)?.click();
+                if (e.key === "Escape") (document.getElementById("cancelLessonBtn") as HTMLButtonElement)?.click();
+              }}
+            />
+            <div className="modal-actions">
+              <button
+                id="cancelLessonBtn"
+                className="btn"
+                onClick={()=>{
+                  setShowNewLessonModal(false);
+                  // iptal → eski derse geri dön
+                  const prev = lastSelectedLessonId ?? localStorage.getItem("lc.lastLessonId");
+                  if (prev) setCurrentLessonId(prev);
+                  else setCurrentLessonId(null);
+                }}
+              >
+                İptal
+              </button>
+              <button
+                id="createLessonBtn"
+                className="btn btn-primary"
+                onClick={async ()=>{
+                  const name = newLessonTitle.trim();
+                  if (!name) return;
+
+                  // Formu sıfırla – yeni derse temiz başlangıç
+                  setLectureText("");
+                  setSlidesText("");
+                  setPlan(null);
+                  setQuiz([]);
+                  setDraftTitle(name);
+
+                  // Backend'de oluşturmayı dene (varsa)
+                  let createdId: string | null = null;
+                  try {
+                    const r = await fetch(`${API_BASE}/api/lessons`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ title: name })
+                    });
+                    const j = await r.json().catch(()=>null);
+                    if (r.ok && j?.id) createdId = j.id;
+                  } catch {}
+
+                  if (createdId) {
+                    // listeye anında ekle ve seç
+                    setLessons(ls => [{ id: createdId!, title: name, date: new Date().toISOString() }, ...ls]);
+                    setCurrentLessonId(createdId);
+                    localStorage.setItem("lc.lastLessonId", createdId);
+                    setDraftTitle("");
+                  } else {
+                    // henüz id yok → plan üretiminde gelecek
+                    setCurrentLessonId(null);
+                    localStorage.removeItem("lc.lastLessonId");
+                  }
+
+                  setShowNewLessonModal(false);
+                }}
+              >
+                Oluştur
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -300,29 +489,17 @@ function ModeRibbon({ mode, setMode }: { mode: ModeId; setMode: (m: ModeId) => v
     { id: "quiz", label: "Quiz" },
     { id: "deep-dive", label: "Derinleşme" },
     { id: "exam-sprint", label: "Sprint" },
+    { id: "history", label: "Derslerim" },
   ];
   return (
-    <div
-      style={{
-        position: "sticky", top: 0, zIndex: 5,
-        background: "rgba(245,245,247,0.85)", backdropFilter: "blur(8px)",
-        padding: "8px 0", marginBottom: 8, borderBottom: "1px solid #e5e5ea",
-      }}
-    >
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        {tabs.map((t) => (
+    <div className="mode-ribbon">
+      <div className="tabs">
+        {tabs.map((t, idx) => (
           <button
             key={t.id}
             onClick={() => setMode(t.id)}
-            style={{
-              padding: "6px 12px",
-              borderRadius: 999,
-              border: "1px solid #e5e5ea",
-              background: mode === t.id ? "#111" : "#fff",
-              color: mode === t.id ? "#fff" : "#111",
-              fontWeight: 800, fontSize: 13,
-            }}
-            title={`Kısayol: ${["plan","alignment","lecturer-note","quiz","deep-dive","exam-sprint"].indexOf(t.id)+1}`}
+            className={`tab ${mode === t.id ? "tab--active" : ""}`}
+            title={`Kısayol: ${idx + 1}`}
           >
             {t.label}
           </button>
@@ -335,12 +512,12 @@ function ModeRibbon({ mode, setMode }: { mode: ModeId; setMode: (m: ModeId) => v
 /** -------- Plan -------- */
 function PlanPane({ plan }: { plan: Plan }) {
   return (
-    <div style={{ display: "grid", gap: 16 }}>
-      <header className="lc-section" style={{ paddingBottom: 10 }}>
-        <div style={st.planHeader}>
+    <div className="grid-gap-16">
+      <header className="lc-section pad-b-10">
+        <div className="plan-header">
           <div>
-            <div style={st.planTitle}>{plan.topic || "Öğrenme Planı"}</div>
-            <div style={st.planMeta}>
+            <div className="plan-title">{plan.topic || "Öğrenme Planı"}</div>
+            <div className="plan-meta">
               {plan.duration_weeks ? `${plan.duration_weeks} hafta` : "Süre: belirtilmedi"}
               {plan.key_concepts?.length ? ` • ${plan.key_concepts.length} ana kavram` : ""}
             </div>
@@ -362,8 +539,8 @@ function PlanPane({ plan }: { plan: Plan }) {
 
       {plan.resources?.length ? (
         <section className="lc-section">
-          <div style={st.resourcesTitle}>Kaynak Önerileri</div>
-          <ul style={st.ul}>{plan.resources.map((r, i) => (<li key={i}>{r}</li>))}</ul>
+          <div className="resources-title">Kaynak Önerileri</div>
+          <ul className="ul">{plan.resources.map((r, i) => (<li key={i}>{r}</li>))}</ul>
         </section>
       ) : null}
     </div>
@@ -381,7 +558,7 @@ function ModuleAccordion({
           <div className="lc-acc-title">{index + 1}. {mod.title}</div>
           <div className="lc-acc-sub">{mod.goal}</div>
         </div>
-        <div style={{ opacity: 0.5, fontWeight: 700 }}>{open ? "−" : "+"}</div>
+        <div className="op-50 fw-700">{open ? "−" : "+"}</div>
       </div>
       {open && (
         <div className="lc-acc-body">
@@ -389,21 +566,21 @@ function ModuleAccordion({
             {mod.lessons?.map((l, li) => (
               <div key={li} className="lc-lesson">
                 <div className="lc-lesson-head">
-                  <div style={{ fontWeight: 800 }}>{l.title}</div>
+                  <div className="fw-800">{l.title}</div>
                   <div className="lc-badge">{prettyMinutes(l.study_time_min)}</div>
                 </div>
                 <div className="lc-obj">{l.objective}</div>
-                <ul style={st.list}>
+                <ul className="list">
                   {l.activities?.map((a, ai) => (
-                    <li key={ai} style={st.listItem}>
-                      <span style={st.actType}>{a.type}</span><span> — {a.prompt}</span>
+                    <li key={ai} className="list-item">
+                      <span className="act-type">{a.type}</span><span> — {a.prompt}</span>
                     </li>
                   ))}
                 </ul>
                 {l.mini_quiz?.length ? (
-                  <div style={st.quizBox}>
-                    <div style={st.quizTitle}>Mini Quiz</div>
-                    <ol style={st.ol}>{l.mini_quiz.map((q, qi) => (<li key={qi}>{q}</li>))}</ol>
+                  <div className="quiz-box">
+                    <div className="quiz-title">Mini Quiz</div>
+                    <ol className="ol">{l.mini_quiz.map((q, qi) => (<li key={qi}>{q}</li>))}</ol>
                   </div>
                 ) : null}
               </div>
@@ -415,19 +592,19 @@ function ModuleAccordion({
   );
 }
 
-/** -------- Alignment (eşleştirme & süreler) -------- */
+/** -------- Alignment -------- */
 function AlignmentPane({ plan }: { plan: Plan }) {
   const a = plan.alignment;
   const avg = a?.average_duration_min ?? average(a?.items?.map(i => i.duration_min) || []);
 
   return (
-    <div style={{ display:"grid", gap:12 }}>
-      <section className="lc-section" style={{ display:"grid", gap:10 }}>
-        <div style={{ fontWeight: 800, fontSize: 18 }}>Eşleştirme Özeti</div>
+    <div className="grid-gap-12">
+      <section className="lc-section grid-gap-10">
+        <div className="fw-800 fs-18">Eşleştirme Özeti</div>
         {a?.summary_chatty ? (
-          <p style={{ margin:0 }}>{a.summary_chatty}</p>
+          <p className="m-0">{a.summary_chatty}</p>
         ) : (
-          <p className="muted" style={{ margin:0, opacity:.7 }}>
+          <p className="m-0 op-70">
             Özet metni bulunamadı. Yine de aşağıdaki tablo eşleşmeleri ve süreleri gösterir.
           </p>
         )}
@@ -450,23 +627,23 @@ function AlignmentPane({ plan }: { plan: Plan }) {
             {(a?.items || []).map((it, i) => (
               <tr key={i}>
                 <td>
-                  <div style={{ fontWeight:700 }}>{it.topic}</div>
+                  <div className="fw-700">{it.topic}</div>
                   {!!it.concepts?.length && (
                     <div className="muted"> {it.concepts.join(", ")} </div>
                   )}
                 </td>
                 <td>
-                  <div className="lc-chipset" style={{ margin:0 }}>
+                  <div className="lc-chipset m-0">
                     <span className="pill">{it.in_both ? "Konuşma+Slayt" : "Tek kaynak"}</span>
                     <span className="pill">Emphasis: {it.emphasis_level}</span>
-                    <span className="pill">Güven: %{Math.round((it.confidence ?? 0)*100)}</span>
+                    <span className="pill">Güven: %{Math.round((it.confidence ?? 0) * 100)}</span>
                   </div>
                 </td>
                 <td>
-                  {it.lecture_quotes?.slice(0,2).map((q,qi)=>(<div key={qi} className="muted">“{q}”</div>))}
-                  {it.slide_refs?.slice(0,2).map((s,si)=>(<div key={si} className="muted">• {s}</div>))}
+                  {it.lecture_quotes?.slice(0, 2).map((q, qi) => (<div key={qi} className="muted">“{q}”</div>))}
+                  {it.slide_refs?.slice(0, 2).map((s, si) => (<div key={si} className="muted">• {s}</div>))}
                 </td>
-                <td style={{ fontWeight:700 }}>{Number.isFinite(it.duration_min) ? it.duration_min.toFixed(1) : "—"}</td>
+                <td className="fw-700">{Number.isFinite(it.duration_min) ? it.duration_min.toFixed(1) : "—"}</td>
               </tr>
             ))}
             {!a?.items?.length && (
@@ -481,53 +658,49 @@ function AlignmentPane({ plan }: { plan: Plan }) {
 
 function average(ns: number[]) {
   if (!ns.length) return NaN;
-  const s = ns.reduce((a,b)=>a+(Number.isFinite(b)?b:0),0);
+  const s = ns.reduce((a, b) => a + (Number.isFinite(b) ? b : 0), 0);
   const c = ns.filter(n => Number.isFinite(n)).length;
   return c ? s / c : NaN;
 }
 
-/** -------- Lecturer Note (emphases listesi) -------- */
+/** -------- Lecturer Note -------- */
 function LecturerNotePane({
   lectureText, slidesText, emphases,
 }: { lectureText: string; slidesText: string; emphases: Emphasis[] }) {
   return (
-    <div style={{ display: "grid", gap: 12 }}>
+    <div className="grid-gap-12">
       <Section title="Hoca burada çok değindi (slaytta yok)">
-        <div style={{ opacity: 0.75, fontSize: 13 }}>
+        <div className="op-75 fs-13">
           Aşağıda otomatik çıkarılan vurgular var. Düzenleyip görev oluşturabilirsin.
         </div>
 
-        <div className="lc-section" style={{ display:"grid", gap:10 }}>
+        <div className="lc-section grid-gap-10">
           {emphases?.length ? emphases.map((e, i) => (
-            <div key={i} style={{ display:"grid", gridTemplateColumns:"1fr auto auto", gap:8, alignItems:"center" }}>
+            <div key={i} className="row-3col">
               <div>
-                <div style={{ fontWeight: 700 }}>{e.statement}</div>
-                <div style={{ opacity:.75, fontSize:13 }}>{e.why}</div>
-                <div style={{ opacity:.6, fontSize:12 }}>Kanıt: {e.evidence || "—"}</div>
+                <div className="fw-700">{e.statement}</div>
+                <div className="op-75 fs-13">{e.why}</div>
+                <div className="op-60 fs-12">Kanıt: {e.evidence || "—"}</div>
               </div>
               <span className="pill">{e.in_slides ? "Slaytta var" : "Slaytta yok"}</span>
               <span className="pill">%{Math.round((e.confidence ?? 0) * 100)}</span>
             </div>
-          )) : <div style={{ opacity:.65 }}>Henüz vurgu çıkarımı yok. Plan ürettikten sonra burada listelenir.</div>}
+          )) : <div className="op-65">Henüz vurgu çıkarımı yok. Plan ürettikten sonra burada listelenir.</div>}
         </div>
 
-        <div style={{ display: "grid", gap: 8 }}>
-          <input className="lc-textarea" placeholder="Konu/Başlık" style={{ minHeight: 44 }} />
-          <textarea className="lc-textarea" placeholder="Neden önemli? (Sınavda kısa cevap olabilir...)" rows={4} />
-          <textarea className="lc-textarea" placeholder="Kaynak/kanıt: Kitap s. 142, ders dakikası 18:35..." rows={3} />
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <button style={st.button}>Kaydet</button>
-            <button style={st.button}>Görev Oluştur</button>
+        <div className="grid-gap-8">
+          <input className="lc-textarea input" placeholder="Konu/Başlık" />
+          <textarea className="lc-textarea textarea" placeholder="Neden önemli? (Sınavda kısa cevap olabilir...)" rows={4} />
+          <textarea className="lc-textarea textarea" placeholder="Kaynak/kanıt: Kitap s. 142, ders dakikası 18:35..." rows={3} />
+          <div className="flex-gap-8">
+            <button className="btn">Kaydet</button>
+            <button className="btn">Görev Oluştur</button>
           </div>
         </div>
 
-        <div style={{ fontSize: 12, opacity: 0.5 }}>Girdilerinden örnekler:</div>
-        <pre className="lc-textarea" style={{ whiteSpace: "pre-wrap", minHeight: 80 }}>
-          {lectureText.slice(0, 400) || "LEC boş"}
-        </pre>
-        <pre className="lc-textarea" style={{ whiteSpace: "pre-wrap", minHeight: 80 }}>
-          {slidesText.slice(0, 400) || "SLIDE boş"}
-        </pre>
+        <div className="fs-12 op-50">Girdilerinden örnekler:</div>
+        <pre className="lc-textarea preview">{lectureText.slice(0, 400) || "LEC boş"}</pre>
+        <pre className="lc-textarea preview">{slidesText.slice(0, 400) || "SLIDE boş"}</pre>
       </Section>
     </div>
   );
@@ -535,20 +708,87 @@ function LecturerNotePane({
 
 /** -------- Quiz -------- */
 function QuizPane({
-  quiz, setQuiz, hasPlan, plan,
-}: { quiz: string[]; setQuiz: (q: string[]) => void; hasPlan: boolean; plan: Plan | null }) {
+  quiz, setQuiz, hasPlan, plan, lectureText, slidesText,
+}: {
+  quiz: string[];
+  setQuiz: (q: string[]) => void;
+  hasPlan: boolean;
+  plan: any | null;
+  lectureText: string;
+  slidesText: string;
+}) {
+  const [answers, setAnswers] = React.useState<Record<number, {
+    short_answer: string;
+    explanation: string;
+    evidence: { lec?: { quote: string }[]; slide?: { quote: string }[] };
+    confidence: number;
+  }>>({});
+
+  const [pack, setPack] = React.useState<any | null>(null);
+  const [answersById, setAnswersById] = React.useState<Record<string, string | boolean>>({});
+  const [result, setResult] = React.useState<any | null>(null);
+  const [loading, setLoading] = React.useState(false);
+
+  const createQuiz = async () => {
+    setLoading(true);
+    try {
+      const r = await fetch(`${API_BASE}/api/quiz/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ count: 10 })
+      });
+      const p = await r.json();
+      if (p?.error) { alert(p.error); return; }
+      setPack(p);
+      setAnswersById({});
+      setResult(null);
+      const qlist = (p.items || []).map((q: any) => q.prompt);
+      setQuiz(qlist);
+    } catch (e: any) {
+      alert(e?.message || "Quiz oluşturulamadı");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const [loadingAns, setLoadingAns] = React.useState(false);
+
+  async function fetchAnswers() {
+    if (!quiz.length || !lectureText || !slidesText) return;
+    setLoadingAns(true);
+    try {
+      const r = await fetch(`${API_BASE}/api/quiz-answers`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questions: quiz, lectureText, slidesText, plan }),
+      });
+      const j = await r.json();
+      if (j.ok) {
+        const map: Record<number, any> = {};
+        (j.answers as any[]).forEach((a, i) => { map[i] = a; });
+        setAnswers(map);
+      } else {
+        alert(j.error || "Cevaplar üretilemedi");
+      }
+    } catch (e: any) {
+      alert(e?.message || "İstek hatası");
+    } finally {
+      setLoadingAns(false);
+    }
+  }
+
   return (
-    <div style={{ display: "grid", gap: 12 }}>
+    <div className="grid-gap-12">
       <Section title="Quiz Modu">
         <div className="lc-chipset">
           <div className="lc-chip">Süre: 15–20 dk</div>
           <div className="lc-chip">Yanlışlara mini tekrar</div>
-          <div className="lc-chip">Karışık konu puanı</div>
+          <div className="lc-chip">Kanıtlı cevaplar</div>
         </div>
 
-        <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+        <div className="flex-gap-8">
           <button
-            style={!hasPlan ? st.buttonDisabled : st.button}
+            className={!hasPlan ? "btn btn--disabled" : "btn"}
             disabled={!hasPlan}
             onClick={async () => {
               try {
@@ -568,24 +808,72 @@ function QuizPane({
             10 Soru Üret / Yenile
           </button>
 
-          <button
-            style={quiz.length ? st.button : st.buttonDisabled}
-            disabled={!quiz.length}
-            onClick={() => navigator.clipboard?.writeText(quiz.map((q, i) => `${i + 1}. ${q}`).join("\n"))}
-          >
-            Kopyala
+          <button className="btn" onClick={createQuiz} disabled={loading}>
+            {loading ? "Quiz oluşturuluyor…" : "Vurgulardan Quiz Oluştur"}
           </button>
 
-          {!hasPlan && <span style={{ fontSize: 12, opacity: 0.7 }}>Önce “Plan” üret.</span>}
+          <button
+            className={quiz.length ? "btn" : "btn btn--disabled"}
+            disabled={!quiz.length || loadingAns}
+            onClick={fetchAnswers}
+          >
+            {loadingAns ? "Cevaplar getiriliyor…" : "Cevapları Göster"}
+          </button>
+
+          <button
+            className={quiz.length ? "btn" : "btn btn--disabled"}
+            disabled={!quiz.length}
+            onClick={() =>
+              navigator.clipboard?.writeText(quiz.map((q, i) => `${i + 1}. ${q}`).join("\n"))
+            }
+          >
+            Soruları Kopyala
+          </button>
+
+          {!hasPlan && <span className="hint">Önce “Plan” üret.</span>}
         </div>
 
-        <div className="lc-section" style={{ paddingTop: 8 }}>
+        <div className="lc-section pad-top-8">
           {quiz.length ? (
-            <ol style={{ paddingLeft: 18, margin: 0 }}>
-              {quiz.map((q, i) => <li key={i} style={{ margin:"6px 0" }}>{q}</li>)}
+            <ol className="ol-reset">
+              {quiz.map((q, i) => (
+                <li key={i} className="q-item">
+                  <div className="fw-700">{q}</div>
+
+                  {/* Cevap kartı */}
+                  {answers[i] ? (
+                    <div className="lc-section answer-card">
+                      <div><b>Kısa cevap:</b> {answers[i].short_answer}</div>
+                      <div className="mt-6">{answers[i].explanation}</div>
+                      <div className="lc-chipset mt-8">
+                        <div className="lc-chip">
+                          Güven: %{Math.round((answers[i].confidence ?? 0) * 100)}
+                        </div>
+                      </div>
+                      <div className="evidence">
+                        <b>Kanıt (LEC):</b>{" "}
+                        {answers[i].evidence?.lec?.length
+                          ? answers[i].evidence.lec.map((e: any) => `“${e.quote}”`).join(" • ")
+                          : "—"}
+                        <br />
+                        <b>Kanıt (SLIDE):</b>{" "}
+                        {answers[i].evidence?.slide?.length
+                          ? answers[i].evidence.slide.map((e: any) => `“${e.quote}”`).join(" • ")
+                          : "—"}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="muted small mt-6">
+                      Cevabı görmek için “Cevapları Göster”e tıkla.
+                    </div>
+                  )}
+                </li>
+              ))}
             </ol>
           ) : (
-            <div style={{ opacity: 0.65 }}>Henüz soru yok. “10 Soru Üret / Yenile”ye tıkla veya plandan gelen seed sorular görüntülenir.</div>
+            <div className="op-65">
+              Henüz soru yok. “10 Soru Üret / Yenile” veya “Vurgulardan Quiz Oluştur”a tıkla.
+            </div>
           )}
         </div>
       </Section>
@@ -596,15 +884,15 @@ function QuizPane({
 /** -------- Diğer paneller -------- */
 function DeepDivePane() {
   return (
-    <div style={{ display: "grid", gap: 12 }}>
+    <div className="grid-gap-12">
       <Section title="Derinleşme (Boşluk Analizi)">
-        <textarea className="lc-textarea" placeholder="Eksiğim ne? (Örn: QQ plot yorumu, Ki-kare p-değeri...)" rows={4} />
-        <input className="lc-textarea" placeholder="Kaynak/Link/Sayfa (Slide 21-33, kitap 98-105...)" style={{ minHeight: 44 }} />
-        <div style={{ display: "flex", gap: 8 }}>
-          <input className="lc-textarea" placeholder="Son tarih (YYYY-AA-GG)" style={{ minHeight: 44, maxWidth: 220 }} />
-          <button style={st.button}>Okuma Listesi Üret</button>
+        <textarea className="lc-textarea textarea" placeholder="Eksiğim ne? (Örn: QQ plot yorumu, Ki-kare p-değeri...)" rows={4} />
+        <input className="lc-textarea input" placeholder="Kaynak/Link/Sayfa (Slide 21-33, kitap 98-105...)" />
+        <div className="flex-gap-8">
+          <input className="lc-textarea input narrow" placeholder="Son tarih (YYYY-AA-GG)" />
+          <button className="btn">Okuma Listesi Üret</button>
         </div>
-        <div style={{ fontSize: 12, opacity: 0.6 }}>Her boşluk için ölçülebilir çıktı: “3 örnek soru yorumladım” gibi.</div>
+        <div className="fs-12 op-60">Her boşluk için ölçülebilir çıktı: “3 örnek soru yorumladım” gibi.</div>
       </Section>
     </div>
   );
@@ -612,14 +900,14 @@ function DeepDivePane() {
 
 function ExamSprintPane() {
   return (
-    <div style={{ display: "grid", gap: 12 }}>
+    <div className="grid-gap-12">
       <Section title="Sınav Sprinti">
         <div className="lc-chipset">
           <div className="lc-chip">Pomodoro 40–10</div>
           <div className="lc-chip">Son 48 saat: hafif tekrar</div>
           <div className="lc-chip">Yanlışlar listesi</div>
         </div>
-        <div className="lc-section" style={{ opacity:.65 }}>Detaylar yakında.</div>
+        <div className="lc-section op-65">Detaylar yakında.</div>
       </Section>
     </div>
   );
@@ -628,118 +916,9 @@ function ExamSprintPane() {
 /** -------- Utilities -------- */
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="lc-section" style={{ display: "grid", gap: 12 }}>
-      <div style={{ fontWeight: 800, fontSize: 18 }}>{title}</div>
+    <section className="lc-section grid-gap-12">
+      <div className="fw-800 fs-18">{title}</div>
       {children}
     </section>
   );
 }
-
-/** -------- Styles -------- */
-const st: Record<string, React.CSSProperties> = {
-  page: {
-    background: "#f5f5f7",
-    color: "#0b0b0c",
-    minHeight: "100dvh",
-    fontFamily:
-      '-apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, Segoe UI, Roboto, Helvetica, Arial',
-  },
-  nav: {
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-    padding: "14px 20px",
-    position: "sticky",
-    top: 0,
-    backdropFilter: "saturate(180%) blur(16px)",
-    background: "rgba(255,255,255,0.65)",
-    borderBottom: "1px solid #e5e5ea",
-    zIndex: 10,
-  },
-  brand: { display: "flex", alignItems: "center", gap: 8 },
-  brandDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 18,
-    background: "#111",
-    boxShadow: "0 0 0 3px #999 inset",
-  },
-  brandText: { fontWeight: 800, letterSpacing: 0.2 },
-  pill: {
-    padding: "6px 12px",
-    borderRadius: 999,
-    border: "1px solid #e5e5ea",
-    background: "#fff",
-    fontSize: 13,
-  },
-
-  hero: { margin: "40px 0 14px" },
-  h1: { fontSize: 34, fontWeight: 800, letterSpacing: -0.3, margin: 0 },
-  sub: { opacity: 0.7, marginTop: 8, marginBottom: 0 },
-
-  card: {
-    padding: 16,
-    background: "#fff",
-    border: "1px solid #e5e5ea",
-    borderRadius: 24,
-    boxShadow: "0 10px 30px rgba(0,0,0,.04)",
-  },
-  label: { fontWeight: 700, marginTop: 6, marginBottom: 6, display: "block" },
-  textarea: { width: "100%", resize: "vertical", minHeight: 140 },
-
-  actions: {
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-    marginTop: 14,
-    flexWrap: "wrap",
-  },
-  button: {
-    background: "#111",
-    color: "#fff",
-    border: "1px solid #111",
-    padding: "10px 16px",
-    borderRadius: 12,
-    cursor: "pointer",
-    fontWeight: 800,
-  },
-  buttonDisabled: {
-    background: "#c7c7cc",
-    color: "#fff",
-    border: "1px solid #c7c7cc",
-    padding: "10px 16px",
-    borderRadius: 12,
-    cursor: "not-allowed",
-    fontWeight: 800,
-  },
-  error: { color: "#c62828", fontWeight: 600 },
-
-  planHeader: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 10,
-  },
-  planTitle: { fontSize: 26, fontWeight: 800, letterSpacing: -0.2 },
-  planMeta: { opacity: 0.6 },
-
-  list: { margin: 0, paddingLeft: 18 },
-  listItem: { margin: "4px 0" },
-  actType: { fontWeight: 800 },
-
-  quizBox: {
-    background: "#fafafa",
-    border: "1px solid #efeff4",
-    borderRadius: 14,
-    padding: 10,
-    marginTop: 6,
-  },
-  quizTitle: { fontWeight: 800, marginBottom: 6 },
-
-  resourcesTitle: { fontWeight: 800, marginBottom: 8 },
-
-  ul: { paddingLeft: 18, margin: 0 },
-  ol: { paddingLeft: 18, margin: 0 },
-
-  footer: { textAlign: "center", opacity: 0.5, padding: "24px 0" },
-};
