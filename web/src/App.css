@@ -30,11 +30,22 @@
 }
 
 *{ box-sizing:border-box; }
-html, body, #root { height:100%; background:var(--bg); }
-body{
-  margin:0; color:var(--text);
-  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial;
-  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+  background: var(--bg);
+}
+
+body {
+  margin: 0;
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter,
+    system-ui, Segoe UI, Roboto, Helvetica, Arial;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden; /* yatay kaymayı engelle */
 }
 
 /* ---------- Utilities ---------- */
@@ -51,14 +62,53 @@ body{
 pre, code, .lc-textarea{ overflow-wrap:anywhere; }
 
 /* ---------- Page & Layout ---------- */
-.page{ min-height:100vh; background:var(--bg); }
-.lc-container{ max-width:1420px; margin:0 auto; padding:0 20px 32px; }
+.page {
+  min-height: 100vh;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+
+.lc-container {
+  max-width: 1420px;
+  margin: 0 auto;
+  padding: 0 20px 32px;
+  width: 100%;
+}
 
 /* iki sütun: ≥1100; tek sütun: <1100 */
-.lc-shell{ display:grid; gap:16px; align-items:start; }
-@media (min-width:1100px){ .lc-shell{ grid-template-columns: 420px 1fr; } }
+/* Varsayılan: tek sütun, ama grid dursun */
+.lc-shell {
+  display: grid;
+  gap: 16px;
+  align-items: flex-start;
+  grid-template-columns: minmax(0, 1fr);
+}
 
-.lc-sticky{ position:sticky; top:72px; }
+/* Geniş ekran: sol 420px, sağ esnek */
+@media (min-width: 1100px) {
+  .lc-shell {
+    grid-template-columns: 420px minmax(0, 1fr);
+  }
+}
+
+/* Sol formun sabitlenmesi */
+.lc-sticky {
+  position: sticky;
+  top: 72px;
+}
+
+/* Küçük ekran: sticky olmasın, normal aksın */
+@media (max-width: 900px) {
+  .lc-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .lc-sticky {
+    position: static;
+  }
+}
+
 
 /* Sağ panelde iç scroll KALDIRILDI → sayfa akıyor */
 .lc-plan-pane{ min-width:0; }
@@ -89,6 +139,38 @@ pre, code, .lc-textarea{ overflow-wrap:anywhere; }
   border:1px solid var(--border); border-radius:var(--radius-xl); box-shadow:var(--shadow-1);
 }
 .label{ font-weight:var(--fw-700); margin:6px 0; display:block; }
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  padding: 14px 0; /* sağ/sol padding’i nav-inner’a bırakacağız */
+  backdrop-filter: saturate(180%) blur(16px);
+  background: rgba(255, 255, 255, 0.7);
+  border-bottom: 1px solid var(--border);
+}
+
+/* yeni ekle */
+.nav-inner {
+  max-width: 1420px;
+  margin: 0 auto;
+  padding: 0 20px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+@media (max-width: 768px) {
+  .nav {
+    padding: 12px 0;
+  }
+
+  .nav-inner {
+    padding: 0 14px;
+  }
+}
 
 .lc-textarea{
   background:#fbfbfe; border:1px solid #d6d6de; color:var(--text);
@@ -372,7 +454,7 @@ pre, code, .preview-box, .lc-textarea, .aligned-table {
 /* 1) Sağ panel masaüstünde kendi içinde scroll yapsın, tabs sticky çalışsın */
 @media (min-width: 1100px){
   .lc-plan-pane{
-    max-height: calc(100vh - 140px);
+    max-height: none;
     overflow: auto;
     padding-right: 6px;   /* zarif scrollbar aralığı */
   }
@@ -663,4 +745,1100 @@ pre, code, .preview-box, .lc-textarea, .aligned-table {
 /* Reduce motion support */
 @media (prefers-reduced-motion: reduce) {
   .modal, .modal-backdrop { animation: none !important; }
+}
+
+
+/* =======================================================
+   DERSLERİM (HISTORY PANE) - Premium Apple Style Fix
+   ======================================================= */
+
+.history-pane {
+  padding: 4px 2px;
+}
+
+/* Kart Temeli (Apple Notes Tarzı) */
+.lesson-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08); /* Çok ince, zarif sınır */
+  border-radius: 16px; /* Daha yuvarlak köşeler */
+  padding: 16px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02); /* Neredeyse görünmez gölge */
+}
+
+/* Hover Efekti: Hafifçe yukarı kalkar ve gölgesi artar */
+.lesson-card:hover {
+  transform: translateY(-2px) scale(1.005);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.12);
+  z-index: 2;
+}
+
+/* AKTİF (SEÇİLİ) KART DURUMU */
+.lesson-card--active {
+  background: #ffffff;
+  border-color: #007aff; /* Apple Mavisi Sınır */
+  box-shadow: 0 0 0 1px #007aff, 0 8px 24px rgba(0, 122, 255, 0.12); /* Mavi parlama */
+}
+
+/* Başlık Stili */
+.lesson-card .font-bold {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1d1d1f; /* Apple Siyahı */
+  letter-spacing: -0.3px;
+  margin-bottom: 2px;
+}
+
+/* Tarih ve Meta Veriler */
+.lesson-card .text-xs {
+  font-size: 12px;
+  font-weight: 500;
+  color: #86868b; /* Apple ikincil gri */
+}
+
+/* Aktiflik Noktası (Yeşil değil, Tema Mavisi olsun) */
+.active-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #007aff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px #dbeafe; /* Etrafında hafif halka */
+}
+
+/* Alt Çubuk (Badge ve Link) */
+.lesson-card .mt-3 {
+  border-top: 1px solid #f5f5f7;
+  padding-top: 10px;
+  margin-top: 10px;
+}
+
+/* Küçük Gri Etiketler (Kavram Sayısı vb.) */
+.lesson-card span.bg-gray-100 {
+  background-color: #f2f2f7 !important; /* Sistem grisi */
+  color: #636366 !important;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 4px 8px;
+  border: 1px solid rgba(0,0,0,0.03);
+}
+
+/* "İncele ->" Butonu */
+.lesson-card span.text-blue-600 {
+  background-color: transparent !important;
+  color: #007aff !important;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* Seçili kartta "İncele" yazısı koyulaşsın */
+.lesson-card--active span.text-blue-600 {
+  background-color: #eef7ff !important;
+  padding: 4px 10px;
+  border-radius: 99px;
+}
+
+/* Arama Kutusu İyileştirmesi */
+.mb-4.relative .input {
+  background-color: #ffffff;
+  border: 1px solid rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  border-radius: 12px;
+  height: 44px;
+  font-size: 14px;
+}
+.mb-4.relative .input:focus {
+  border-color: #007aff;
+  box-shadow: 0 0 0 4px rgba(0,122,255,0.1);
+}
+
+
+.lc-two-col{
+  display:grid;
+  grid-template-columns: minmax(0,2fr) minmax(260px,1fr);
+  gap:20px;
+}
+@media (max-width:900px){
+  .lc-two-col{ grid-template-columns: minmax(0,1fr); }
+}
+.ln-segment{
+  background:#fff;
+  border-radius:16px;
+  border:1px solid var(--hair);
+  padding:10px 12px;
+  margin-bottom:8px;
+  cursor:pointer;
+}
+.ln-segment--selected{
+  border-color:var(--accent-2);
+  box-shadow:0 0 0 1px var(--ring);
+}
+.ln-segment--lo-match{
+  background:#f5f9ff;
+}
+.ln-segment-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:4px;
+}
+.ln-segment-index{
+  font-size:11px;
+  font-weight:600;
+  color:var(--muted);
+}
+.ln-segment-text{
+  font-size:13px;
+  line-height:1.5;
+  margin:0;
+}
+.ln-segment-tags{ display:flex; gap:4px; flex-wrap:wrap; }
+
+.chip{
+  border-radius:999px;
+  padding:2px 8px;
+  font-size:11px;
+  border:1px solid var(--border);
+  background:#fafafa;
+}
+.chip--xs{ padding:1px 6px; font-size:10px; }
+.chip--active{
+  border-color:var(--accent-2);
+}
+
+.lo-item{
+  padding:6px 0;
+  cursor:pointer;
+}
+.lo-item--active{
+  background:#eef4ff;
+  border-radius:8px;
+  padding:6px 8px;
+}
+.lo-meta{
+  font-size:11px;
+}
+.lc-lo-study {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lo-summary-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-radius: 18px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-1);
+  padding: 10px 14px;
+}
+.lo-summary-item + .lo-summary-item {
+  padding-left: 12px;
+  border-left: 1px solid var(--hair);
+}
+
+
+.lo-summary-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+}
+
+.lo-summary-value {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.lo-summary-spacer {
+  flex: 1;
+}
+
+.lo-summary-filter {
+  display: flex;
+  gap: 4px;
+}
+
+
+.chip {
+  border-radius: 999px;
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 12px;
+  cursor: pointer;
+  background: transparent;
+}
+
+.chip--active {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.lo-item {
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.lo-item--active {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.lo-item--done .lo-item-title {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.lo-item-main {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+}
+
+.lo-item-id {
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.lo-item-title {
+  font-size: 12px;
+}
+
+.lo-item-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.lo-quiz-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.lo-quiz-item {
+  margin-bottom: 6px;
+}
+
+.lo-quiz-answer {
+  margin-top: 4px;
+  opacity: 0.9;
+}
+/* Genel iki kolon layout (diğer paneller için de kullanılıyor) */
+.lc-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* 🔹 LO Study’de sağ panel geniş, sol liste dar olsun */
+.lc-two-col--lo-study {
+  grid-template-columns: minmax(220px, 0.3fr) minmax(0, 0.7fr);
+}
+
+/* LO listesi (sol) – dar ama yüksek, rahat scroll için */
+.ln-sidebar {
+  align-self: stretch;
+  overflow-y: auto;
+}
+
+/* Sağdaki asıl çalışma alanı – yüksekliği kullanabilsin */
+.lc-section {
+  align-self: stretch;
+}
+/* Hoca Notu özel layout: sol biraz geniş olsun */
+.lc-two-col--lecturer {
+  display: grid;
+  grid-template-columns: minmax(0, 0.55fr) minmax(0, 0.45fr);
+  gap: 16px;
+}
+
+/* Transcript kart listesi */
+.transcript-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+/* Tek tek kartlar */
+.transcript-card {
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease,
+    box-shadow 0.15s ease;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.transcript-card:hover {
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+.transcript-card--active {
+  border-color: #111111;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6);
+}
+
+/* Kart üstündeki etiketler */
+.transcript-card-header {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 4px;
+  align-items: center;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.badge--time {
+  font-weight: 600;
+}
+
+.badge--lo {
+  background: #111111;
+  color: #ffffff;
+}
+
+/* Metin gövdesi */
+.transcript-card-text strong {
+  font-weight: 600;
+}
+/* ===========================
+   LecturerNotePane Layout
+   =========================== */
+
+.lc-two-col--lecturer {
+  display: grid;
+  grid-template-columns: minmax(0, 0.55fr) minmax(0, 0.45fr);
+  gap: 16px;
+}
+
+/* Küçük ekranlarda tek kolona düş */
+@media (max-width: 900px) {
+  .lc-two-col--lecturer {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ln-sidebar {
+    order: 2;
+  }
+}
+
+/* Sol kolon: transcript */
+.ln-sidebar {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===========================
+   Transcript Cards
+   =========================== */
+
+.ln-transcript {
+  max-height: 72vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-right: 4px;
+}
+
+.ln-transcript-card {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 8px 10px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  font-size: 13px;
+  line-height: 1.5;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
+.ln-transcript-card p {
+  margin: 0;
+}
+
+.ln-transcript-index {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(15, 23, 42, 0.5);
+  margin-bottom: 4px;
+}
+
+/* Scrollbar hafif */
+.ln-transcript::-webkit-scrollbar {
+  width: 6px;
+}
+.ln-transcript::-webkit-scrollbar-track {
+  background: transparent;
+}
+.ln-transcript::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.6);
+  border-radius: 999px;
+}
+
+/* ===========================
+   Summary Chips (Top counters)
+   =========================== */
+
+/* =========================================
+   TEACHER NOTES / LECTURER NOTE PANE (v2)
+   Apple-inspired: sade, fazla hat yok, bol boşluk
+   ========================================= */
+
+/* Kök layout */
+
+.ln-root {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ---------------------------------
+   HEADER + ÖZET
+   --------------------------------- */
+
+.ln-header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ln-header-main {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ln-header-los,
+.ln-modal-los {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.ln-header-lo-chip,
+.ln-lo-chip,
+.ln-lo-chip--pill {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  background: #f5f5f7; /* Apple gri */
+  color: #3f3f46;
+}
+
+/* Özet chipleri */
+
+.ln-summary-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ln-summary-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f5f5f7;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  font-size: 11px;
+}
+
+.ln-summary-label {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.ln-summary-value {
+  font-weight: 600;
+  color: #111827;
+}
+
+/* ---------------------------------
+   TOOLBAR (FİLTRE + SIRALAMA)
+   --------------------------------- */
+
+.ln-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ln-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ln-filter-label {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.ln-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ln-filter-chip {
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  padding: 3px 10px;
+  font-size: 11px;
+  background: #ffffff;
+  cursor: pointer;
+  color: #374151;
+  backdrop-filter: blur(6px);
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.ln-filter-chip:hover {
+  background: #f3f4f6;
+}
+
+.ln-filter-chip--active {
+  background: #111827;
+  color: #f9fafb;
+  border-color: #111827;
+}
+
+/* Sort */
+
+.ln-sort {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-left: auto;
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.ln-sort-label {
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
+.ln-sort-select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  padding: 6px 28px 6px 10px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background:
+    linear-gradient(180deg, #f9fafb, #f3f4f6);
+  font-size: 12px;
+  color: #111827;
+  outline: none;
+  cursor: pointer;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.7),
+    0 6px 12px rgba(15,23,42,0.08);
+  position: relative;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239ca3af' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+  background-size: 10px 6px;
+}
+
+.ln-sort-select:focus {
+  border-color: #2563eb;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.9),
+    0 0 0 3px rgba(37,99,235,0.18);
+}
+
+/* ---------------------------------
+   GENEL CHIP STİLLERİ
+   --------------------------------- */
+
+.ln-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.ln-chip-icon {
+  font-size: 12px;
+}
+
+.ln-chip-label {
+  font-weight: 500;
+}
+
+/* Kaynak tipine göre renk */
+
+.ln-chip--lecture {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+  color: #3730a3;
+}
+
+.ln-chip--slides {
+  background: #ecfdf3;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.ln-chip--both {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.ln-chip--neutral {
+  background: #f4f4f5;
+  border-color: #e4e4e7;
+  color: #4b5563;
+}
+
+/* Önem seviyesi */
+
+.ln-chip--importance {
+  margin-left: auto;
+}
+
+.ln-chip--high {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+.ln-chip--medium {
+  background: #fffbeb;
+  color: #92400e;
+  border-color: #fed7aa;
+}
+
+.ln-chip--low {
+  background: #f3f4f6;
+  color: #4b5563;
+  border-color: #e5e7eb;
+}
+
+/* LO chip özel rengi */
+
+.ln-chip--lo {
+  background: #e0f2fe;
+  color: #0369a1;
+  border-color: #bae6fd;
+}
+
+/* ---------------------------------
+   KART GRIDİ
+   --------------------------------- */
+
+/* hem .ln-card-grid hem .ln-grid kullanılmış olabilir; ikisini de hizala */
+.ln-card-grid,
+.ln-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.ln-card {
+  position: relative;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 14px 16px 10px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: transform 0.12s ease, box-shadow 0.12s ease,
+    border-color 0.12s ease, background 0.12s ease;
+}
+
+.ln-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+  border-color: rgba(148, 163, 184, 0.6);
+  background: #fdfdfd;
+}
+
+.ln-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.ln-card-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.ln-card-los {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.ln-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.ln-card-sub,
+.ln-card-quote {
+  font-size: 12px;
+  color: #4b5563;
+}
+
+.ln-card-quote {
+  padding-left: 10px;
+  border-left: 2px solid #e5e7eb;
+}
+
+.ln-card-footer {
+  margin-top: 4px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ln-card-action {
+  font-size: 11px;
+  border: none;
+  background: transparent;
+  color: #2563eb;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* ---------------------------------
+   MODAL (DETAY KART)
+   --------------------------------- */
+
+.ln-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,0.32);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 40;
+  backdrop-filter: blur(10px) saturate(1.2);
+  -webkit-backdrop-filter: blur(10px) saturate(1.2);
+}
+
+.ln-modal {
+  background: linear-gradient(145deg, rgba(255,255,255,0.98), rgba(249,250,251,0.98));
+  border-radius: 22px;
+  max-width: 720px;
+  width: min(720px, 96vw);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 24px 60px rgba(15, 23, 42, 0.35),
+    0 0 0 1px rgba(255,255,255,0.9);
+  overflow: hidden;
+}
+
+.ln-modal-header {
+  padding: 12px 18px;
+  border-bottom: 1px solid rgba(243,244,246,0.9);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ln-modal-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ln-modal-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.ln-modal-close {
+  margin-left: auto;
+  border: none;
+  background: rgba(243,244,246,0.8);
+  border-radius: 999px;
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  color: #9ca3af;
+  padding: 0;
+  transition: background 0.12s ease, color 0.12s ease, transform 0.08s ease;
+}
+
+.ln-modal-close:hover {
+  background: #e5e7eb;
+  color: #4b5563;
+  transform: translateY(-1px);
+}
+
+.ln-modal-body {
+  padding: 14px 18px 12px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ln-modal-section {
+  margin-bottom: 6px;
+}
+
+.ln-modal-section--split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+}
+
+@media (max-width: 640px) {
+  .ln-modal-section--split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.ln-section-title {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.ln-core-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.ln-body-text,
+.ln-modal-text {
+  font-size: 13px;
+  color: #374151;
+}
+
+/* Alıntılar */
+
+.ln-quote-block {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 8px 10px;
+}
+
+.ln-quote-label {
+  color: #9ca3af;
+  margin-bottom: 4px;
+  font-size: 11px;
+}
+
+.ln-quote {
+  font-size: 12px;
+  color: #374151;
+  border-left: 3px solid #e5e7eb;
+  padding-left: 8px;
+}
+
+.ln-quote--slide {
+  border-color: #bae6fd;
+}
+
+/* ---------------------------------
+   SELF-CHECK LİST
+   --------------------------------- */
+
+.ln-selfcheck-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ln-selfcheck-item {
+  border-radius: 999px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  padding: 6px 10px;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.9),
+    0 4px 10px rgba(15,23,42,0.03);
+  transition: background 0.12s ease, transform 0.08s ease,
+    box-shadow 0.12s ease, border-color 0.12s ease;
+}
+
+.ln-selfcheck-item:hover {
+  background: #ffffff;
+  transform: translateY(-1px);
+  border-color: #d1d5db;
+  box-shadow:
+    0 8px 18px rgba(15,23,42,0.08);
+}
+
+.ln-selfcheck-question {
+  border: none;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  width: 100%;
+  font-size: 12px;
+  font-weight: 500;
+  color: #111827;
+  cursor: pointer;
+}
+
+.ln-selfcheck-answer {
+  margin-top: 4px;
+  color: #4b5563;
+  font-size: 12px;
+}
+
+/* ---------------------------------
+   MODAL FOOTER & NAV BUTONLARI
+   --------------------------------- */
+
+.ln-modal-footer {
+  border-top: 1px solid rgba(243,244,246,0.95);
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(180deg, #f9fafb, #f3f4f6);
+}
+
+.ln-modal-nav {
+  display: flex;
+  gap: 6px;
+}
+
+.ln-nav-btn {
+  min-width: 88px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.9),
+    0 6px 12px rgba(15,23,42,0.08);
+  transition: background 0.12s ease, transform 0.08s ease,
+    box-shadow 0.12s ease, border-color 0.12s ease;
+}
+
+.ln-nav-btn--primary {
+  background: linear-gradient(180deg, #2563eb, #1d4ed8);
+  color: #f9fafb;
+  border-color: transparent;
+}
+
+.ln-nav-btn:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 10px 22px rgba(15,23,42,0.18);
+}
+
+.ln-modal-hint {
+  margin-left: auto;
+  text-align: right;
+  font-size: 11px;
+  color: #9ca3af;
+}
+/* Backdrop fade-in + blur */
+.ln-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 40;
+  backdrop-filter: blur(10px);
+  animation: ln-backdrop-in 220ms ease-out;
+}
+
+@keyframes ln-backdrop-in {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(10px);
+  }
+}
+
+/* Modal card scale + y hareketi */
+.ln-modal {
+  background: #ffffff;
+  border-radius: 22px;
+  max-width: 720px;
+  width: min(720px, 96vw);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.35);
+  overflow: hidden;
+  transform-origin: center center;
+  animation: ln-modal-in 220ms cubic-bezier(0.21, 0.8, 0.25, 1);
+}
+
+@keyframes ln-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }

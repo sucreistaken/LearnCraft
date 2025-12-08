@@ -1,239 +1,117 @@
-import * as React from "react";
-import Section from "./Section";
-import { getLessons, getMemory, generateQuizFromLessonIds } from "../lib/api";
+// src/components/LessonsHistoryPane.tsx
 
-type LessonsHistoryPaneProps = {
-  setMode: (m: any) => void;
-  setQuiz: (q: string[]) => void;
-  onSelectLesson?: (id: string) => void;
+import React, { useEffect, useState } from "react";
+import { API_BASE } from "../config";
+import { ModeId } from "../types";
+
+// Tarih formatlayıcı (Örn: "2 Ara 2025, 14:30")
+const formatDate = (d?: string) => {
+  if (!d) return "";
+  return new Date(d).toLocaleDateString("tr-TR", {
+    day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit"
+  });
 };
 
-export default function LessonsHistoryPane({ setMode, setQuiz, onSelectLesson }: LessonsHistoryPaneProps) {
-  const [lessons, setLessons] = React.useState<any[]>([]);
-  const [filtered, setFiltered] = React.useState<any[]>([]);
-  const [mem, setMem] = React.useState<any>(null);
-  const [activeId, setActiveId] = React.useState<string | null>(null);
-  const [q, setQ] = React.useState("");
-  const [sort, setSort] = React.useState<"new"|"old"|"emphasis">("new");
-  const [loading, setLoading] = React.useState(false);
+interface Props {
+  setMode: (m: ModeId) => void;
+  setQuiz: (q: string[]) => void;
+  onSelectLesson: (id: string) => void;
+  currentLessonId: string | null; // 👈 Yeni Prop
+}
 
-  React.useEffect(() => {
-    (async () => {
-      const [ls, mm] = await Promise.all([getLessons(), getMemory()]);
-      setLessons(ls || []);
-      setMem(mm || null);
-      if ((ls || []).length) setActiveId(ls[0].id);
-    })();
+export default function LessonsHistoryPane({ setMode, setQuiz, onSelectLesson, currentLessonId }: Props) {
+  const [lessons, setLessons] = useState<any[]>([]);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // Dersleri yükle
+  useEffect(() => {
+    setLoading(true);
+    fetch(`${API_BASE}/api/lessons`)
+      .then((r) => r.json())
+      .then((j) => {
+        if (Array.isArray(j)) {
+          // En yeniden en eskiye sırala (varsa 'date' alanı, yoksa olduğu gibi)
+          const sorted = j.sort((a, b) => (new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime()));
+          setLessons(sorted);
+        }
+      })
+      .catch((e) => console.warn(e))
+      .finally(() => setLoading(false));
   }, []);
 
-  React.useEffect(() => {
-    let arr = [...lessons];
-
-    if (q.trim()) {
-      const w = q.trim().toLowerCase();
-      arr = arr.filter((L) =>
-        (L.title || "").toLowerCase().includes(w) ||
-        (L.summary || "").toLowerCase().includes(w) ||
-        (L.transcript || "").toLowerCase().includes(w)
-      );
-    }
-
-    if (sort === "new") {
-      arr.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    } else if (sort === "old") {
-      arr.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    } else {
-      arr.sort((a,b) => (b.professorEmphases?.length||0) - (a.professorEmphases?.length||0));
-    }
-
-    setFiltered(arr);
-  }, [lessons, q, sort]);
-
-  const active = filtered.find(x => x.id === activeId) || filtered[0];
-
-  const topEmphases = React.useMemo(() => {
-    const map = new Map<string, number>();
-    lessons.forEach(L => (L.professorEmphases||[]).forEach((e:any)=>{
-      const key = (e.statement || "").trim();
-      if (!key) return;
-      map.set(key, (map.get(key)||0) + 1);
-    }));
-    return [...map.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5);
-  }, [lessons]);
-
-  async function genQuizFromActive() {
-    if (!active?.id) return;
-    setLoading(true);
-    try {
-      const pack = await generateQuizFromLessonIds([active.id], 6);
-      if (pack?.error) { alert(pack.error); return; }
-      const qlist = (pack.items||[]).map((x:any)=>x.prompt);
-      setQuiz(qlist);
-      setMode("quiz");
-    } catch (e:any) {
-      alert(e?.message || "Quiz oluşturulamadı");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function downloadJSON(L:any) {
-    const blob = new Blob([JSON.stringify(L, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = `${(L.title||"lesson").replace(/\s+/g,"_")}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
+  // Arama filtresi
+  const filtered = lessons.filter(l => 
+    l.title.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
-    <div className="grid-gap-12">
-      <Section title="Derslerim (Geçmiş)">
-        {/* Üst çubuk */}
-        <div className="history-toolbar">
-          <div className="history-toolbar__inputs">
-            <div className="field-group">
-              <span className="field-icon">🔎</span>
-              <input
-                className="input-plain"
-                placeholder="Ara (başlık, özet, metin)…"
-                value={q}
-                onChange={(e)=>setQ(e.target.value)}
-              />
-            </div>
-            <select className="select-plain" value={sort} onChange={(e)=>setSort(e.target.value as any)}>
-              <option value="new">Yeni → Eski</option>
-              <option value="old">Eski → Yeni</option>
-              <option value="emphasis">Vurgu sayısına göre</option>
-            </select>
-          </div>
+    <div className="history-pane">
+      {/* Header */}
+      <div className="flex-between mb-4 items-center">
+        <h2 className="text-xl font-bold m-0">Kayıtlı Derslerim</h2>
+        <span className="badge badge-gray">{lessons.length} Ders</span>
+      </div>
 
-          <div className="history-toolbar__actions">
-            {active && (
-              <>
-                <button className="btn btn-primary" onClick={genQuizFromActive} disabled={loading}>
-                  {loading ? "Quiz oluşturuluyor…" : "Bu Dersten Quiz Oluştur"}
-                </button>
-                <button className="btn btn-ghost" onClick={()=>downloadJSON(active)}>JSON İndir</button>
-              </>
-            )}
-          </div>
-        </div>
+      {/* Search Bar */}
+      <div className="mb-4 relative">
+        <input 
+          className="lc-textarea input w-full pl-8" 
+          placeholder="Ders ara..." 
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <span className="absolute left-2 top-2 opacity-50">🔍</span>
+      </div>
 
-        {/* Ana grid */}
-        <div className="history-grid">
-          {/* Sol: liste */}
-          <aside className="history-list">
-            {(filtered||[]).map((L:any)=>(
-              <article
-                key={L.id}
-                onClick={()=>{
-                  setActiveId(L.id);
-                  onSelectLesson?.(L.id);
-                }}
-                className={`history-card ${activeId===L.id?"history-card--active":""}`}
-                title={L.title || ""}
-              >
-                <div className="history-card__title">{L.title || "Başlık yok"}</div>
-                <div className="history-card__meta">{L.date ? new Date(L.date).toLocaleString() : "tarih yok"}</div>
-                <div className="history-card__chips">
-                  <span className="chip">Vurgu: {L.professorEmphases?.length || 0}</span>
-                  <span className="chip">Quiz: {L.quiz?.length || 0}</span>
-                  {L.highlights?.length ? <span className="chip">Highlights: {L.highlights.length}</span> : null}
+      {/* Loading State */}
+      {loading && <div className="p-4 text-center op-60">Dersler yükleniyor...</div>}
+
+      {/* Liste */}
+      <div className="grid-gap-12">
+        {filtered.length === 0 && !loading && (
+          <div className="p-4 border rounded text-center op-60 bg-gray-50">
+            {search ? "Ders bulunamadı." : "Henüz hiç dersin yok."}
+          </div>
+        )}
+
+        {filtered.map((l) => {
+          const isActive = l.id === currentLessonId;
+          
+          return (
+            <div 
+              key={l.id} 
+              onClick={() => onSelectLesson(l.id)}
+              className={`lesson-card ${isActive ? "lesson-card--active" : ""}`}
+            >
+              <div className="flex-between">
+                <div className="font-bold text-lg truncate pr-2" title={l.title}>
+                  {l.title}
                 </div>
-              </article>
-            ))}
-            {!filtered?.length && <div className="muted">Kayıt yok.</div>}
-          </aside>
+                {isActive && <div className="active-dot" title="Şu an açık"></div>}
+              </div>
+              
+              <div className="text-xs op-60 mt-1 flex-between">
+                <span>📅 {formatDate(l.date)}</span>
+                {/* İleride buraya 'Vurgu Sayısı: 12' gibi istatistikler eklenebilir */}
+              </div>
 
-          {/* Sağ: detay */}
-          <main className="history-detail">
-            {active ? (
-              <>
-                <section className="panel">
-                  <div className="panel__title">{active.title || "Başlık yok"}</div>
-                  <div className="panel__meta">{active.date ? new Date(active.date).toLocaleString() : "tarih yok"}</div>
-                  {active.summary && <p className="panel__text">{active.summary}</p>}
-
-                  {active.highlights?.length ? (
-                    <>
-                      <div className="panel__subtitle">Highlights</div>
-                      <div className="chipset-wrap">
-                        {active.highlights.map((h:string, i:number)=>(
-                          <span key={i} className="chip chip--soft">{h}</span>
-                        ))}
-                      </div>
-                    </>
-                  ) : null}
-                </section>
-
-                <section className="panel">
-                  <div className="panel__subtitle">Hoca Vurguları</div>
-                  {(active.professorEmphases||[]).length ? (
-                    <div className="vlist">
-                      {active.professorEmphases.map((e:any, i:number)=>(
-                        <div key={i} className="vlist__row">
-                          <div className="vlist__main">
-                            <div className="vlist__title">“{e.statement}”</div>
-                            <div className="vlist__desc">{e.why}</div>
-                            <div className="vlist__evi">Kanıt: {e.evidence || "—"}</div>
-                          </div>
-                          <div className="vlist__chips">
-                            <span className="chip">{e.in_slides ? "Slaytta var" : "Slaytta yok"}</span>
-                            <span className="chip">%{Math.round((e.confidence||0)*100)}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : <div className="muted">Bu derste vurgu eklenmemiş.</div>}
-                </section>
-
-                <section className="panel">
-                  <div className="panel__subtitle">Ham Metin Önizlemeleri</div>
-                  <div className="preview-grid">
-                    <pre className="preview-box">{(active.transcript||"").slice(0,1200) || "LEC boş"}</pre>
-                    {active.slideText ? (
-                      <pre className="preview-box">{String(active.slideText).slice(0,1200)}</pre>
-                    ) : null}
-                  </div>
-                </section>
-
-                <section className="panel panel--summary">
-                  <div className="panel__subtitle">Genel Çıkarımlar</div>
-                  <div className="chipset-wrap">
-                    <span className="chip chip--outline">Toplam ders: {lessons.length}</span>
-                    <span className="chip chip--outline">Toplam vurgu: {lessons.reduce((s,L)=>s+(L.professorEmphases?.length||0),0)}</span>
-                  </div>
-
-                  {mem?.recurringConcepts?.length ? (
-                    <>
-                      <div className="panel__caption">Tekrarlayan Kavramlar</div>
-                      <div className="chipset-wrap">
-                        {mem.recurringConcepts.slice(0,12).map((c:string,i:number)=>(
-                          <span key={i} className="chip">{c}</span>
-                        ))}
-                      </div>
-                    </>
-                  ) : null}
-
-                  {topEmphases.length ? (
-                    <>
-                      <div className="panel__caption">En Çok Vurgulanan İlk 5</div>
-                      <ul className="ul clean">
-                        {topEmphases.map(([s, n])=>(
-                          <li key={s}>“{s}” — {n} derste geçti</li>
-                        ))}
-                      </ul>
-                    </>
-                  ) : null}
-                </section>
-              </>
-            ) : (
-              <div className="muted">Listeden bir ders seç.</div>
-            )}
-          </main>
-        </div>
-      </Section>
+              {/* Alt Bilgi Çubuğu */}
+              <div className="mt-3 flex gap-2">
+                 {/* Örnek etiketler - backend verisine göre dinamik yapılabilir */}
+                 {l.highlights?.length > 0 && (
+                    <span className="text-xs bg-gray-100 px-2 py-1 rounded">
+                      ✨ {l.highlights.length} Kavram
+                    </span>
+                 )}
+                 <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded ml-auto">
+                    {isActive ? "Açık" : "İncele →"}
+                 </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

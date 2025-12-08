@@ -1,0 +1,807 @@
+/*
+  LearnCraft Backend - UNIVERSAL V8 (Strict JSON + IEU LO + Simple Alignment)
+
+  Özellikler:
+  1. IEU Syllabus LO entegrasyonu (CE 323 vb) – daha sağlam regex.
+  2. Strict Format Fix: key_concepts / resources / mini_quiz ve alignment array'leri String[]'e zorlanıyor.
+  3. Alignment Fallback: Plan alignment boş gelirse basit ama sağlam bir alignment tekrar üretiliyor.
+  4. Universal & Adaptive: lecture+slide uzunluğuna göre contentLevel ayarı.
+  5. Difficulty Aware: metnin terminolojisine göre Beginner / Intermediate / Advanced seçiyor.
+*/
+
+import dotenv from "dotenv";
+dotenv.config();
+
+import express from "express";
+import cors from "cors";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+// Node 18+ global fetch kullanımı için TS uyarısını sustur
+declare const fetch: any;
+
+// ✅ Controller importları
+import {
+  listLessons,
+  getLesson,
+  upsertLesson,
+  updateProgress,
+  getMemory,
+  attachQuizPack,
+  setQuizScore,
+} from "./controllers/lessonControllers";
+
+import {
+  generateQuizFromEmphases,
+  getQuizPack,
+  scoreQuizPack,
+} from "./controllers/quizController";
+
+const app = express();
+app.use(cors());
+app.use(express.json({ limit: "10mb" })); // Büyük PDF/Ses metinleri için limit
+
+// ---- ENV kontrol
+const API_KEY = process.env.GEMINI_API_KEY;
+if (!API_KEY) {
+  console.error("GEMINI_API_KEY bulunamadı. Lütfen backend/.env dosyasına ekleyin.");
+  process.exit(1);
+}
+
+// --- Type Guards
+type QuizPackT = { id: string; items: any[]; createdAt?: string };
+function isQuizPack(x: any): x is QuizPackT {
+  return !!x && typeof x.id === "string" && Array.isArray(x.items);
+}
+
+// ---- Gemini SDK
+const genAI = new GoogleGenerativeAI(API_KEY);
+
+// ---- Yardımcılar
+const stripCodeFences = (s: string) =>
+  s.replace(/```json/gi, "").replace(/```/g, "").trim();
+
+const tryParseJSON = (s: string) => {
+  try {
+    return JSON.parse(s);
+  } catch {
+    return null;
+  }
+};
+
+const hasAlignment = (plan: any) =>
+  !!plan?.alignment?.items?.length &&
+  Number.isFinite(plan?.alignment?.average_duration_min ?? NaN);
+
+const toStringArray = (value: any): string[] => {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((v) => (typeof v === "string" ? v : String(v ?? "")))
+    .map((s) => s.trim())
+    .filter((s) => s && s !== "[object Object]");
+};
+
+// ---- Learning Outcomes tipi
+type LearningOutcome = {
+  code: string; // "LO1"
+  description: string; // "Will be able to ..."
+};
+
+/**
+ * --------------------------------------------------------
+ * IEU CE Syllabus LO Fetcher
+ * --------------------------------------------------------
+ * Örn:
+ *  - "SE 115"  -> https://ce.ieu.edu.tr/tr/syllabus_v2/type/read/id/SE+115
+ *  - "CE 323"  -> https://ce.ieu.edu.tr/tr/syllabus_v2/type/read/id/CE+323
+ */
+async function fetchIeuLearningOutcomes(
+  courseId: string
+): Promise<LearningOutcome[]> {
+  const normalized = courseId.trim().replace(/\s+/g, "+").toUpperCase();
+  const url = `https://ce.ieu.edu.tr/tr/syllabus_v2/type/read/id/${encodeURIComponent(
+    normalized
+  )}`;
+
+  console.log("🔎 IEU LO fetch:", url);
+
+  const resp = await fetch(url);
+  if (!resp || !resp.ok) {
+    console.warn("IEU LO fetch failed:", resp?.status);
+    return [];
+  }
+
+  const html = await resp.text();
+
+  // Türkçe sayfada başlık "Öğrenme Çıktıları"
+  const marker = "Öğrenme Çıktıları";
+  const idx = html.indexOf(marker);
+  if (idx === -1) {
+    console.warn("LO marker bulunamadı");
+    return [];
+  }
+
+  const slice = html.slice(idx, idx + 8000);
+
+  const text = slice
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;|&amp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  // LO1 ... LO2 ... pattern – açıklamanın sonu bir sonraki LO veya "Ders Tanımı"/"Course Description"
+  const regex = /(LO\d+)\s+([\s\S]*?)(?=LO\d+\s+|Ders Tanımı|Course Description|$)/g;
+  const results: LearningOutcome[] = [];
+  let m: RegExpExecArray | null;
+
+  while ((m = regex.exec(text)) !== null) {
+    const code = m[1].trim();
+    const description = m[2].trim();
+    if (description) results.push({ code, description });
+  }
+
+  console.log("✅ IEU LO parsed:", results.length);
+  return results;
+}
+
+/**
+ * --------------------------------------------------------
+ * Alignment Fallback (Basit & Hassas Süre)
+ * --------------------------------------------------------
+ */
+async function generateAlignmentOnly(
+  genAI: GoogleGenerativeAI,
+  lectureText: string,
+  slidesText: string
+) {
+  console.log("⚠️ Backend: Alignment Fallback çalışıyor...");
+  const LEC = lectureText.slice(0, 30000);
+  const SLD = slidesText.slice(0, 30000);
+
+  const prompt = `
+Compare the two texts (LEC and SLIDE) and produce ONLY the following JSON:
+
+SCHEMA:
+{
+  "summary_chatty": "Short conversational comment about how well the texts align",
+  "average_duration_min": 0,
+  "items": [
+    {
+      "topic": "Topic Title",
+      "concepts": ["Concept 1", "Concept 2"],
+      "in_both": true,
+      "emphasis_level": "high",
+      "lecture_quotes": ["Quoted sentence from lecture..."],
+      "slide_refs": ["Referenced slide content..."],
+      "duration_min": 0,
+      "confidence": 0.9
+    }
+  ]
+}
+
+CRITICAL RULES:
+1. "duration_min" calculation (VERY IMPORTANT):
+   - Estimate how many words in the lecture text belong to this specific topic.
+   - Assume average speaking speed: 130 words/minute.
+   - Formula: duration_min = (word_count_for_topic) / 130.
+   - NEVER assign the whole lecture duration to a single topic. Split time realistically across topics.
+
+2. Arrays "concepts", "lecture_quotes", and "slide_refs" MUST contain ONLY plain strings.
+
+3. Output MUST be valid JSON:
+   - No explanations.
+   - No comments.
+   - No code fences.
+   - No extra text before or after the JSON.
+
+INPUTS:
+[LEC]
+${LEC}
+
+[SLIDE]
+${SLD}
+`.trim();
+
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+  const result = await model.generateContent(prompt);
+  const rawText = result.response.text() || "";
+  const cleaned = stripCodeFences(rawText);
+  const parsed = tryParseJSON(cleaned);
+  if (parsed && parsed.items) {
+    // type safety for alignment arrays
+    parsed.items.forEach((item: any) => {
+      item.concepts = toStringArray(item.concepts);
+      item.lecture_quotes = toStringArray(item.lecture_quotes);
+      item.slide_refs = toStringArray(item.slide_refs);
+    });
+  }
+  return parsed;
+}
+
+// ---- Sağlık Testi
+app.get("/health", (_req, res) => res.json({ ok: true }));
+
+/**
+ * --------------------------------------------------------
+ * (Opsiyonel) IEU LO debug endpoint
+ * --------------------------------------------------------
+ */
+app.get("/api/ieu/learning-outcomes", async (req, res) => {
+  try {
+    const code = String(req.query.code || "").trim();
+    if (!code) return res.status(400).json({ ok: false, error: "code gerekli" });
+
+    const los = await fetchIeuLearningOutcomes(code);
+    return res.json({ ok: true, code, los });
+  } catch (e: any) {
+    console.error("IEU LO ERROR:", e?.message || e);
+    return res.status(500).json({ ok: false, error: "server error" });
+  }
+});
+
+/**
+ * --------------------------------------------------------
+ * 1. PLANLAMA ENDPOINT'İ (ANA MOTOR)
+ * --------------------------------------------------------
+ */
+app.post("/api/plan-from-text", async (req, res) => {
+  try {
+    const {
+      lectureText,
+      slidesText,
+      alignOnly,
+      prevPlan,
+      lessonId,
+      title,
+      courseCode,
+    } = req.body as {
+      lectureText?: string;
+      slidesText?: string;
+      alignOnly?: boolean;
+      prevPlan?: any;
+      lessonId?: string;
+      title?: string;
+      courseCode?: string;
+    };
+
+    const LEC = lectureText ? lectureText.slice(0, 35000) : "";
+    const SLD = slidesText ? slidesText.slice(0, 35000) : "";
+
+    // İçerik seviyesi (CONTENT_LEVEL) hesaplama
+    const rawContent = `${LEC}\n${SLD}`.trim();
+    const wordCount = rawContent.split(/\s+/).filter(Boolean).length;
+    let contentLevel: "empty" | "short" | "normal" | "rich";
+
+    if (wordCount === 0) contentLevel = "empty";
+    else if (wordCount < 50) contentLevel = "short";
+    else if (wordCount < 400) contentLevel = "normal";
+    else contentLevel = "rich";
+
+    console.log(`🔍 Analiz Başladı. Kelime Sayısı: ${wordCount}, Seviye: ${contentLevel}`);
+
+    // --- IEU Learning Outcomes (opsiyonel) ---
+    let courseLOs: LearningOutcome[] = [];
+    if (courseCode && courseCode.trim().length > 0) {
+      try {
+        courseLOs = await fetchIeuLearningOutcomes(courseCode);
+      } catch (e) {
+        console.warn("LO fetch error:", (e as any)?.message || e);
+      }
+    }
+
+    // --- Sadece Alignment İsteniyorsa ---
+    if (alignOnly) {
+      if (!prevPlan) {
+        return res.status(400).json({ ok: false, error: "prevPlan gerekli" });
+      }
+      const alignment = await generateAlignmentOnly(genAI, LEC, SLD);
+      const plan = { ...prevPlan, alignment };
+      const saved = upsertLesson({
+        id: lessonId,
+        title: title || prevPlan?.topic || "Lecture",
+        transcript: lectureText || "",
+        slideText: slidesText || "",
+        plan,
+        summary: plan?.summary,
+        highlights: plan?.key_concepts || [],
+        professorEmphases: plan?.emphases || [],
+      });
+      return res.json({ ok: true, plan, lessonId: saved.id });
+    }
+
+    const loBlock = courseLOs.length
+      ? `
+[COURSE_LO]:
+${courseLOs.map((lo) => `${lo.code}: ${lo.description}`).join("\n")}
+`
+      : "";
+
+    // --- TAM PLAN (GÜÇLENDİRİLMİŞ FORMAT & HASSAS SÜRE HESABI) ---
+    const prompt = `
+You are a universal "Course Plan Engine". Analyze the lecture transcript (LEC), the slides (SLIDE), and the syllabus learning outcomes (COURSE_LO). Then produce ONLY the JSON structure described below.
+
+⚠️ STRICT FORMAT RULES:
+1. Arrays "resources", "key_concepts", and each lesson's "mini_quiz" MUST contain ONLY plain strings.
+   - WRONG: [{"title": "Book"}]
+   - CORRECT: ["Book title"]
+2. The "difficulty" field is MANDATORY and must be one of:
+   - "Beginner"
+   - "Intermediate"
+   - "Advanced"
+3. Output MUST be strictly valid JSON:
+   - No explanations, no comments, no extra text.
+   - No code fences.
+   - JSON only.
+
+PRINCIPLES:
+1. CONTENT LEVEL BALANCING:
+   - Match the level of detail to the content level '${contentLevel}'.
+     - "empty" or "short": keep the plan minimal and high-level.
+     - "normal": moderate structure and detail.
+     - "rich": more modules, more lessons, more detailed key_concepts.
+
+2. DIFFICULTY ASSESSMENT:
+   - Infer difficulty from terminology, abstraction level, and mathematical / systems depth in LEC + SLIDE.
+
+3. DURATION ESTIMATION FOR ALIGNMENT (CRITICAL):
+   - For each alignment.items[*], "duration_min" MUST be:
+       duration_min = (estimated_word_count_for_that_topic_in_LEC) / 130
+   - Use 130 words/minute as average speaking speed.
+   - Never assign the entire lecture duration to a single topic; distribute time proportionally.
+
+4. LEARNING OUTCOMES MAPPING (COURSE_LO):
+   - For EVERY LO in COURSE_LO, create exactly one object in the "learning_outcomes" array.
+   - Each LO object MUST include:
+       "code": LO id (e.g., "LO1")
+       "description": the syllabus description (lightly cleaned if needed)
+       "covered": true if the plan's modules/lessons clearly and directly address this LO; otherwise false.
+       "covered_by_lessons": list of exact lesson titles that most directly support this LO
+         (taken from plan.modules[*].lessons[*].title).
+   - If no lesson clearly addresses an LO, set covered=false and "covered_by_lessons": [].
+
+------------------------------------------------------------
+REQUIRED OUTPUT SCHEMA:
+
+{
+  "topic": "Course Title",
+  "difficulty": "Beginner",
+  "key_concepts": ["Concept 1", "Concept 2"],
+  "duration_weeks": 1,
+  "summary": "Short summary of the course/module.",
+  "modules": [
+    {
+      "title": "Module Title",
+      "goal": "Purpose of this module",
+      "lessons": [
+        {
+          "title": "Lesson Title",
+          "objective": "Learning objective for this lesson",
+          "study_time_min": 10,
+          "activities": [
+            {
+              "type": "read",
+              "prompt": "Instruction for the student",
+              "expected_outcome": "What the student should gain"
+            }
+          ],
+          "mini_quiz": ["Question 1", "Question 2"]
+        }
+      ]
+    }
+  ],
+  "resources": ["Resource 1", "Resource 2"],
+  "emphases": [
+    {
+      "statement": "Highlighted idea or key message",
+      "why": "Why this idea is important for the student",
+      "in_slides": true,
+      "evidence": "Exact quote or slide reference showing this emphasis",
+      "confidence": 0.9
+    }
+  ],
+  "seed_quiz": [],
+  "learning_outcomes": [
+    {
+      "code": "LO1",
+      "description": "Syllabus description",
+      "covered": true,
+      "covered_by_lessons": ["Lesson title 1"]
+    }
+  ],
+  "alignment": {
+    "summary_chatty": "Natural language summary of how well the lecture and slides are aligned.",
+    "average_duration_min": 5,
+    "items": [
+      {
+        "topic": "Topic name",
+        "concepts": ["Concept"],
+        "in_both": true,
+        "emphasis_level": "high",
+        "lecture_quotes": ["Relevant lecture quote..."],
+        "slide_refs": ["Relevant slide text or title..."],
+        "duration_min": 2.5,
+        "confidence": 0.9
+      }
+    ]
+  }
+}
+
+------------------------------------------------------------
+INPUT DATA:
+[REQUESTED_TITLE]: ${title || "Unspecified"}
+[CONTENT_LEVEL]: ${contentLevel}
+[LEC]:
+${LEC}
+
+[SLIDE]:
+${SLD}
+${loBlock}
+`.trim();
+
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const result = await model.generateContent(prompt);
+    const rawText = result.response.text() || "";
+    const cleaned = stripCodeFences(rawText);
+    let plan = tryParseJSON(cleaned);
+
+    if (!plan) {
+      console.error("❌ JSON Parse Hatası! Gelen veri:", cleaned.slice(0, 500));
+      return res.status(500).json({ ok: false, error: "AI yanıtı işlenemedi." });
+    }
+
+    // --- STRICT FORMAT FIX: String[] zorlaması ---
+    plan.key_concepts = toStringArray(plan.key_concepts);
+    plan.resources = toStringArray(plan.resources);
+
+    if (Array.isArray(plan.modules)) {
+      plan.modules.forEach((mod: any) => {
+        if (Array.isArray(mod.lessons)) {
+          mod.lessons.forEach((lesson: any) => {
+            lesson.mini_quiz = toStringArray(lesson.mini_quiz);
+          });
+        }
+      });
+    }
+
+    if (plan?.alignment?.items) {
+      plan.alignment.items.forEach((item: any) => {
+        item.concepts = toStringArray(item.concepts);
+        item.lecture_quotes = toStringArray(item.lecture_quotes);
+        item.slide_refs = toStringArray(item.slide_refs);
+      });
+    }
+
+    if (Array.isArray(plan?.learning_outcomes)) {
+      plan.learning_outcomes.forEach((lo: any) => {
+        lo.covered_by_lessons = toStringArray(lo.covered_by_lessons);
+      });
+    }
+
+    // --- ALIGNMENT FALLBACK KONTROLÜ ---
+    if (!hasAlignment(plan)) {
+      console.warn("⚠️ Plan içinde Alignment eksik geldi. Fallback devreye giriyor...");
+      try {
+        const alignment = await generateAlignmentOnly(genAI, LEC, SLD);
+        if (alignment) {
+          plan.alignment = alignment;
+          console.log("✅ Fallback Alignment başarıyla eklendi.");
+        }
+      } catch (e) {
+        console.error("❌ Fallback Alignment başarısız:", e);
+      }
+    }
+
+    // Ortalama süre hesaplama
+    if (plan?.alignment?.items?.length) {
+      const items = plan.alignment.items;
+      const valid = items.filter((x: any) => Number.isFinite(x?.duration_min));
+      const avg =
+        valid.reduce((a: number, b: any) => a + b.duration_min, 0) /
+        Math.max(1, valid.length);
+      plan.alignment.average_duration_min = Number.isFinite(avg)
+        ? +avg.toFixed(1)
+        : undefined;
+    }
+
+    const userProvidedTitle =
+      title && title.trim().length > 0 && title !== "Yeni Ders" ? title : null;
+    const aiGeneratedTitle =
+      plan?.topic && plan.topic !== "Genel Ders" && plan.topic !== "Bilinmiyor"
+        ? plan.topic
+        : null;
+
+    const finalTitle = userProvidedTitle || aiGeneratedTitle || "Yeni Ders";
+
+    const saved = upsertLesson({
+      id: lessonId,
+      title: finalTitle,
+      transcript: lectureText || "",
+      slideText: slidesText || "",
+      plan,
+      summary: plan?.summary,
+      highlights: plan?.key_concepts || [],
+      professorEmphases: plan?.emphases || [],
+    });
+
+    console.log("✅ Ders başarıyla kaydedildi. ID:", saved.id);
+    return res.json({ ok: true, plan, lessonId: saved.id });
+  } catch (e: any) {
+    console.error("❌ SERVER ERROR:", e?.message);
+    return res
+      .status(500)
+      .json({ ok: false, error: e?.message || "server error" });
+  }
+});
+
+/**
+ * --------------------------------------------------------
+ * 2. QUIZ OLUŞTURMA (JSON ÇIKIŞLI)
+ * --------------------------------------------------------
+ */
+app.post("/api/quiz-from-plan", async (req, res) => {
+  try {
+    const { plan } = req.body as { plan?: any };
+    if (!plan) return res.status(400).json({ ok: false, error: "plan yok" });
+
+    if (!plan.modules || plan.modules.length === 0) {
+      return res.json({ ok: true, questions: [] });
+    }
+
+    const prompt = `
+Generate exam-style questions based ONLY on the given course plan.
+
+ROLE:
+You are a question generator for a learning platform. You receive a structured lesson plan (PLAN) as JSON and must produce short, clear questions that help the student review the content.
+
+CONSTRAINTS:
+1. USE ONLY the information in the plan.
+   - Do NOT ask about concepts, terms, or details that are not present in the plan.
+   - Do NOT invent new topics or examples.
+
+2. QUESTION COUNT:
+   - At most 15 questions total.
+   - If the plan is short or very shallow, 2–3 questions are enough.
+   - Prefer fewer, high-quality questions over many repetitive ones.
+
+3. STYLE:
+   - Questions should be concise and understandable on their own.
+   - You may mix concept-check, definition, and understanding questions, but all MUST be grounded in the plan.
+   - Avoid yes/no questions unless they clearly check an important statement from the plan.
+
+4. OUTPUT FORMAT (CRITICAL):
+   - Output MUST be valid JSON.
+   - No explanations, no comments, no extra text.
+   - EXACT schema:
+
+{
+  "questions": [
+    { "q": "Question 1" },
+    { "q": "Question 2" }
+  ]
+}
+
+Do NOT change key names.
+Each "q" must be a single string (the question text).
+
+PLAN:
+${JSON.stringify(plan).slice(0, 8000)}
+`.trim();
+
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const result = await model.generateContent(prompt);
+    const raw = result.response.text() || "";
+    const cleaned = raw.replace(/```json?/gi, "").replace(/```/g, "").trim();
+    const parsed = tryParseJSON(cleaned);
+
+    const questions: string[] = Array.isArray(parsed?.questions)
+      ? parsed.questions
+          .map((x: any) => String(x?.q || "").trim())
+          .filter(Boolean)
+          .slice(0, 10)
+      : [];
+
+    return res.json({ ok: true, questions });
+  } catch (e: any) {
+    console.error("[/api/quiz-from-plan ERROR]", e?.message || e);
+    return res
+      .status(500)
+      .json({ ok: false, error: e?.message || "server error" });
+  }
+});
+
+/**
+ * --------------------------------------------------------
+ * 3. CEVAP ÜRETME (KANIT TEMELLİ)
+ * --------------------------------------------------------
+ */
+app.post("/api/quiz-answers", async (req, res) => {
+  try {
+    const { questions, lectureText, slidesText } = req.body as {
+      questions?: string[];
+      lectureText?: string;
+      slidesText?: string;
+      plan?: any;
+    };
+    if (!questions?.length) {
+      return res.status(400).json({ ok: false, error: "Sorular eksik" });
+    }
+
+    const LEC = lectureText ? lectureText.slice(0, 25000) : "";
+    const SLD = slidesText ? slidesText.slice(0, 25000) : "";
+
+    const prompt = `
+Sen objektif bir analizcisin. Soruları SADECE verilen metinlere göre cevapla.
+
+KURALLAR:
+1. Cevapları SADECE LEC ve SLIDE metinlerinden çıkar.
+2. Eğer metinde net bir cevap yoksa:
+   - "short_answer": "Bu bilgi ders içeriğinde bulunamadı" yaz.
+   - "confidence": 0 olarak ayarla.
+3. "evidence" alanı ZORUNLU:
+   - Cevabın dayandığı metin cümlelerini "quote" alanına yaz.
+4. SADECE AŞAĞIDAKİ JSON ŞEMASINI KULLAN:
+
+{
+  "answers": [
+    {
+      "q": "Soru",
+      "short_answer": "Cevap",
+      "explanation": "Kısa açıklama",
+      "evidence": {
+        "lec": [{ "quote": "..." }],
+        "slide": [{ "quote": "..." }]
+      },
+      "confidence": 0.0
+    }
+  ]
+}
+
+[LEC]:
+${LEC}
+
+[SLIDE]:
+${SLD}
+
+[SORULAR]:
+${questions.map((q, i) => `${i + 1}. ${q}`).join("\n")}
+`.trim();
+
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const result = await model.generateContent(prompt);
+    const cleaned = (result.response.text() || "")
+      .replace(/```json?/gi, "")
+      .replace(/```/g, "")
+      .trim();
+    const j = tryParseJSON(cleaned);
+
+    if (!j?.answers)
+      return res.status(500).json({ ok: false, error: "JSON parse hatası" });
+
+    return res.json({ ok: true, answers: j.answers });
+  } catch (e: any) {
+    console.error("[/api/quiz-answers ERROR]", e?.message || e);
+    return res
+      .status(500)
+      .json({ ok: false, error: e?.message || "server error" });
+  }
+});
+
+/**
+ * --------------------------------------------------------
+ * 4. CEVAP DEĞERLENDİRME (Grade API)
+ * --------------------------------------------------------
+ */
+app.post("/api/quiz-eval", async (req, res) => {
+  try {
+    const { q, student_answer, lectureText, slidesText } = req.body as {
+      q?: string;
+      student_answer?: string;
+      lectureText?: string;
+      slidesText?: string;
+    };
+    if (!q || !student_answer)
+      return res.status(400).json({ ok: false, error: "Veri eksik" });
+
+    const LEC = lectureText ? lectureText.slice(0, 15000) : "";
+    const SLD = slidesText ? slidesText.slice(0, 15000) : "";
+
+    const prompt = `
+Öğrenci cevabını değerlendir. SADECE LEC ve SLIDE metinlerine göre puan ver.
+
+ŞEMA:
+{
+  "grade": "correct" | "partial" | "incorrect",
+  "feedback": "string",
+  "missing_points": ["..."],
+  "evidence": {
+    "lec": [{ "quote": "..." }],
+    "slide": [{ "quote": "..." }]
+  },
+  "confidence": 0.0
+}
+
+[LEC]:
+${LEC}
+
+[SLIDE]:
+${SLD}
+
+[SORU]:
+${q}
+
+[ÖĞRENCİ CEVABI]:
+${student_answer}
+`.trim();
+
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const result = await model.generateContent(prompt);
+    const cleaned = (result.response.text() || "")
+      .replace(/```json?/gi, "")
+      .replace(/```/g, "")
+      .trim();
+    const j = tryParseJSON(cleaned);
+
+    if (!j?.grade)
+      return res.status(500).json({ ok: false, error: "JSON parse hatası" });
+    return res.json({ ok: true, ...j });
+  } catch (e: any) {
+    console.error("[/api/quiz-eval ERROR]", e?.message || e);
+    return res
+      .status(500)
+      .json({ ok: false, error: e?.message || "server error" });
+  }
+});
+
+// ---- Lesson & Memory & Quiz Routes (Değişmedi)
+app.get("/api/lessons", (_req, res) => res.json(listLessons()));
+app.get("/api/lessons/:id", (req, res) => {
+  const l = getLesson(req.params.id);
+  if (!l) return res.status(404).json({ error: "Not found" });
+  res.json(l);
+});
+app.post("/api/lessons", (req, res) => {
+  const l = upsertLesson(req.body);
+  res.json(l);
+});
+app.patch("/api/lessons/:id/progress", (req, res) => {
+  const l = updateProgress(req.params.id, req.body);
+  if (!l) return res.status(404).json({ error: "Not found" });
+  res.json(l);
+});
+app.get("/api/memory", (_req, res) => res.json(getMemory()));
+
+app.post("/api/quiz/generate", (req, res) => {
+  const { count, lessonIds, lessonId } = req.body as {
+    count?: number;
+    lessonIds?: string[];
+    lessonId?: string;
+  };
+  const pack = generateQuizFromEmphases(count ?? 5, lessonIds);
+  if (!isQuizPack(pack)) return res.status(400).json(pack);
+  if (lessonId) attachQuizPack(lessonId, pack.id);
+  return res.json(pack);
+});
+
+app.get("/api/quiz/:packId", (req, res) => {
+  const pack = getQuizPack(req.params.packId);
+  if (!pack) return res.status(404).json({ error: "Not found" });
+  res.json(pack);
+});
+
+app.post("/api/quiz/:packId/submit", (req, res) => {
+  const { answers, lessonId } = req.body as {
+    answers: Array<{ id: string; answer: string | boolean }>;
+    lessonId?: string;
+  };
+  const result = scoreQuizPack(req.params.packId, answers || []);
+  if (lessonId && typeof result?.score === "number")
+    setQuizScore(lessonId, req.params.packId, result.score);
+  res.json(result);
+});
+
+// ---- Sunucu Başlat
+const PORT = Number(process.env.PORT || 4000);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(
+    `✅ Backend (Universal Mode V8 + IEU LO + Strict JSON) çalışıyor: http://localhost:${PORT}`
+  );
+});
