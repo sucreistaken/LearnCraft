@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "./App.css";
 import { API_BASE } from "./config";
-import { Plan, ModeId, LoAlignment, LoStudyModule } from "./types";
+import { Plan, ModeId, LoAlignment, LoStudyModule, CheatSheet } from "./types";
 import LoStudyPane from "./components/LoStudyPane";
 
 // --- Bileşen Importları ---
@@ -13,6 +13,7 @@ import DeepDivePane from "./components/DeepDivePane";
 import ExamSprintPane from "./components/ExamSprintPane";
 import ModeRibbon from "./components/ModeRibbon";
 import LessonsHistoryPane from "./components/LessonsHistoryPane";
+import CheatSheetPane from "./components/CheatSheetPane";
 
 /** -------- Helpers -------- */
 function getInitialMode(): ModeId {
@@ -30,6 +31,7 @@ function fmtTime(sec: number) {
   const ss = Math.floor(s % 60);
   return `${mm}:${String(ss).padStart(2, "0")}`;
 }
+
 function formatTime(sec: number) {
   const s = Math.max(0, Math.floor(sec || 0));
   const h = Math.floor(s / 3600);
@@ -53,12 +55,15 @@ export default function App() {
   const [mode, setMode] = useState<ModeId>(getInitialMode());
   const [quiz, setQuiz] = useState<string[]>([]);
 
+  // ✅ Cheat Sheet state
+  const [cheatSheet, setCheatSheet] = useState<CheatSheet | null>(null);
+  const [cheatLoading, setCheatLoading] = useState(false);
+  const [cheatErr, setCheatErr] = useState<string | null>(null);
+
   // STT UI state
   const [sttProgress, setSttProgress] = useState(0);
   const [sttStatus, setSttStatus] = useState<string | null>(null);
-  const [sttNow, setSttNow] = useState<{ start: number; end: number } | null>(
-    null
-  );
+  const [sttNow, setSttNow] = useState<{ start: number; end: number } | null>(null);
   const [sttToast, setSttToast] = useState<string | null>(null);
 
   // Ders State'leri
@@ -100,6 +105,7 @@ export default function App() {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement)?.closest("input,textarea,[contenteditable=true]")) return;
+
       const map: Record<string, ModeId> = {
         "1": "plan",
         "2": "alignment",
@@ -109,6 +115,7 @@ export default function App() {
         "6": "exam-sprint",
         "7": "history",
         "8": "lo-study",
+        "9": "cheat-sheet", // ✅ yeni
       };
       if (map[e.key]) setMode(map[e.key]);
     };
@@ -131,9 +138,11 @@ export default function App() {
     }
   };
 
-  // Ders değiştiğinde LO modüllerini sıfırla
+  // Ders değiştiğinde LO modüllerini + CheatSheet’i sıfırla
   useEffect(() => {
     setLoModules(null);
+    setCheatSheet(null);
+    setCheatErr(null);
   }, [currentLessonId]);
 
   // Seçili Dersi ve Detaylarını Getir
@@ -143,39 +152,43 @@ export default function App() {
         setLectureText("");
         setSlidesText("");
         setPlan(null);
+
         setCourseCode("");
         setLearningOutcomes([]);
         setLoAlignment(null);
         setLoModules(null);
+
+        setCheatSheet(null);
+        setCheatErr(null);
       }
       return;
     }
 
     fetch(`${API_BASE}/api/lessons/${currentLessonId}`)
       .then((r) => (r.ok ? r.json() : null))
-     .then((l) => {
-  if (l) {
-    setLectureText(l.transcript ?? "");
-    setSlidesText(l.slideText ?? "");
-    setPlan(l.plan ?? null);
+      .then((l) => {
+        if (l) {
+          setLectureText(l.transcript ?? "");
+          setSlidesText(l.slideText ?? "");
+          setPlan(l.plan ?? null);
 
-    // ✅ her zaman overwrite (yoksa boşla)
-    setCourseCode(l.courseCode ?? "");
-    setLearningOutcomes(Array.isArray(l.learningOutcomes) ? l.learningOutcomes : []);
-    setLoAlignment(l.loAlignment ?? null);
+          // ✅ her zaman overwrite (yoksa boşla)
+          setCourseCode(l.courseCode ?? "");
+          setLearningOutcomes(Array.isArray(l.learningOutcomes) ? l.learningOutcomes : []);
+          setLoAlignment(l.loAlignment ?? null);
 
-    // loModules
-    if (Array.isArray(l.loModules?.modules)) {
-      setLoModules(l.loModules.modules);
-    } else {
-      setLoModules(null);
-    }
+          // loModules
+          if (Array.isArray(l.loModules?.modules)) setLoModules(l.loModules.modules);
+          else setLoModules(null);
 
-    setLessons((prev) =>
-      prev.map((item) => (item.id === l.id ? { ...item, title: l.title } : item))
-    );
-  }
-})
+          // ✅ cheat sheet (backend kaydediyorsa)
+          setCheatSheet(l.cheatSheet ?? null);
+
+          setLessons((prev) =>
+            prev.map((item) => (item.id === l.id ? { ...item, title: l.title } : item))
+          );
+        }
+      })
       .catch(console.warn);
   }, [currentLessonId, draftTitle]);
 
@@ -223,7 +236,6 @@ export default function App() {
 
     const es = new EventSource(`${API_BASE}/api/transcribe/stream/${j.jobId}`);
 
-    // küçük toast timer
     const setToast = (txt: string) => {
       setSttToast(txt);
       (window as any).__sttToastTimer && clearTimeout((window as any).__sttToastTimer);
@@ -240,7 +252,6 @@ export default function App() {
         }
 
         if (msg.type === "log") {
-          // backend stderr loglarını status’a kısa göster
           if (typeof msg.message === "string" && msg.message.trim()) {
             setSttStatus(`Hazırlanıyor... (${msg.message.trim().slice(0, 60)})`);
           }
@@ -281,7 +292,7 @@ export default function App() {
           return;
         }
       } catch {
-        // ignore parse errors
+        // ignore
       }
     };
 
@@ -293,6 +304,32 @@ export default function App() {
 
     e.target.value = "";
   };
+
+  // ✅ Cheat Sheet generate
+  async function handleGenerateCheatSheet() {
+    if (!currentLessonId) {
+      setCheatErr("Önce bir ders seç.");
+      return;
+    }
+
+    setCheatLoading(true);
+    setCheatErr(null);
+
+    try {
+      const r = await fetch(`${API_BASE}/api/lessons/${currentLessonId}/cheat-sheet`, {
+        method: "POST",
+      });
+      const j = await r.json();
+      if (!r.ok || !j.ok) throw new Error(j.error || "Cheat sheet üretilemedi");
+
+      setCheatSheet(j.cheatSheet || null);
+      setMode("cheat-sheet");
+    } catch (e: any) {
+      setCheatErr(e.message || "Cheat sheet üretilemedi");
+    } finally {
+      setCheatLoading(false);
+    }
+  }
 
   // --- PDF YÜKLEME ---
   const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -349,9 +386,7 @@ export default function App() {
         }),
       });
       const j = await r.json();
-      if (!r.ok || !j.ok) {
-        throw new Error(j.error || "LO hizalama hatası");
-      }
+      if (!r.ok || !j.ok) throw new Error(j.error || "LO hizalama hatası");
       setLoAlignment(j.loAlignment || null);
     } catch (e: any) {
       setErr(e.message || "LO hizalama hatası");
@@ -368,13 +403,9 @@ export default function App() {
     setErr(null);
 
     try {
-      const r = await fetch(
-        `${API_BASE}/api/ieu/learning-outcomes?code=${encodeURIComponent(code)}`
-      );
+      const r = await fetch(`${API_BASE}/api/ieu/learning-outcomes?code=${encodeURIComponent(code)}`);
       const j = await r.json();
-      if (!r.ok || !j.ok) {
-        throw new Error(j.error || "Learning Outcomes bulunamadı");
-      }
+      if (!r.ok || !j.ok) throw new Error(j.error || "Learning Outcomes bulunamadı");
       setLearningOutcomes(j.learningOutcomes || []);
     } catch (e: any) {
       setErr(e.message || "LO çekilirken hata");
@@ -403,9 +434,7 @@ export default function App() {
         method: "POST",
       });
       const j = await r.json();
-      if (!r.ok || !j.ok) {
-        throw new Error(j.error || "LO modülleri üretilemedi");
-      }
+      if (!r.ok || !j.ok) throw new Error(j.error || "LO modülleri üretilemedi");
       setLoModules(j.modules || []);
       setMode("lo-study");
     } catch (e: any) {
@@ -444,6 +473,7 @@ export default function App() {
           learningOutcomes: learningOutcomes.length ? learningOutcomes : undefined,
         }),
       });
+
       const j = await r.json();
       if (!r.ok || !j?.ok) throw new Error(j?.error || "Hata");
 
@@ -476,15 +506,21 @@ export default function App() {
     const name = newLessonTitle.trim();
     if (!name) return;
 
+    // ✅ UI temizle
     setLectureText("");
     setSlidesText("");
     setPlan(null);
     setQuiz([]);
     setDraftTitle(name);
+    setErr(null);
+
     setCourseCode("");
     setLearningOutcomes([]);
     setLoAlignment(null);
     setLoModules(null);
+
+    setCheatSheet(null);
+    setCheatErr(null);
 
     try {
       const r = await fetch(`${API_BASE}/api/lessons`, {
@@ -534,6 +570,7 @@ export default function App() {
           <div className="lc-sticky">
             <form className="card" onSubmit={handleSubmit}>
               <label className="label">Ders Seçimi</label>
+
               <select
                 className="lc-select mb-4"
                 value={currentLessonId ?? (draftTitle ? "__draft__" : "")}
@@ -544,7 +581,7 @@ export default function App() {
                     // ✅ Anında temizle (UI’da eski ders yazıları kalmasın)
                     setCurrentLessonId(null);
                     localStorage.removeItem("lc.lastLessonId");
-                    setDraftTitle(""); // eski draft varsa kaldır
+                    setDraftTitle("");
 
                     setLectureText("");
                     setSlidesText("");
@@ -557,6 +594,9 @@ export default function App() {
                     setLoAlignment(null);
                     setLoModules(null);
 
+                    setCheatSheet(null);
+                    setCheatErr(null);
+
                     setShowNewLessonModal(true);
                     return;
                   }
@@ -567,7 +607,6 @@ export default function App() {
                   if (val) localStorage.setItem("lc.lastLessonId", val);
                   else localStorage.removeItem("lc.lastLessonId");
                 }}
-
               >
                 <option value="" className="muted">
                   -- Seçiniz --
@@ -668,21 +707,20 @@ export default function App() {
 
               <label className="label mt-4">Speech to Text (Transcript)</label>
 
-              {/* mini actions row */}
               <div className="stt-row">
                 <div className="stt-left">
                   <span className="stt-hint">
                     {sttStatus || "İstersen burayı elle de düzenleyebilirsin."}
-                    {sttNow && (
-                      <span className="stt-now">
-                        {fmtTime(sttNow.start)}–{fmtTime(sttNow.end)}
-                      </span>
-                    )}
+                    {sttNow && <span className="stt-now">{fmtTime(sttNow.start)}–{fmtTime(sttNow.end)}</span>}
                   </span>
                 </div>
 
                 <div className="stt-right">
-                  <label className="stt-upload" htmlFor="audio-upload" title="Audio yükle ve transkripte çevir">
+                  <label
+                    className="stt-upload"
+                    htmlFor="audio-upload"
+                    title="Audio yükle ve transkripte çevir"
+                  >
                     🎙️ Audio Yükle
                   </label>
 
@@ -711,7 +749,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* mini progress bar */}
               <div className="stt-progress" aria-hidden={sttProgress <= 0}>
                 <div className="stt-progress-bar" style={{ width: `${sttProgress}%` }} />
               </div>
@@ -725,11 +762,7 @@ export default function App() {
               />
 
               <div className="actions mt-4">
-                <button
-                  type="submit"
-                  disabled={!canSubmit}
-                  className={canSubmit ? "btn" : "btn btn--disabled"}
-                >
+                <button type="submit" disabled={!canSubmit} className={canSubmit ? "btn" : "btn btn--disabled"}>
                   {loading ? "Analiz Ediliyor..." : "Planla ve Analiz Et"}
                 </button>
 
@@ -743,11 +776,7 @@ export default function App() {
             <ModeRibbon mode={mode} setMode={setMode} />
 
             {mode === "plan" &&
-              (plan ? (
-                <PlanPane plan={plan} />
-              ) : (
-                <div className="muted-block">Henüz plan oluşturulmadı. Soldan veri giriniz.</div>
-              ))}
+              (plan ? <PlanPane plan={plan} /> : <div className="muted-block">Henüz plan oluşturulmadı. Soldan veri giriniz.</div>)}
 
             {mode === "alignment" &&
               (plan ? <AlignmentPane plan={plan} /> : <div className="muted-block">Eşleştirme verisi yok.</div>)}
@@ -774,6 +803,15 @@ export default function App() {
             )}
 
             {mode === "lo-study" && <LoStudyPane modules={loModules || []} />}
+
+            {mode === "cheat-sheet" && (
+              <CheatSheetPane
+                cheatSheet={cheatSheet}
+                loading={cheatLoading}
+                error={cheatErr}
+                onGenerate={handleGenerateCheatSheet}
+              />
+            )}
 
             {mode === "history" && (
               <LessonsHistoryPane

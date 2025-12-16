@@ -38,7 +38,14 @@ export type LessonLoModules = {
   lessonId: string;
   modules: LoStudyModule[];
 };
-
+export type CheatSheet = {
+  title: string;
+  updatedAt: string;
+  sections: any[];
+  formulas: any[];
+  pitfalls: any[];
+  quickQuiz: any[];
+};
 export type Lesson = {
   id: string;
   title: string;
@@ -51,7 +58,7 @@ export type Lesson = {
   professorEmphases?: Emphasis[];
   // Eski şema ile uyumluluk için (opsiyonel):
   quiz?: QuizQA[];
-
+  cheatSheet?: CheatSheet;
   // Yeni quiz paket modeli:
   quizPacks?: Array<{ packId: string; createdAt: string; lastScore?: number }>;
 

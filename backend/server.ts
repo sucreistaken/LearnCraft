@@ -101,6 +101,121 @@ const hasAlignment = (plan: any) =>
  */
 
 
+// ---------------- CHEAT SHEET PROMPT ----------------
+function buildCheatSheetPrompt(input: {
+  title: string;
+  transcript: string;
+  slideText: string;
+  learningOutcomes?: string[];
+  emphases?: any[];
+}) {
+  const LEC = (input.transcript || "").slice(0, 18000);
+  const SLD = (input.slideText || "").slice(0, 12000);
+  const LOS = (input.learningOutcomes || [])
+    .map((x, i) => `LO${i + 1}: ${String(x || "").trim()}`)
+    .join("\n");
+
+  const EMPH = input.emphases ? JSON.stringify(input.emphases).slice(0, 6000) : "—";
+
+  return `
+You are an exam-focused teaching assistant.
+
+Goal:
+Create a ONE-PAGE "Cheat Sheet" (A4 style) from the lecture transcript + slides.
+It must be ultra-condensed, high-signal, and optimized for last-minute revision.
+
+OUTPUT: Return ONLY VALID JSON with this schema:
+
+{
+  "title": "string",
+  "updatedAt": "ISO_STRING",
+  "sections": [
+    { "heading": "string", "bullets": ["string", "..."] }
+  ],
+  "formulas": ["string", "..."],
+  "pitfalls": ["string", "..."],
+  "quickQuiz": [{ "q": "string", "a": "string" }]
+}
+
+Rules:
+- sections: 5–9 sections max
+- each section bullets: 3–7 bullets max (short!!)
+- formulas can be empty array if none
+- pitfalls: common traps/mistakes (3–8)
+- quickQuiz: 3–6 very short Q/A
+- Use the professor emphases as a priority if available.
+- If Learning Outcomes exist, reflect them indirectly in sections.
+
+[LESSON TITLE]
+${input.title || "Lesson"}
+
+[LEARNING OUTCOMES]
+${LOS || "—"}
+
+[PROFESSOR EMPHASES (optional)]
+${EMPH}
+
+[TRANSCRIPT]
+${LEC}
+
+[SLIDES]
+${SLD}
+`.trim();
+}
+
+// ---------------- CHEAT SHEET ENDPOINT ----------------
+app.post("/api/lessons/:id/cheat-sheet", async (req, res) => {
+  try {
+    const lessonId = req.params.id;
+    const lesson = getLesson(lessonId);
+    if (!lesson) return res.status(404).json({ ok: false, error: "Lesson not found" });
+
+    const title = lesson.title || "Lesson";
+    const transcript = (lesson.transcript || "").trim();
+    const slideText = lesson.slideText || "";
+
+    if (!transcript && !slideText) {
+      return res.status(400).json({
+        ok: false,
+        error: "Transcript or slideText is required to build a cheat sheet.",
+      });
+    }
+
+    const prompt = buildCheatSheetPrompt({
+      title,
+      transcript,
+      slideText,
+      learningOutcomes: lesson.learningOutcomes || [],
+      emphases: lesson.plan?.emphases || lesson.professorEmphases || [],
+    });
+
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const result = await model.generateContent(prompt);
+    const raw = (result.response.text() || "").trim();
+    const cleaned = stripCodeFences(raw);
+    const j = tryParseJSON(cleaned);
+
+    if (!j?.sections || !Array.isArray(j.sections)) {
+      return res.status(500).json({ ok: false, error: "Cheat sheet JSON/schema error" });
+    }
+
+    // updatedAt zorunlu olsun
+    const cheatSheet = {
+      title: j.title || title,
+      updatedAt: new Date().toISOString(),
+      sections: j.sections,
+      formulas: Array.isArray(j.formulas) ? j.formulas : [],
+      pitfalls: Array.isArray(j.pitfalls) ? j.pitfalls : [],
+      quickQuiz: Array.isArray(j.quickQuiz) ? j.quickQuiz : [],
+    };
+
+    const saved = upsertLesson({ id: lessonId, cheatSheet });
+    return res.json({ ok: true, lessonId: saved.id, cheatSheet });
+  } catch (e: any) {
+    console.error("[/api/lessons/:id/cheat-sheet ERROR]", e?.message || e);
+    return res.status(500).json({ ok: false, error: e?.message || "server error" });
+  }
+});
 
 
 function segmentTranscript(lectureText: string): { index: number; text: string }[] {

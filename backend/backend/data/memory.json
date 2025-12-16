@@ -66,28 +66,28 @@
       "why": "These features drastically reduce the development feedback loop, making UI development faster and more enjoyable, which is crucial for project efficiency and developer motivation. Understanding these benefits motivates learning the declarative paradigm."
     },
     {
-      "statement": "While advanced state management solutions (e.g., Redux, MobX) exist, developers should master basic state management (e.g., using `setState`) first, and only adopt complex solutions when a clear need arises.",
-      "why": "This provides crucial practical guidance for students, preventing them from prematurely adopting overly complex solutions before understanding the foundational principles. This is a common pitfall that can lead to unnecessary complexity in projects."
+      "statement": "For complex applications, state management solutions exist to simplify data passing, but developers should master basic state management (e.g., `setState`) before adopting them.",
+      "why": "This provides practical guidance on advanced topics while emphasizing the importance of foundational knowledge. It prevents students from prematurely adopting complex solutions without understanding the underlying problems or simpler alternatives, promoting better development practices."
     },
     {
-      "statement": "Modern declarative UI frameworks like Flutter offer significant 'developer luxuries' such as hot reload and UI inspection tools, drastically improving development speed and experience.",
-      "why": "Although not a core conceptual paradigm, the lecturer emphasizes these practical benefits extensively at the beginning of the lecture. Understanding these features highlights the appeal and efficiency gains of using modern declarative frameworks for mobile development."
+      "statement": "Unidirectional data flow, consisting of props/constructor arguments (fixed) flowing top-to-bottom and state (changing) triggering rebuilds, is a fundamental principle for planning and creating declarative UIs.",
+      "why": "This explains how data and UI updates are managed in a predictable and controlled manner. It's critical for designing user interfaces that react correctly to user input and backend data, directly serving the design LO."
     },
     {
-      "statement": "Unidirectional data flow, managed through 'props' (fixed data passed down) and 'state' (changing data causing rebuilds), is a fundamental principle for organizing data in declarative UIs.",
-      "why": "This is a critical practical concept for designing and implementing interactive declarative UIs. Students must understand how data moves between components and triggers updates, which is central to building responsive applications."
+      "statement": "UI elements are internally represented as light data structures (descriptions) that are efficiently recreated and diffed by the framework, rather than being directly modified by the programmer.",
+      "why": "This addresses a common misconception about the performance of declarative UIs ('Isn't it inefficient?'). It highlights a core engineering decision that allows developers to 'just recreate the UI' without performance penalties, freeing them to focus on design."
     },
     {
-      "statement": "The 'source of information' problem and the inherent tree structure of UIs are core difficulties in imperative UI development that declarative programming aims to solve.",
-      "why": "This highlights the primary motivation and advantages of the declarative approach, providing essential context for *why* this paradigm shift occurred. Understanding the problems (e.g., spaghetti code, difficulty with tree traversal) helps appreciate the solution and its design principles."
+      "statement": "Declarative UI was invented as a solution to common complexities in managing user interfaces, particularly the 'source of information' problem and the inherent difficulty humans have with tree-like structures.",
+      "why": "Understanding the 'why' behind declarative UI helps students appreciate its design choices and benefits. It addresses practical problems faced by UI developers, linking theory to real-world challenges in application analysis and design."
     },
     {
-      "statement": "Declarative UI frameworks (like Flutter, React Native) abstract away complex UI management by making the developer re-create the UI description on every state change, and the framework efficiently determines actual UI updates.",
-      "why": "This explains *how* declarative UI works in practice and addresses a common developer intuition about inefficiency. Understanding this mechanism is crucial for using these frameworks correctly and avoiding anti-patterns, which is vital for performance and maintainability."
+      "statement": "The fundamental distinction between Imperative and Declarative programming lies in 'giving detailed orders' versus 'describing how it should be'.",
+      "why": "This core concept is foundational for understanding why declarative UI is structured the way it is. Grasping this difference clarifies programmer control, responsibility, and how the computer 'works' in each paradigm, which is essential for designing UIs effectively."
     },
     {
-      "statement": "Declarative programming is a fundamental shift from imperative programming, where you describe *what* the UI should look like rather than *how* to build or update it.",
-      "why": "This is the core conceptual understanding required for modern mobile UI development. Misunderstanding this leads to incorrect development patterns and difficulty in grasping framework concepts. Essential for exam questions on programming paradigms."
+      "statement": "Modern declarative UI frameworks like Flutter offer significant developer experience advantages, specifically Hot Reload with state preservation and direct UI element inspection.",
+      "why": "These features drastically reduce the development feedback loop, making UI development faster and more enjoyable, which is crucial for project efficiency and developer motivation. Understanding these benefits motivates learning the declarative paradigm."
     },
     {
       "statement": "While advanced state management solutions (e.g., Redux, MobX) exist, developers should master basic state management (e.g., using `setState`) first, and only adopt complex solutions when a clear need arises.",
@@ -98,5 +98,5 @@
       "why": "Although not a core conceptual paradigm, the lecturer emphasizes these practical benefits extensively at the beginning of the lecture. Understanding these features highlights the appeal and efficiency gains of using modern declarative frameworks for mobile development."
     }
   ],
-  "lastUpdated": "2025-12-16T00:28:46.999Z"
+  "lastUpdated": "2025-12-16T00:58:09.413Z"
 }

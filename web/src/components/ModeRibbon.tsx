@@ -17,6 +17,8 @@ export default function ModeRibbon({
     { id: "exam-sprint",   label: "Sprint" },
     { id: "lo-study",      label: "LO Study" },      // 🔹 yeni sekme
     { id: "history",       label: "Derslerim" },
+    { id: "cheat-sheet", label: "Cheat Sheet"},
+
   ];
 
   return (

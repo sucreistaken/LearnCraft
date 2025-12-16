@@ -107,6 +107,17 @@ export type ModeId =
   | "deep-dive"
   | "exam-sprint"
   | "history"
-  | "lo-study";           // 🔹 yeni mod
+  | "lo-study"
+  | "cheat-sheet";
+
+export type CheatSheet = {
+  title: string;
+  updatedAt: string;
+  sections: Array<{ heading: string; bullets: string[] }>;
+  formulas?: string[];
+  pitfalls?: string[];
+  quickQuiz?: Array<{ q: string; a: string }>;
+};
+        // 🔹 yeni mod
 
   
