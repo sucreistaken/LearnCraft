@@ -738,5 +738,637 @@
         }
       ]
     }
+  },
+  {
+    "id": "lec-1765844419207",
+    "title": "selam",
+    "date": "2025-12-16T00:20:19.207Z",
+    "transcript": "vSE 380 – Mobile Application Development Lecture 2: Declarative UI Lecturer: Gazihan Alankuş All rights reserved, cannot be used in any educational institution other than Izmir University of Economics. Please look at the couple of slides for assignments (marked with TODO) A problem: source of information Declarative Programming • In • Flutter • React/React Native • Jetpack Compose (Android) • Swift UI (iOS) we create the user interface in a style called “declarative programming”. • The kind of programming that most of you are used to is called “imperative programming”. • Android SDK • iOS SDK • What is the difference? What exactly are they? A computer program vs. an electronic circuit Imperative vs. Declarative Imperative Declarative • Giving orders in detail, with explicit instructions • Describing how it should be • Do this, then do that, then do this other thing. • Programmer has full control. • Programmer has full responsibility. • The computer is dumb. • Here is how I would like it to look like. I don’t have control over how exactly you are doing it. • Programmer has limited control. • Programmer has limited responsibility. • The computer is smart. Imperative vs. Declarative Imperative Declarative • Java • C++ • Step-by-step programming • HTML • SQL • Designing a circuit-like system • Procedural languages • Functional languages Is it just the language? • No, it’s the style. https://www.youtube.com/watch?v=Mt7KnvnNGfk How are React Native and Flutter Declarative? • JavaScript and Dart are procedural languages. Shouldn’t it be imperative? • Answer: there are imperative parts of your code. The code that generates the UI is declarative. Declarative code from React Native and Flutter. Declarative code from React Native and Flutter. • Although the language is suitable for imperative code, the framework forces declarative code. • You create and tie UI elements together. • You do not modify or manage existing UI elements. • There is no such code in either: • txtField.text = “new text” • pnlMain.addChild(txtField) • Instead, there is such code: • new Panel(new TextField(“hello”)); UI Code • React Native • JSX • (short for JavaScript XML) • Similar to HTML • The description for the UI. Creates the UI. • Not actual code • Limited customization • No debugging • Flutter • Widget constructors • Named parameters • child for single child • children for multiple • Actual code! • Fully customizable • Fully debuggable UI is a tree • The UI is a tree structure • Creating a tree is easy • Modifying and maintaining a tree is difficult • This is why they chose declarative • We create and re-create UI elements. We do not manage existing elements. • What? How? • How do you make a text field say “one” first, and then say “two” after you press a button? Imperative Example • How do you make a text field say “one” first, and then say “two” after you press a button? Panel panel = new Panel(); TextField t = new TextField(); panel.add(t); t.text = “one”; Button b = new Button(); panel.add(b); b.addClickHandler(() { t.text = “two”; }); • THIS IS IMPERATIVE CODE. THIS MAKES SENSE. • This is not how React Native or Flutter do it. Declarative Example • How do you make a text field say “one” first, and then say “two” after you press a button? String currentValue = “one”; buildUi() { new Panel( new Text(currentValue), new Button( onClick: () { currentValue = “two”; rebuildUi(); } ) ) } • THIS IS DECLARATIVE CODE. THIS IS COUNTER-INTUITIVE • Why does React Native and Flutter use this pattern? Compare them. Panel panel = new Panel(); TextField t = new TextField(); panel.add(t); t.text = “one”; Button b = new Button(); panel.add(b); b.addClickHandler(() { String currentValue = “one”; buildUi() { new Panel( new Text(currentValue), new Button( onClick: () { currentValue = “two”; rebuildUi(); } ) t.text = “two”; }); ) } The difference • Imperative • Declarative • You create elements • You attach them together • You create elements • You attach them together • You keep a reference to elements • You do not keep a reference to elements • You are not responsible for maintaining elements • You do not give them orders • You create them and forget about them • You are responsible for mainaining them • You give them orders • You recreate them when something changes How can you keep recreating the UI? • Isn’t it inefficient? How can you keep recreating the UI? • Isn’t it inefficient? • NO! People smarter than us have implemented it carefully. • What you are creating is not the real UI element. It’s just a light description of them. • Very light data structure, system is ok with creating and destroying them quickly. • The framework finds the difference between two versions of the tree and modifies the UI elements whose description actually changed. • Carefully crafted framework to give you the ability to “just recreate the UI”. • DO NOT TRY TO OPTIMIZE ANYTHING ABOUT IT!!! • DO NOT CACHE UI ELEMENTS, ETC. KEEP RECREATING THEM. Planning and Creating a Declarative UI • How should you go about planning your UI? • https://reactjs.org/docs/thinking-in-react.html •FilterableProductTable • SearchBar • ProductTable • ProductCategoryRow • ProductRow How does data flow? https://livebook.manning.com/book/react-in-action/chapter-3/112 How does data flow? https://www.slideshare.net/pheadra4/react-46872849?from_action=save How does data flow? https://www.slideshare.net/pheadra4/react-46872849?from_action=save How does data flow? • Unidirectional data flow • Top to bottom • Props/constructor arguments (fixed) • Data being passed down when component is created (yellow). • State (changing) • Temporary data that changes with user input or other events • Triggers a rebuild of subtree. Data is passed down as new version of props. • Bottom to top • Events • Lower level component communicates up https://tkssharma.gitbook.io/react-training/day-01/react-js-3-principles/one-way-data-flow How does data flow? • Unidirectional data flow • Top to bottom • Props/constructor arguments (fixed) • Data being passed down when component is created (yellow). • State (changing) • Temporary data that changes with user input or other events • Triggers a rebuild of subtree. Data is passed down as new version of props. • Bottom to top • Events • Lower level component communicates up https://tkssharma.gitbook.io/react-training/day-01/react-js-3-principles/one-way-data-flow Other approaches • Passing data around can be cumbersome • All intermediate levels need to know about the data being passed to a leaf • Solution: state management • Redux • MobX • Provider • Etc. • WARNING: Learn the basics well before starting these approaches! • Try it with setState first. Write a couple of apps with it first. After you really feel the need, start learning about a state management approach. TODO: Groups • I will create groups in Blackboard • I will randomly assign people who did not have groups • Please check tomorrow and let me know if there is a mistake TODO: Project Ideas • The deadline is next week. • Details are in week 1’s slides",
+    "slideText": "So I just made an introduction and reminder about what we did the last two weeks. Also in Panopto I saw some incomplete recordings but there were a lot of recordings so I'm not sure what happened. Maybe we lost like one hour last week. But like I said before, those are all secondary sources. Main sources you need to be here and listening to the lecture. Okay so like I said we covered a lot of things. I hope you are able to watch them through Panopto if not you can ask me always. And today I intend to dive into the code as much as possible. But before that I'd like to give you some ideas about what declarative UI means. I talked about it very briefly but I will dive into it today as much as possible without seeing code. Hopefully when you see the code it will make sense but I want to talk about it before that. I talked about two luxuries of Flutter that we repeat them. We ran the app and then we took it into a mode which is selection mode. And then I did some things in the app and then I took it to that mode and then I tapped on something on my screen. It took me to the code in my project that created that UI element. So I didn't have to go through my project or where is this, where is this. I immediately went there. So that was one luxury of Flutter and I will repeat that later as we start using it again. Another luxury was I edited some code, saved it and immediately like less than a second usually later I saw it, I saw my running app change to reflect that. And it was preserving the current state. So that's really valuable because I gave you the example of you are an intern, went to a company, let's say it's an e-commerce app and then people add something to the cart, they create this state like maybe you add some discounts, maybe you use some components, etc. And when you're checking out something weird is happening, right? So it's a really convoluted state that you're taking that into. So you change something there and then you save it, you run the app and then you see oh it's not very good. So you go back, change something, put the app in that state again, it's not very good. But you don't have that in Flutter. In Flutter you are in that state, you put the app in that state, you need all that in the app as a user and then you change the code. You save it, you need to see the change in the running version of the app while preserving its state. So this is immensely valuable and it reduces the loop that I talked about. So you change something, you run it, you see the result and then you change again. So that loop took hours back in the days in C++, even still current projects. But those are tough life, that's a tough developer's life. But we are living in a luxurious world with Flutter. I told you that developer experience is unmatched pretty much. It has a really nice developer experience. The two luxuries that I just talked about, tap on something, change code, you need to see it. These are luxuries that we get to live with. And you will find that gives a lot of pleasure to the developer as you quickly mould your application. It feels like you're playing with labels, it feels like you're shaking a lot with your hands, drawing something rather than writing code and trying to guess what happened. So I want you to have that kind of experience and if it's not that, just let me know and let's see what you're doing wrong. And let me try to help you. The third luxury of Flutter is declarative UI, which I called Markler. And I have some slides to explain that and this is pretty much the last set of slides I have. The rest of the semester will be all on my laptop, looking at some documentation, me coding in front of you, etc. So a problem in UI software is source of information. Where is the data coming from? Which data am I supposed to show it on the screen right now? I'm sure you all had back in the day when we were using Oasis. You read the message, but it still shows 200 messages, right? You read it, you read it, it still shows. So this is such an example, right? The information that goes there, the source was incorrect. In that case, it was a backend issue. A lot of times in a UI, there is some data that comes from the internet, from the network, and it's in your application right now, in some variables. And you show it on some screen, you also show it in different parts of the application. One of them changes what's going to happen, it has to go and change everything else. And then this changes, it needs to change everything else also. So this effect, this one, this effect, this one, you can see it becomes a spaghetti code very quickly. Unless you have some kind of structure to this data flow. So let me remember to change this part. So now whenever this line of code runs, it touches many places in the app. And then whenever this part runs, it touches many places in the app. You can even go into loop sometimes, right? This changed, why did this change? Did the user change it? Or did it change? Because of this change, then it affected this change, right? And then you can go into loops, you can try to find out what's going on, this is very crazy. And we talked about swing library last time. It's imperative, you can have situations like that in such libraries, okay? So this declarative UI is invented to get around this issue completely. And also user interfaces are usually like trees, okay? So you have a user interface, you have an app, and then you have the top side. And then, you know, there's a little button icon here, there's another icon here, there's a title. Maybe I'll just write it actually. And there's a list of elements, and there's another thing, you know, standard, classic user interface, right? So this is a tree, what do you mean this is a tree? This larger area contains a smaller area, which contains a smaller area, which contains a smaller area, okay? That's how it's a tree. So this large area, this thing, okay, let's start it this way, contains this title, which contains this little thing and that little thing and the title text, okay? So this is the parent, this is the child, this contains this tree, and then let's go to blue. So this contains this area, which contains this element, this element, this element, okay? So you can see how it's a tree, right? Visually, I'm showing it to you, I don't think there's any question about that. So another part here, maybe it has some elements, maybe yes, hello. And then the hello is a child, okay? So this is a tree, tree structure. Any question about that? No. You learned about trees before, and this is clear, there's a tree structure, there's no loops. It's a parent-child relationship going on. So have you learned any algorithms about trees, tree traversal in algorithms course? And yeah, was it easy? No. No, okay, to be honest, yeah, when they give you complicated situations around algorithms and etc. Traverse these trees, in order to traversal, blah, blah, blah. Okay, so human beings aren't very good at dealing with trees, okay? So this is one, something that I want you to hold in your head. I will come to that soon. This decorative UI is also trying to overcome that difficulty. As a human being, it's difficult for you to deal with trees, traverse trees, maintain trees, right? Let's say you have a button over here, and when you press that button, you want this thing to change. So you have a reference from this to this, and then you're able to also, everybody, and then things go crazy. Okay, you tend to add something here, you hold on to this reference, maybe it's deleted now, you're holding on to the old bad reference. All kinds of weird scenarios happen when you put a UI developer in front of a CS problem, okay? So you can imagine the mismatch there. So, and the source of information problem that I've also said, these kinds of apps usually have either inside the UI elements or somewhere central, there is data, okay? And these things modify that data, and that data is supposed to be reflected. Maybe this is showing the old version of data, like 200 messages, but this one read the message, so what's going to happen? Is it going to talk to this one, is it going to say this one, and then we'll talk back to this one, and there's some kind of mechanism that needs to happen so that everything reflects the latest data, okay? So this source of information problem lies in the center of some of the difficulties that I tried to explain. And we have this tree structure, this data moves to go into the different parts of the tree somehow, different parts of the tree will change that data, it will be reflected in other parts of the tree, so it can become a difficult task just to create a user interface, a user code, okay? So there is something called declarative programming, declarative user interfaces, but more generally declarative programming, okay? Let's try to understand what I mean by that, and as we start to use Flutter, I will always point to it. Remember, you know, I talked about declarative programming, so now we are doing it. So in Flutter, in the React-Reacted, React Composites, we are also using this approach. You are creating user interfaces in a style called declarative programming, or declarative UI. Okay, declarative means declare, I'm declaring it to you, I'm describing it to you, I'm saying, oh, it is ahead, it has a body, two arms and two legs, so I'm describing something, okay? That's the idea, you are programming in a way you are describing things, okay? I'm not telling you, okay, get ahead, get a body, attach it to the head, get an arm, attach it to this part, and get another arm, attach it to here, get a leg, attach it to here, get a leg, attach it to here, you know? What I just did when I drew this picture, I gave you some orders, right? That's the difference, I told you, okay, get this picture. But in this one, I explained to you, there's a head, there are arms, it's not important if you took the arms first or the legs first, I'm just telling you, it's up to you to however you want to draw it, but here I gave you step-by-step orders in a sequence, I told you, put the arms now, create the arms, etc. So this is declarative, this is imperative, which you don't call it, okay? So the kind of program that most of you are usually called imperative program, imperative means to give orders, do this, do that, completely stupid, you tell it to do whatever, every time, okay? It doesn't know anything, it's just waiting for your orders, you tell it to do something, okay? Just like I tried to explain. So you have to tell the computer, put the head on this coordinate, put the body on this coordinate, okay? So I'm going to SDK, I'm going to SDK, by default, native apps are using imperative program, imperative program is difficult, because you assume that the computer is done and you have a lot of responsibility on your shoulders to make things right. Because this program is easier, in this case you are describing things, you are given a set of tools that lets you describe something, okay? And leave the details to the system, that's the tricky part, okay? I'm describing it and I'm leaving the details to the system for it to draw the guy. I told it there's an arm, there's a head, etc. and it drew. But in here I told you maybe even more decorative, go to this coordinate, draw a circle, go to this coordinate, draw a line down, okay? So that's the kind of imperative that we are talking about. Imperative means giving orders, okay? So before the development is like this, but Jetpack Components with UI are changing it to make native app development more declarative. So basically, first React and React Native came out. I mean, there is more history, but the most famous example is React, basically, for web, and it introduced declarative programming to the masses. And then React Native followed what you can do with an app like that. And Flutter also created a declarative framework in a different approach, but whatever you learn here, you'll be useful in React Native because you learn about declarative, how to deal with declarative, okay? It's a light bulb that needs to go in your head at some point. For some people it never goes on, they just say, okay, this is how you do it. But if you stop and think about it, what am I doing? And then you're going to get much better results. Okay, after this, after the success of this, right, the native, we already did two interfaces, and they are also different because they are imperative. And then Flutter and React Native came out, they were so much easier compared to them. And then the native guys said, okay, we have to also do declarative, and then they did get their components, you try, for the Android and others, and you get applications in the perfect way, okay? So I told you a lot of high levels without any details, but what's the details, what exactly are they? Let's try to understand a little bit more. Any questions? You're free to stop. Okay, so you can think of it like a computer program versus an electronic circuit. There are a bunch of different ways to think about this. Did you take electronic circuits, courses, anything like that? Okay, so an electronic circuit, you have a battery, and then you plug a bunch of things. You say, okay, there's a light, there's a resistor here, et cetera, you put them together, and the button, and then you press the button, it runs, okay? You don't say, okay, electron, go forward, and then turn this light on, et cetera, you don't give those kinds of orders. You set it up, you press the button, it happens, okay? You describe the circuit, press the button, and it runs by itself. Okay, you put things together, and it runs by itself. So it's going to be more like that, like an electronic circuit, when you go through the apps. But the computer program is like, okay, I have line one, line two, line three, I run this line, and then once it's done, I go to the next one. And then I go to the next one, set of sequential instructions that somebody executes, a computer executes, line by line, like a dumb machine. It has variables, et cetera, and then you put all kinds of things you do with it. But the idea is that step by step, you tell it what it needs to do, okay? Versus, yes, circuit, you can put it in any order, you set it up, you take some time to set it up, and you press, but it runs by itself, okay? So computer program is more like imperative code that you are used in your Java course, for example. But electronic circuit is more like declarative programming, which we will do today, hopefully. Okay, so one more comparison. Interactive is doing orders in detail with its explicit instructions. Do this, then do that, then do this other thing. Do this, do this, do that, step, do this, step, et cetera. It's your fault. You have to do it in detail, what you do next. In declarative, you describe how it should be, okay? Here's how I would like, how I would like it to be like. I'm not controlling how exactly you're doing it, but this is what, this is my recipe. This is what I want to see, this is what I want to happen, and then please make it happen. It's the idea. So when your program is integrated, you find yourself writing out a code that describes user interfaces rather than any complicated code you put over here, et cetera. So differences, program has full control in imperative, full responsibility in imperative, okay? And you assume that the computer is done, you have to think about everything. This is not like, you have libraries of course, all library functions, all objects that are in libraries that make your job easier, you can integrate it, but at the end of the day, what happens after what is up to you, and you have to maintain that. In declarative world, your program has limited control, but has limited responsibility also, right? So you only focus on what you want to do. I want the user interface that reacts to data that shows the case, and I want to focus on that. I don't want to focus on bits and bytes and whatever happens in the computer inside. You know, I don't want to focus on that, I want to focus on my user interface. That's usually a good thing to have. And the computer is somewhat smart. You give it these instructions, and then it does some things that you don't want to do, such as treat traverses. Okay? So this imperative and declarative, it's a continuum, really. It's not a discrete thing. Something can be more declarative than something else, etc. But at the end of the day, what we mean is going to be you can reuse your interfaces. But until we come to that, let's talk about, there are some languages that naturally get you to create, sort of imperative code. Java, for example, you write a Java code, line-by-line, you say, c++, step-by-step, any kind of programming. But it's also in here. You might be surprised. Flutter has a dark language that we use. It's also an imperative language, by default. But we will talk about what makes it imperative. Okay? These are also procedural languages, imperative languages. Some declarative languages. Some languages are declarative. So you have to, when you use them, you have to integrate them. You have to describe it by the nature of the language. HTML, for example, if you have a code with a website, it's not a tag, you say, HTML, body, and then maybe a form. And the form is closed. So you basically can use the form, use something, use something else, right? If you're complaining, you're telling your computer, there must be this over here. You're not saying, step-by-step, do this and that. You have to create a document, you give it to the computer, you give it to the web browser, you can interpret it to make a website. Okay? SQL, SQL is also, I think, it's a database process, no? Yeah, that's a language that's declarative, in which you declare what you want to have. Okay, from this table, I want to find the largest element. You don't say, go, open that table, go to the first row, go to the next one. You just describe your problem, describe what you want, and it actually executes behind the scenes. Designing a circuit like system, whatever name, VHL, use the use for circuits. And all the functional languages are kind of in this area. So a language can be equivalent, a language can be declarative, meaning that when you write something with a language, you are either acting inequality or acting inequality. Okay? But in the case of VHL, like I said, it's an inequality language, right? So we will talk about what makes it different. Okay, so is it just a language? No. But definitely languages are inequality languages. But you have an inequality language by VHL, and you can write some code, more inequality, you know, more declaratively. You can compare it, say continuum, like that. You say, okay, this is my list of numbers, I have an empty list of numbers, and I will make it forward to a one by one, double that, and then add it to that other list. And that's it, right? So it is very important to do this, how can we do that? And here you say, okay, I have a list, and I have this function that doubles things. I want to apply that function on every element of this list, and give you the result, and you can do it, okay? This is more different, this is more different, but the difference between them is, this is a little more different. You are saying, okay, there's this function, apply it, I don't care how you apply it, et cetera. Okay? We'll talk about that. It's a statically typed language, it has a history, initially it was created to replace JavaScript, so it was very loosely typed in the beginning, then over the years they made it very strongly typed, but loosely typed is also a possibility, it's possible to use it that way, but we don't use it that way. Yes, it's similar to TypeScript, yes, in a way, yes. But closer to Java than TypeScript. TypeScript is a little more different than... ...Java. Basically, it's somewhere between Java and JavaScript, I would say. That was the target audience when they created it. Okay, so your language can be imperative, but you can write somehow declarative code with it. So how do we react if you want to declare it? JavaScript can now add procedural languages, imperative languages, okay? I will put them on the left in a couple of slides back. Not like HTML or SQL, etc. Okay, so it's a lot of both procedural languages. Should be imperative, it would be the question. There are, there will be imperative parts of your code. A lot of parts of your code will be imperative. You write a function, you write one line, code index, imperative, okay? But this is the most important part of this lecture perhaps. The code that generates the UI is declarative. Okay, and how we will talk about that. Okay, so if you create a Flutter application, you look at your main function, you look at the function, it's a function, line by line, front. But then you see things inside each other. Material app, title, text, etc. It looks a little different, it's still code. It looks a little different. They created the library so that you are forced to write declarative UI in an imperative language. Okay, it is a work of art. And I'll show you what's in the library's description. So basically, dark is an imperative language, procedural language, and part of your code, part of your code is imperative. But the code that generates the UI is declarative. Okay, the code that generates the UI, generates the user interface is imperative because they created the library to force you to do that. You cannot do it any other way, okay? And we will talk about that. Okay, so this is ReactMade in a Flutter. Sorry, it's a dark or clear, but React is ReactMade for five years on this course. It's left out, but you definitely will find it useful. So this is ReactMade. This is type script, JavaScript, line by line, front, front, welcome screen, creates a variable. And then, this is the inline function, and it goes into a mode in which you write the HTML. Okay, remember I called HTML as a declarative language. In ReactMade and React, you are writing JavaScript, and then you put HTML like code, JSX code, which looks very much like HTML, XML, inside your JavaScript. Let's do that. So to make ReactMade declarative, they modified the language so that you can put HTML like code inside JavaScript. Okay, because HTML is a declarative language, JavaScript is not a declarative language. To make you use an interface declarative, they let you, in React and ReactMade, put HTML inside JavaScript. JSX, take a quick look. Okay, so it says, okay, there's a view here, there's a header in it, there's a text in it, there's a text described, okay? There's another text in it, okay? So in that, in Flutter, what they did is, this is not HTML. They put these up all into the parentheses. This looks like a function called f-bar. There is the, I told you last time, there's the optional new keyword, where you have the name of a class, and parentheses, can you call that class now? In Java, you put new person, right? And new f-bar. There's an optional new keyword. You can also put that new keyword. Back in the day, it was mandatory. Later, to make it more cleaner, they made the new keyword optional. So if you just use a class name, parentheses, you're calling the constructor of it. And there's a new place, new keyword, as if you want to do a new keyword, okay? So basically, this is creating a parameter space. This is creating a center in a space and giving some parameters to it. And then there's the concept of made parameters, okay? So for example, let's get the scaffold. Scaffold parameters is, so I'm creating a scaffold. I'm calling it new scaffold, okay? It's a new scaffold. And then the first parameter is f-bar column. So these are name parameters. In Java, you don't have name parameters, right? Your parameters have names, but when you're calling the function, you don't give them. In that way, there's the option of having name parameters in functions, okay? And this is calling the scaffold constructor, and it's calling the f-bar constructor, and I'm passing it as a parameter. First parameter, scaffold constructor. It's calling the center constructor, center class constructor. And to that, it's giving the column class constructor, to that, it's giving you a list, a list of bunch of things, padding constructor, or material constructor, et cetera, et cetera. So it's basically creating objects. And then you can read each other. So this is one line of code. And there's actually a semicolon here, yes. This is one line of code, which on scaffold, and two up to semicolon. Okay? It's really weird, not like the code is actually useful, but it is imperative language. One line of code, I could have another line, I could have three lines before that, okay? I could put this into a variable, and use the variable here. So this is a code that I can mess with. I can do the formal, add things to this list, and then use that list. So in React, they use the different language, JSX, HTML like language. In Dart, in Flutter, they created this library of widgets. It's going to have this library, so that it keeps calling this constructor, and could limit in a way that looks like a kind of HTML code-ish. But we have one line of code that creates bunch of examples that are together. This is the idea. And yes, any questions here? Is it clear? I hope it's clear, because it's very important. Maybe I can zoom into it, if you want to see it closer. I guess I couldn't do the job. Okay? We will be dealing with this kind of code a lot. Okay, this is a function, build function, receive something, return something, and then it has one line of code, bunch of constructors. When you have such a code, what happens is, most things execute, and then get passed as parameters. So let's say what is created, and then pending is created, most of you are passed as children in column constructor. Column constructor is executed, its result is passed in the center, and this result passes carefully, etc. So as a result of this one line of code, I end up with a tree of widgets. Does it make sense? Okay? In one line of code, we say, okay, there is this, it has got to be children, and there is this, let's create this, let's create this, let's create, create, create, create, create, create. And then when you are done with that line of code, you have a tree of widgets. Okay? So this is code that created tree of widgets. Okay? And when you look at it, it looks like you described something, you say, there is this. Okay? But again, you could have put these into variables, etc. Another question, what's the difference between a class and an object? This is a very simple question, yes. A class is a blue print for an object. Yes. So out of a class, you create an object. Yes. Okay. So you have a person class, class person, and it has, it's a blue print of an object, right? I don't have a person yet, you know? And then, I say person. Create a person out of it, right? Person P. You are used to this kind of code in Java, right? Person P. Create a new person. Right? Everybody is very familiar with this kind of code. Person P. New person. Any problems here? Right? You are familiar with this kind of code. What does this line of code do? I'm not sure if you're familiar with what it actually does. Create a new person. Which part creates the instance? The new. New person, yes. But this part creates the instance. It actually creates a person. I could call you an actual person. And now, what it does afterwards? Assigns. Assigns. What does it mean to assign? How do you assign a person to what? It's a repeat reference to it. Reference, yes. You're talking about references, okay? So, thank you. You have to be very clear about what a reference is. It leaves a mistake. Don't worry about that. Don't confuse yourself with details. It's a memory address, stack, heap, blah, blah. A reference is a phone number. Okay? This guy has a phone. It is 555 something, blah, blah, blah. His phone number. Okay? This is a very nice analogy in real world. You can understand the phone number. Okay? But when the day comes and then I find that you don't understand references, it's your fault. Because I'm giving you the perfect example. Perfect analogy. Phone number. Okay? I have your phone number. Do I have you? No. You are here by yourself. A new person created you. Mom and dad, hopefully. And then back in the day, you know, and then he left. And then that created you back in the day. And then your phone number is given to P. Okay? So in my games course, I talk about this in much detail. But the idea is that what this line of thought does is it creates a new person. It's a phone number. Everybody's born with a cell phone. It's this. It's my cell phone. So, and then this code returns that number. Okay? What's P then? P is a piece of paper with a phone number on it. Okay? Or in somebody else's phone, a line of entry in the context list. That's what P is. Okay? So P has 5, 5, 6, 7, 8. So you can think of it like an arrow. Okay? If I have P, I need to call a name. Okay? Then, so if I make person P2 is equal to a new person. Let's also give like construct problems again. Okay? And then I create another person. Baby. Right? Now I have two people. Okay? If I say person P3 is equal to P, what happens? P3 references. What is P3? A new reference. A new person. A new piece of paper with a phone number on it. So P2 was this. Well, it shows same. Yes. P3 is also going to this guy because it holds us 5, 5, 5. Let's say this is just 5, 1, 1. 5, 1, 1. Okay? So this has to be the idea in your head. Otherwise, if you say I have a teacher telling me something, let me do whatever else. Let me check my Instagram, et cetera. One day, you will be faced with this truth. Okay? You are a junior developer. Things are breaking. You don't know why. You don't know what is changing these records. And then you want to cry. You want to say, well, don't call it like this. Call it like that because then it works. Okay? If you're not clear about this thing, if you think that P is the actual person, there will one day come in your life where you remember today and then you say, oh, I wish I had paid more attention. Okay? It's that important. Like I told you about touch typing. That's important. I told you a bunch of other things. This is another thing that's so important. If you want to be a programmer and you don't understand this, please, I mean, do something about it. Come talk to me. Let me tell you 10 more times and give you more different examples. Okay? So when you create an object, that object is created somewhere. And then for all the variables of that object, like person P, whatever this return, I am passing a group context into this function. This function returns a widget. This is a little class name. This is a class name. This is a class name. This is a class name. This is a class name. Everything that's a class name that looks like a value is a phone number. Okay? So basically this function is creating a scaffold object in memory and then returning its address, its phone number as the widget. This is a parent class of scaffold. Okay? I hope this makes sense. This is so important. These arrows, phone numbers. If you always come back, oh, you talk about phone numbers and try to think of it like that, you will be in the right track. Otherwise, you think, oh, I created P. I created a need. If you want a need, especially, it's going to be even more confusing. Okay? And you say, I'm easy for the baby. Somebody does this in somewhere and then you think you're talking to a need, but you're actually talking to the baby. Okay? So this is very important. And this is what's going on here. All these constructors, app bar is created in memory. Census created is all created in memory. And then they're going to turn this past this app bar, being passed to scaffold, is the phone number of that app bar being given to scaffold. So when the scaffold will show itself on the screen, it will start calling people, hey, you must be my app bar. Put yourself in here. Hey, you must be my whatever body. You are sensitive. Yes, put yourself in here. Okay? A lot of calling each other. You have to. Okay. So we have time. Are we out of time? You are out of time. Yes. So let's give a 10-minute break. After that, we point you. You can remind me about time.",
+    "highlights": [
+      "Declarative Programming",
+      "Imperative Programming",
+      "UI as a Tree Structure",
+      "Unidirectional Data Flow",
+      "State Management",
+      "Hot Reload",
+      "Widget Constructors",
+      "React Native JSX"
+    ],
+    "professorEmphases": [
+      {
+        "statement": "Modern declarative UI frameworks like Flutter offer significant developer experience advantages, specifically Hot Reload with state preservation and direct UI element inspection.",
+        "why": "These features drastically reduce the development feedback loop, making UI development faster and more enjoyable, which is crucial for project efficiency and developer motivation. Understanding these benefits motivates learning the declarative paradigm.",
+        "in_slides": false,
+        "evidence": "The lecturer spends considerable time describing these 'luxuries' of Flutter, including a detailed story about an e-commerce intern, emphasizing how they reduce development time from 'hours' to 'less than a second'.",
+        "source": "lecture",
+        "from_transcript_quote": "Another luxury was I edited some code, saved it and immediately like less than a second usually later I saw it, I saw my running app change to reflect that. And it was preserving the current state. So that's really valuable because I gave you the example of you are an intern, went to a company, let's say it's an e-commerce app...",
+        "from_slide_quote": null,
+        "related_lo_ids": [
+          "LO2"
+        ]
+      },
+      {
+        "statement": "The fundamental distinction between Imperative and Declarative programming lies in 'giving detailed orders' versus 'describing how it should be'.",
+        "why": "This core concept is foundational for understanding why declarative UI is structured the way it is. Grasping this difference clarifies programmer control, responsibility, and how the computer 'works' in each paradigm, which is essential for designing UIs effectively.",
+        "in_slides": true,
+        "evidence": "Both the slides and the lecture extensively compare these two concepts. The lecturer uses multiple analogies (human instructions, electronic circuit vs. computer program) and detailed explanations to reinforce this central idea.",
+        "source": "both",
+        "from_transcript_quote": "Declarative means declare, I'm declaring it to you, I'm describing it to you, I'm saying, oh, it is ahead, it has a body, two arms and two legs, so I'm describing something, okay? That's the idea, you are programming in a way you are describing things...",
+        "from_slide_quote": "Imperative: Giving orders in detail, with explicit instructions; Declarative: Describing how it should be",
+        "related_lo_ids": [
+          "LO2"
+        ]
+      },
+      {
+        "statement": "Declarative UI was invented as a solution to common complexities in managing user interfaces, particularly the 'source of information' problem and the inherent difficulty humans have with tree-like structures.",
+        "why": "Understanding the 'why' behind declarative UI helps students appreciate its design choices and benefits. It addresses practical problems faced by UI developers, linking theory to real-world challenges in application analysis and design.",
+        "in_slides": true,
+        "evidence": "The lecturer dedicates a significant portion of the early lecture to framing 'A problem: source of information' and elaborating on how managing UI trees leads to 'spaghetti code' and 'crazy scenarios'.",
+        "source": "lecture",
+        "from_transcript_quote": "So a problem in UI software is source of information. Where is the data coming from? Which data am I supposed to show it on the screen right now? ... In that case, it was a backend issue. A lot of times in a UI, there is some data that comes from the internet...",
+        "from_slide_quote": "A problem: source of information",
+        "related_lo_ids": [
+          "LO1",
+          "LO2"
+        ]
+      },
+      {
+        "statement": "UI elements are internally represented as light data structures (descriptions) that are efficiently recreated and diffed by the framework, rather than being directly modified by the programmer.",
+        "why": "This addresses a common misconception about the performance of declarative UIs ('Isn't it inefficient?'). It highlights a core engineering decision that allows developers to 'just recreate the UI' without performance penalties, freeing them to focus on design.",
+        "in_slides": true,
+        "evidence": "The lecture directly poses the question 'Isn't it inefficient?' and provides a detailed explanation about the framework's role in finding differences between UI versions and modifying only what changed. It strongly advises against manual optimization.",
+        "source": "both",
+        "from_transcript_quote": "What you are creating is not the real UI element. It’s just a light description of them. ... The framework finds the difference between two versions of the tree and modifies the UI elements whose description actually changed. ... DO NOT TRY TO OPTIMIZE ANYTHING ABOUT IT!!!",
+        "from_slide_quote": "How can you keep recreating the UI? ... The framework finds the difference between two versions of the tree and modifies the UI elements whose description actually changed.",
+        "related_lo_ids": [
+          "LO2"
+        ]
+      },
+      {
+        "statement": "Unidirectional data flow, consisting of props/constructor arguments (fixed) flowing top-to-bottom and state (changing) triggering rebuilds, is a fundamental principle for planning and creating declarative UIs.",
+        "why": "This explains how data and UI updates are managed in a predictable and controlled manner. It's critical for designing user interfaces that react correctly to user input and backend data, directly serving the design LO.",
+        "in_slides": true,
+        "evidence": "Both the slides and lecture provide clear definitions and explanations of unidirectional data flow, separating props/constructor arguments from state and detailing their roles in causing UI changes and rebuilds.",
+        "source": "both",
+        "from_transcript_quote": "Unidirectional data flow. Top to bottom. Props/constructor arguments (fixed). Data being passed down when component is created (yellow). State (changing). Temporary data that changes with user input or other events.",
+        "from_slide_quote": "How does data flow? Unidirectional data flow • Top to bottom • Props/constructor arguments (fixed) • State (changing) • Bottom to top • Events",
+        "related_lo_ids": [
+          "LO2"
+        ]
+      },
+      {
+        "statement": "For complex applications, state management solutions exist to simplify data passing, but developers should master basic state management (e.g., `setState`) before adopting them.",
+        "why": "This provides practical guidance on advanced topics while emphasizing the importance of foundational knowledge. It prevents students from prematurely adopting complex solutions without understanding the underlying problems or simpler alternatives, promoting better development practices.",
+        "in_slides": true,
+        "evidence": "The lecture highlights the 'cumbersome' nature of passing data around and lists several state management solutions, but strongly cautions students: 'WARNING: Learn the basics well before starting these approaches!'",
+        "source": "both",
+        "from_transcript_quote": "WARNING: Learn the basics well before starting these approaches! Try it with setState first. Write a couple of apps with it first. After you really feel the need, start learning about a state management approach.",
+        "from_slide_quote": "Other approaches • Solution: state management • Redux • MobX • Provider • Etc. • WARNING: Learn the basics well before starting these approaches!",
+        "related_lo_ids": [
+          "LO2"
+        ]
+      }
+    ],
+    "quiz": [],
+    "quizPacks": [],
+    "progress": {
+      "lastMode": "alignment",
+      "percent": 0
+    },
+    "createdAt": "2025-12-16T00:20:19.207Z",
+    "updatedAt": "2025-12-16T00:28:46.997Z",
+    "plan": {
+      "topic": "Mobile Application Development: Declarative UI",
+      "key_concepts": [
+        "Declarative Programming",
+        "Imperative Programming",
+        "UI as a Tree Structure",
+        "Unidirectional Data Flow",
+        "State Management",
+        "Hot Reload",
+        "Widget Constructors",
+        "React Native JSX"
+      ],
+      "duration_weeks": 1,
+      "modules": [
+        {
+          "title": "Module 1: Foundations of UI Programming Paradigms",
+          "goal": "Students will be able to differentiate between imperative and declarative programming styles and appreciate the developer experience benefits of modern declarative UI frameworks.",
+          "lessons": [
+            {
+              "title": "1.1 Introduction to Declarative UI & Developer Luxuries",
+              "objective": "Explain the core concept of declarative programming in UI development and identify the key developer benefits (e.g., hot reload, UI inspection) offered by frameworks like Flutter.",
+              "study_time_min": 30,
+              "activities": [
+                {
+                  "type": "read",
+                  "prompt": "Review the 'Declarative Programming' and 'Flutter' sections in the provided slide text.",
+                  "expected_outcome": "Understand the definition of declarative programming and the core frameworks using it."
+                },
+                {
+                  "type": "watch",
+                  "prompt": "Watch a short video demonstration (if available in Panopto) on Flutter's Hot Reload and UI inspection features, as discussed in the lecture.",
+                  "expected_outcome": "Visualize the practical advantages of these developer tools."
+                }
+              ],
+              "mini_quiz": [
+                "What is the fundamental difference in approach between declarative and imperative programming?",
+                "List two 'luxuries' (developer benefits) of Flutter mentioned in the lecture.",
+                "Why is preserving the current app state during code changes valuable for developers?"
+              ]
+            },
+            {
+              "title": "1.2 Imperative vs. Declarative: Core Differences & Analogies",
+              "objective": "Compare and contrast imperative and declarative programming styles using examples and analogies, focusing on programmer control and responsibility in UI development.",
+              "study_time_min": 35,
+              "activities": [
+                {
+                  "type": "read",
+                  "prompt": "Study the 'Imperative vs. Declarative' comparison tables and code examples from the slide text.",
+                  "expected_outcome": "Identify concrete characteristics distinguishing both programming styles."
+                },
+                {
+                  "type": "watch",
+                  "prompt": "Listen to the lecture's explanation of the 'computer program vs. electronic circuit' analogy.",
+                  "expected_outcome": "Grasp how real-world systems can represent imperative and declarative thinking."
+                },
+                {
+                  "type": "practice",
+                  "prompt": "Given a simple UI modification task (e.g., changing text on a button click), describe how you would approach it imperatively versus declaratively.",
+                  "expected_outcome": "Apply the concepts to a practical scenario, demonstrating understanding of both paradigms."
+                }
+              ],
+              "mini_quiz": [
+                "In imperative programming, what is the programmer's main responsibility regarding UI elements?",
+                "Which programming paradigm is more akin to 'giving orders in detail'?",
+                "Explain the 'computer program vs. electronic circuit' analogy in the context of imperative vs. declarative UI."
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Module 2: Building Declarative User Interfaces",
+          "goal": "Students will understand the structural foundation of declarative UIs (tree structure) and how modern frameworks efficiently implement these principles.",
+          "lessons": [
+            {
+              "title": "2.1 The UI as a Tree & Its Implications",
+              "objective": "Explain why UIs are inherently tree structures and how this impacts the design choice for declarative frameworks to re-create rather than manage UI elements.",
+              "study_time_min": 25,
+              "activities": [
+                {
+                  "type": "read",
+                  "prompt": "Review the 'UI is a tree' section in the slide text and the corresponding lecture explanation.",
+                  "expected_outcome": "Understand the hierarchical nature of UI components and the challenges of managing changes in a tree imperatively."
+                },
+                {
+                  "type": "watch",
+                  "prompt": "Recall or find examples of how complex UIs visually represent a tree structure.",
+                  "expected_outcome": "Solidify the visual and conceptual understanding of UI as a tree."
+                }
+              ],
+              "mini_quiz": [
+                "Why is a user interface often conceptualized as a tree structure?",
+                "What difficulty do human developers face when dealing with tree structures imperatively?",
+                "How do declarative frameworks address the difficulty of modifying and maintaining UI trees?"
+              ]
+            },
+            {
+              "title": "2.2 Declarative Implementation in Frameworks (Flutter, React Native)",
+              "objective": "Identify how Flutter (Widgets) and React Native (JSX) enable declarative UI construction, distinguishing between UI description and actual code.",
+              "study_time_min": 30,
+              "activities": [
+                {
+                  "type": "read",
+                  "prompt": "Examine the 'UI Code' section of the slide text, comparing JSX and Flutter's widget constructors.",
+                  "expected_outcome": "Understand the specific syntax and characteristics of declarative UI code in popular frameworks."
+                },
+                {
+                  "type": "practice",
+                  "prompt": "Imagine you need to display 'hello' in a text field inside a panel. Write a pseudo-code snippet showing how Flutter's widget constructors would achieve this declaratively.",
+                  "expected_outcome": "Demonstrate the ability to think declaratively in a framework context."
+                }
+              ],
+              "mini_quiz": [
+                "What is JSX and how does it relate to declarative UI in React Native?",
+                "How do Flutter's Widget constructors differ from JSX in terms of being 'actual code'?",
+                "Why do declarative frameworks encourage 'creating and re-creating UI elements' rather than directly modifying them?"
+              ]
+            },
+            {
+              "title": "2.3 The Efficiency of Recreating UI: A Deeper Look",
+              "objective": "Address common concerns about the performance of recreating UI elements, explaining how declarative frameworks efficiently manage updates.",
+              "study_time_min": 20,
+              "activities": [
+                {
+                  "type": "read",
+                  "prompt": "Review the 'How can you keep recreating the UI?' section in the slide text and the lecture's elaboration on light data structures and diffing algorithms.",
+                  "expected_outcome": "Understand the underlying mechanisms that make declarative UI recreation efficient."
+                },
+                {
+                  "type": "quiz",
+                  "prompt": "Complete a short quiz on the efficiency of declarative UI.",
+                  "expected_outcome": "Correctly answer questions about why recreating UI is not inefficient and the role of frameworks."
+                }
+              ],
+              "mini_quiz": [
+                "Is recreating the entire UI on every state change inefficient? Why or why not?",
+                "What is the role of the framework when the UI is 'recreated'?",
+                "What is a key optimization principle a developer should *not* attempt in declarative UI frameworks?"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Module 3: Data Flow and State Management in Declarative UIs",
+          "goal": "Students will grasp the principles of unidirectional data flow and be aware of various state management strategies in complex mobile applications.",
+          "lessons": [
+            {
+              "title": "3.1 Unidirectional Data Flow: Props, State, and Events",
+              "objective": "Explain the concept of unidirectional data flow, differentiating between fixed data (props/constructor arguments) and mutable data (state) and how interactions are communicated.",
+              "study_time_min": 40,
+              "activities": [
+                {
+                  "type": "read",
+                  "prompt": "Analyze the 'How does data flow?' section in the slide text, paying attention to 'Props/constructor arguments', 'State', and 'Events'.",
+                  "expected_outcome": "Clearly distinguish between different types of data flow (top-to-bottom, bottom-to-top) and their roles."
+                },
+                {
+                  "type": "practice",
+                  "prompt": "Draw a simple diagram illustrating unidirectional data flow for a counter application, showing how a button click updates a displayed number.",
+                  "expected_outcome": "Visually represent the data flow, including state changes and event propagation."
+                }
+              ],
+              "mini_quiz": [
+                "How does data typically flow from top-level components to lower-level components in a declarative UI?",
+                "What is the primary purpose of 'state' in a declarative UI, and what does it trigger?",
+                "How do lower-level components communicate changes or events back to higher-level components?"
+              ]
+            },
+            {
+              "title": "3.2 Advanced State Management Approaches",
+              "objective": "Recognize the challenges of complex data passing and identify different state management solutions, understanding the recommended learning progression.",
+              "study_time_min": 20,
+              "activities": [
+                {
+                  "type": "read",
+                  "prompt": "Review the 'Other approaches' to state management in the slide text and the accompanying lecture warnings.",
+                  "expected_outcome": "Understand why advanced state management is needed in larger apps and the names of popular solutions."
+                },
+                {
+                  "type": "project",
+                  "prompt": "Consider a future project idea. Briefly brainstorm a scenario where simple state management (like `setState`) might become cumbersome, hinting at the need for a more robust solution.",
+                  "expected_outcome": "Connect theoretical knowledge to practical application and future development challenges."
+                }
+              ],
+              "mini_quiz": [
+                "What problem do advanced state management solutions (e.g., Redux, MobX) aim to solve?",
+                "What is the lecturer's explicit warning regarding learning these advanced approaches?",
+                "When should a developer consider learning a dedicated state management library?"
+              ]
+            }
+          ]
+        }
+      ],
+      "resources": [
+        "https://www.youtube.com/watch?v=Mt7KnvnNGfk",
+        "https://reactjs.org/docs/thinking-in-react.html",
+        "https://livebook.manning.com/book/react-in-action/chapter-3/112",
+        "https://www.slideshare.net/pheadra4/react-46872849?from_action=save",
+        "https://tkssharma.gitbook.io/react-training/day-01/react-js-3-principles/one-way-data-flow"
+      ],
+      "emphases": [
+        {
+          "statement": "Modern declarative UI frameworks like Flutter offer significant developer experience advantages, specifically Hot Reload with state preservation and direct UI element inspection.",
+          "why": "These features drastically reduce the development feedback loop, making UI development faster and more enjoyable, which is crucial for project efficiency and developer motivation. Understanding these benefits motivates learning the declarative paradigm.",
+          "in_slides": false,
+          "evidence": "The lecturer spends considerable time describing these 'luxuries' of Flutter, including a detailed story about an e-commerce intern, emphasizing how they reduce development time from 'hours' to 'less than a second'.",
+          "source": "lecture",
+          "from_transcript_quote": "Another luxury was I edited some code, saved it and immediately like less than a second usually later I saw it, I saw my running app change to reflect that. And it was preserving the current state. So that's really valuable because I gave you the example of you are an intern, went to a company, let's say it's an e-commerce app...",
+          "from_slide_quote": null,
+          "related_lo_ids": [
+            "LO2"
+          ]
+        },
+        {
+          "statement": "The fundamental distinction between Imperative and Declarative programming lies in 'giving detailed orders' versus 'describing how it should be'.",
+          "why": "This core concept is foundational for understanding why declarative UI is structured the way it is. Grasping this difference clarifies programmer control, responsibility, and how the computer 'works' in each paradigm, which is essential for designing UIs effectively.",
+          "in_slides": true,
+          "evidence": "Both the slides and the lecture extensively compare these two concepts. The lecturer uses multiple analogies (human instructions, electronic circuit vs. computer program) and detailed explanations to reinforce this central idea.",
+          "source": "both",
+          "from_transcript_quote": "Declarative means declare, I'm declaring it to you, I'm describing it to you, I'm saying, oh, it is ahead, it has a body, two arms and two legs, so I'm describing something, okay? That's the idea, you are programming in a way you are describing things...",
+          "from_slide_quote": "Imperative: Giving orders in detail, with explicit instructions; Declarative: Describing how it should be",
+          "related_lo_ids": [
+            "LO2"
+          ]
+        },
+        {
+          "statement": "Declarative UI was invented as a solution to common complexities in managing user interfaces, particularly the 'source of information' problem and the inherent difficulty humans have with tree-like structures.",
+          "why": "Understanding the 'why' behind declarative UI helps students appreciate its design choices and benefits. It addresses practical problems faced by UI developers, linking theory to real-world challenges in application analysis and design.",
+          "in_slides": true,
+          "evidence": "The lecturer dedicates a significant portion of the early lecture to framing 'A problem: source of information' and elaborating on how managing UI trees leads to 'spaghetti code' and 'crazy scenarios'.",
+          "source": "lecture",
+          "from_transcript_quote": "So a problem in UI software is source of information. Where is the data coming from? Which data am I supposed to show it on the screen right now? ... In that case, it was a backend issue. A lot of times in a UI, there is some data that comes from the internet...",
+          "from_slide_quote": "A problem: source of information",
+          "related_lo_ids": [
+            "LO1",
+            "LO2"
+          ]
+        },
+        {
+          "statement": "UI elements are internally represented as light data structures (descriptions) that are efficiently recreated and diffed by the framework, rather than being directly modified by the programmer.",
+          "why": "This addresses a common misconception about the performance of declarative UIs ('Isn't it inefficient?'). It highlights a core engineering decision that allows developers to 'just recreate the UI' without performance penalties, freeing them to focus on design.",
+          "in_slides": true,
+          "evidence": "The lecture directly poses the question 'Isn't it inefficient?' and provides a detailed explanation about the framework's role in finding differences between UI versions and modifying only what changed. It strongly advises against manual optimization.",
+          "source": "both",
+          "from_transcript_quote": "What you are creating is not the real UI element. It’s just a light description of them. ... The framework finds the difference between two versions of the tree and modifies the UI elements whose description actually changed. ... DO NOT TRY TO OPTIMIZE ANYTHING ABOUT IT!!!",
+          "from_slide_quote": "How can you keep recreating the UI? ... The framework finds the difference between two versions of the tree and modifies the UI elements whose description actually changed.",
+          "related_lo_ids": [
+            "LO2"
+          ]
+        },
+        {
+          "statement": "Unidirectional data flow, consisting of props/constructor arguments (fixed) flowing top-to-bottom and state (changing) triggering rebuilds, is a fundamental principle for planning and creating declarative UIs.",
+          "why": "This explains how data and UI updates are managed in a predictable and controlled manner. It's critical for designing user interfaces that react correctly to user input and backend data, directly serving the design LO.",
+          "in_slides": true,
+          "evidence": "Both the slides and lecture provide clear definitions and explanations of unidirectional data flow, separating props/constructor arguments from state and detailing their roles in causing UI changes and rebuilds.",
+          "source": "both",
+          "from_transcript_quote": "Unidirectional data flow. Top to bottom. Props/constructor arguments (fixed). Data being passed down when component is created (yellow). State (changing). Temporary data that changes with user input or other events.",
+          "from_slide_quote": "How does data flow? Unidirectional data flow • Top to bottom • Props/constructor arguments (fixed) • State (changing) • Bottom to top • Events",
+          "related_lo_ids": [
+            "LO2"
+          ]
+        },
+        {
+          "statement": "For complex applications, state management solutions exist to simplify data passing, but developers should master basic state management (e.g., `setState`) before adopting them.",
+          "why": "This provides practical guidance on advanced topics while emphasizing the importance of foundational knowledge. It prevents students from prematurely adopting complex solutions without understanding the underlying problems or simpler alternatives, promoting better development practices.",
+          "in_slides": true,
+          "evidence": "The lecture highlights the 'cumbersome' nature of passing data around and lists several state management solutions, but strongly cautions students: 'WARNING: Learn the basics well before starting these approaches!'",
+          "source": "both",
+          "from_transcript_quote": "WARNING: Learn the basics well before starting these approaches! Try it with setState first. Write a couple of apps with it first. After you really feel the need, start learning about a state management approach.",
+          "from_slide_quote": "Other approaches • Solution: state management • Redux • MobX • Provider • Etc. • WARNING: Learn the basics well before starting these approaches!",
+          "related_lo_ids": [
+            "LO2"
+          ]
+        }
+      ],
+      "seed_quiz": [
+        "Differentiate between imperative and declarative programming paradigms in the context of mobile UI development, providing an example of when each might be used.",
+        "Explain how declarative UI frameworks handle the 'UI is a tree' structure and why they prioritize recreating elements over direct modification.",
+        "Describe the concept of 'unidirectional data flow' in declarative UIs, explaining the roles of 'props' and 'state' and how events facilitate communication.",
+        "List two significant developer experience improvements offered by modern declarative UI frameworks like Flutter."
+      ],
+      "alignment": {
+        "summary_chatty": "The lecture and slides work together beautifully to introduce Declarative UI. The slides provide concise definitions, structured comparisons (like Imperative vs. Declarative tables), and key concepts such as UI as a tree or unidirectional data flow. The lecture, in turn, provides rich, conversational context, detailed explanations, real-world analogies (like the electronic circuit), personal anecdotes (the e-commerce intern story), and crucial warnings (e.g., against optimizing UI recreation or jumping into state management too early). The lecturer elaborates on every point, making the abstract concepts much more tangible. While the slides offer the skeleton, the lecture truly fleshes out the understanding, ensuring students grasp not just 'what' but also 'why' and 'how' these principles are applied in mobile app development.",
+        "average_duration_min": 21.4,
+        "items": [
+          {
+            "topic": "Declarative Programming Introduction",
+            "concepts": [
+              "Declarative",
+              "Flutter",
+              "React Native",
+              "Jetpack Compose",
+              "Swift UI"
+            ],
+            "in_both": true,
+            "emphasis_level": "high",
+            "lecture_quotes": [
+              "I talked about two luxuries of Flutter that we repeat them...",
+              "The third luxury of Flutter is declarative UI, which I called Markler.",
+              "In Flutter, in the React-Reacted, React Composites, we are also using this approach. You are creating user interfaces in a style called declarative programming, or declarative UI."
+            ],
+            "slide_refs": [
+              "Declarative Programming",
+              "• In • Flutter • React/React Native • Jetpack Compose (Android) • Swift UI (iOS)",
+              "we create the user interface in a style called “declarative programming”."
+            ],
+            "duration_min": 4.5,
+            "confidence": 0.95
+          },
+          {
+            "topic": "Imperative vs. Declarative Comparison",
+            "concepts": [
+              "Orders vs. Description",
+              "Control",
+              "Responsibility",
+              "Computer is smart/dumb",
+              "Java",
+              "HTML"
+            ],
+            "in_both": true,
+            "emphasis_level": "high",
+            "lecture_quotes": [
+              "Imperative means to give orders, do this, do that, completely stupid, you tell it to do whatever, every time, okay?",
+              "In declarative, you describe how it should be, okay? Here's how I would like, how I would like it to be like.",
+              "So computer program is more like imperative code that you are used in your Java course, for example. But electronic circuit is more like declarative programming."
+            ],
+            "slide_refs": [
+              "Imperative vs. Declarative",
+              "• Giving orders in detail, with explicit instructions",
+              "• Describing how it should be • Programmer has full control."
+            ],
+            "duration_min": 6,
+            "confidence": 0.98
+          },
+          {
+            "topic": "UI as a Tree Structure",
+            "concepts": [
+              "Tree structure",
+              "Creating is easy",
+              "Modifying is difficult",
+              "Parent-child relationship"
+            ],
+            "in_both": true,
+            "emphasis_level": "medium",
+            "lecture_quotes": [
+              "And also user interfaces are usually like trees, okay? So you have a user interface, you have an app, and then you have the top side.",
+              "So this is a tree, what do you mean this is a tree? This larger area contains a smaller area, which contains a smaller area, which contains a smaller area, okay? That's how it's a tree.",
+              "As a human being, it's difficult for you to deal with trees, traverse trees, maintain trees, right?"
+            ],
+            "slide_refs": [
+              "UI is a tree",
+              "• The UI is a tree structure",
+              "• Creating a tree is easy • Modifying and maintaining a tree is difficult"
+            ],
+            "duration_min": 3.5,
+            "confidence": 0.9
+          },
+          {
+            "topic": "Efficiency of Recreating UI",
+            "concepts": [
+              "Inefficiency concern",
+              "Light description",
+              "Diffing",
+              "Framework's role",
+              "Don't optimize"
+            ],
+            "in_both": true,
+            "emphasis_level": "high",
+            "lecture_quotes": [
+              "Isn’t it inefficient? NO! People smarter than us have implemented it carefully.",
+              "What you are creating is not the real UI element. It’s just a light description of them.",
+              "The framework finds the difference between two versions of the tree and modifies the UI elements whose description actually changed. ... DO NOT TRY TO OPTIMIZE ANYTHING ABOUT IT!!!"
+            ],
+            "slide_refs": [
+              "How can you keep recreating the UI? • Isn’t it inefficient?",
+              "• The framework finds the difference between two versions of the tree and modifies the UI elements whose description actually changed.",
+              "• DO NOT TRY TO OPTIMIZE ANYTHING ABOUT IT!!!"
+            ],
+            "duration_min": 1.5,
+            "confidence": 0.98
+          },
+          {
+            "topic": "Unidirectional Data Flow",
+            "concepts": [
+              "Top to bottom",
+              "Props",
+              "Constructor arguments",
+              "State",
+              "Bottom to top",
+              "Events"
+            ],
+            "in_both": true,
+            "emphasis_level": "high",
+            "lecture_quotes": [
+              "Unidirectional data flow. Top to bottom. Props/constructor arguments (fixed). Data being passed down when component is created (yellow).",
+              "State (changing). Temporary data that changes with user input or other events. Triggers a rebuild of subtree.",
+              "Bottom to top. Events. Lower level component communicates up."
+            ],
+            "slide_refs": [
+              "How does data flow? • Unidirectional data flow",
+              "• Props/constructor arguments (fixed)",
+              "• State (changing) • Events"
+            ],
+            "duration_min": 2.5,
+            "confidence": 0.95
+          },
+          {
+            "topic": "State Management Solutions & Warnings",
+            "concepts": [
+              "Cumbersome data passing",
+              "Redux",
+              "MobX",
+              "Provider",
+              "Learn basics first"
+            ],
+            "in_both": true,
+            "emphasis_level": "high",
+            "lecture_quotes": [
+              "Passing data around can be cumbersome. All intermediate levels need to know about the data being passed to a leaf.",
+              "WARNING: Learn the basics well before starting these approaches! Try it with setState first.",
+              "After you really feel the need, start learning about a state management approach."
+            ],
+            "slide_refs": [
+              "Other approaches • Passing data around can be cumbersome",
+              "• Solution: state management • Redux • MobX • Provider",
+              "• WARNING: Learn the basics well before starting these approaches!"
+            ],
+            "duration_min": 1,
+            "confidence": 0.98
+          }
+        ]
+      }
+    },
+    "courseCode": "se 380",
+    "learningOutcomes": [
+      "will be able to analyse the requirements of mobile applications",
+      "will be able to design user interfaces and interactions for mobile applications",
+      "will be able to develop secure mobile applications that can actively use databases"
+    ],
+    "loModules": {
+      "lessonId": "lec-1765844419207",
+      "modules": [
+        {
+          "loId": "LO2",
+          "loTitle": "will be able to design user interfaces and interactions for mobile applications",
+          "oneLineGist": "Master declarative UI principles, contrasting them with imperative methods, and understand how modern frameworks (Flutter, React Native) leverage them for efficient and delightful mobile UI design.",
+          "coreIdeas": [
+            "Declarative Programming focuses on describing 'what' the UI should look like, while Imperative Programming dictates 'how' to build/modify it step-by-step.",
+            "User Interfaces are inherently tree structures; declarative frameworks simplify management by recreating UI descriptions rather than directly modifying elements.",
+            "Frameworks like Flutter (Widget constructors) and React Native (JSX) enable declarative UI construction, defining UI as a function of its current state.",
+            "Recreating UI descriptions is efficient because frameworks use light data structures and 'diffing' algorithms to update only necessary actual UI elements.",
+            "Key developer benefits include 'Hot Reload' (instant UI updates with state preservation) and 'UI Inspection' (navigating to source code from the UI element).",
+            "Declarative UIs typically follow a 'unidirectional data flow,' passing data down via props/state and communicating events up from child components."
+          ],
+          "mustRemember": [
+            "The core distinction: Declarative = 'What' (describe desired outcome), Imperative = 'How' (step-by-step instructions).",
+            "Declarative frameworks operate by *recreating* the UI description upon state changes, rather than modifying existing elements directly.",
+            "The efficiency of UI recreation stems from frameworks using lightweight descriptions and smart diffing algorithms; do not attempt manual optimizations.",
+            "Unidirectional data flow ensures predictable state management: data flows down (props/state), events flow up.",
+            "Hot Reload is a crucial developer luxury that preserves application state during code changes, drastically accelerating the development cycle."
+          ],
+          "intuitiveExplanation": "Imagine you want to draw a picture. Imperative programming is like drawing every line and shade yourself, step-by-step, and if you want to change something, you find that line and erase it. Declarative programming is like giving a smart artist a description of the picture you want (e.g., 'a red car on a sunny road'). The artist draws it for you. If you say 'make the car blue,' the artist doesn't try to erase and recolor; they just draw a new blue car on the road based on your updated description, making sure it's quick and efficient. For mobile UIs, this means you just tell the framework what your screen should look like given its current data, and it handles all the complex drawing and updating for you, leading to simpler code and amazing features like instant updates without losing your app's current state.",
+          "examples": [
+            {
+              "label": "Imperative UI Modification",
+              "description": "Example: `pnlMain.addChild(txtField); txtField.text = 'new text';` — This code directly manipulates existing UI elements by adding them to a panel and then explicitly setting the text property. It requires keeping references to elements and managing their state manually."
+            },
+            {
+              "label": "Declarative UI Construction",
+              "description": "Example: `new Panel(new TextField('hello'));` — This code describes the desired UI structure by composing new elements. When data changes, the framework is given a new description, and it efficiently updates the actual UI, rather than the developer modifying existing components."
+            },
+            {
+              "label": "Hot Reload in Action",
+              "description": "While a Flutter app is running, a developer changes the color of a button from blue to green in the code. Upon saving, the running app instantly reflects the green button without recompiling or losing the current app state (e.g., text entered in a form or navigation history)."
+            }
+          ],
+          "typicalQuestions": [
+            "Compare and contrast imperative and declarative programming paradigms in mobile UI development, providing a code example for changing a text field's content in each paradigm.",
+            "Explain the concept of 'UI as a tree structure' and how declarative frameworks like Flutter and React Native leverage this to simplify UI development compared to imperative approaches.",
+            "Describe two key developer experience 'luxuries' provided by modern declarative UI frameworks and explain how they contribute to faster development cycles.",
+            "How do declarative UI frameworks manage to efficiently 'recreate' entire UI descriptions on every state change without significant performance overhead? What is the developer's role in this efficiency?",
+            "Illustrate the concept of 'unidirectional data flow' in a declarative UI framework, explaining the roles of 'props/constructor arguments' and 'state' in managing data."
+          ],
+          "commonTraps": [
+            "**Confusing Style with Language**: Assuming that because a language like Dart or JavaScript is procedural, it cannot be used for declarative UI. (The framework *forces* the declarative style.)",
+            "**Imperative Habits**: Attempting to directly manipulate UI elements (e.g., `button.setText('new')`) within a declarative framework instead of letting the framework rebuild the UI based on state changes.",
+            "**Premature Optimization**: Trying to manually cache or reuse UI elements to 'improve performance,' which contradicts the declarative paradigm and can lead to bugs, as frameworks handle this efficiently.",
+            "**Ignoring Unidirectional Flow**: Designing complex, multi-directional data flows that lead to 'spaghetti code' and make debugging challenging, bypassing the framework's intended data management.",
+            "**Underestimating Hot Reload**: Not appreciating or fully utilizing Hot Reload, leading to longer development loops by frequently restarting the application during UI development."
+          ],
+          "miniQuiz": [
+            {
+              "question": "What is the primary responsibility of a programmer in declarative UI development?",
+              "answer": "To describe 'what' the UI should look like based on the current data or state.",
+              "why": "This reinforces the core definition of declarative programming over imperative's 'how'."
+            },
+            {
+              "question": "Which developer luxury allows instant UI changes in a running app while preserving its current state?",
+              "answer": "Hot Reload.",
+              "why": "Tests recall of a key benefit of modern declarative frameworks."
+            },
+            {
+              "question": "True or False: In declarative UI, you should keep references to UI elements to modify them directly when data changes.",
+              "answer": "False.",
+              "why": "Addresses a common trap and highlights the declarative approach of recreating UI descriptions."
+            },
+            {
+              "question": "Data primarily flows in which direction in a typical declarative UI component tree?",
+              "answer": "Top-to-bottom (with events flowing bottom-to-top).",
+              "why": "Checks understanding of unidirectional data flow."
+            }
+          ],
+          "recommended_study_time_min": 75
+        }
+      ]
+    }
+  },
+  {
+    "id": "lec-1765844676851",
+    "title": "aaqaa",
+    "date": "2025-12-16T00:24:36.851Z",
+    "transcript": "",
+    "slideText": "",
+    "highlights": [],
+    "professorEmphases": [],
+    "quiz": [],
+    "quizPacks": [],
+    "progress": {
+      "lastMode": "alignment",
+      "percent": 0
+    },
+    "createdAt": "2025-12-16T00:24:36.851Z",
+    "updatedAt": "2025-12-16T00:24:36.851Z"
   }
 ]

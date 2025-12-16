@@ -24,6 +24,25 @@ function getInitialMode(): ModeId {
   return "plan";
 }
 
+function fmtTime(sec: number) {
+  const s = Math.max(0, sec || 0);
+  const mm = Math.floor(s / 60);
+  const ss = Math.floor(s % 60);
+  return `${mm}:${String(ss).padStart(2, "0")}`;
+}
+function formatTime(sec: number) {
+  const s = Math.max(0, Math.floor(sec || 0));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const r = s % 60;
+
+  const mm = String(m).padStart(2, "0");
+  const ss = String(r).padStart(2, "0");
+
+  if (h > 0) return `${String(h).padStart(2, "0")}:${mm}:${ss}`;
+  return `${mm}:${ss}`;
+}
+
 export default function App() {
   // State Tanımları
   const [lectureText, setLectureText] = useState("");
@@ -33,6 +52,14 @@ export default function App() {
   const [err, setErr] = useState<string | null>(null);
   const [mode, setMode] = useState<ModeId>(getInitialMode());
   const [quiz, setQuiz] = useState<string[]>([]);
+
+  // STT UI state
+  const [sttProgress, setSttProgress] = useState(0);
+  const [sttStatus, setSttStatus] = useState<string | null>(null);
+  const [sttNow, setSttNow] = useState<{ start: number; end: number } | null>(
+    null
+  );
+  const [sttToast, setSttToast] = useState<string | null>(null);
 
   // Ders State'leri
   const [lessons, setLessons] = useState<any[]>([]);
@@ -57,10 +84,7 @@ export default function App() {
 
   // Submit butonu aktiflik kontrolü
   const canSubmit = useMemo(
-    () =>
-      !loading &&
-      lectureText.trim().length > 0 &&
-      slidesText.trim().length > 0,
+    () => !loading && lectureText.trim().length > 0 && slidesText.trim().length > 0,
     [loading, lectureText, slidesText]
   );
 
@@ -75,12 +99,7 @@ export default function App() {
   // Klavye Kısayolları
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (
-        (e.target as HTMLElement)?.closest(
-          "input,textarea,[contenteditable=true]"
-        )
-      )
-        return;
+      if ((e.target as HTMLElement)?.closest("input,textarea,[contenteditable=true]")) return;
       const map: Record<string, ModeId> = {
         "1": "plan",
         "2": "alignment",
@@ -120,7 +139,6 @@ export default function App() {
   // Seçili Dersi ve Detaylarını Getir
   useEffect(() => {
     if (!currentLessonId) {
-      // Eğer ders seçili değilse ve taslak başlık yoksa formları temizle
       if (!draftTitle) {
         setLectureText("");
         setSlidesText("");
@@ -135,37 +153,149 @@ export default function App() {
 
     fetch(`${API_BASE}/api/lessons/${currentLessonId}`)
       .then((r) => (r.ok ? r.json() : null))
-      .then((l) => {
-        if (l) {
-          setLectureText(l.transcript || "");
-          setSlidesText(l.slideText || "");
-          if (l.plan) setPlan(l.plan);
+     .then((l) => {
+  if (l) {
+    setLectureText(l.transcript ?? "");
+    setSlidesText(l.slideText ?? "");
+    setPlan(l.plan ?? null);
 
-          // 🔹 yeni alanlar
-          if (l.courseCode) setCourseCode(l.courseCode);
-          if (Array.isArray(l.learningOutcomes))
-            setLearningOutcomes(l.learningOutcomes);
-          setLoAlignment(l.loAlignment || null);
-          if (Array.isArray(l.loModules?.modules)) {
-            setLoModules(l.loModules.modules);
-          } else {
-            setLoModules(null);
-          }
+    // ✅ her zaman overwrite (yoksa boşla)
+    setCourseCode(l.courseCode ?? "");
+    setLearningOutcomes(Array.isArray(l.learningOutcomes) ? l.learningOutcomes : []);
+    setLoAlignment(l.loAlignment ?? null);
 
-          setLessons((prev) =>
-            prev.map((item) =>
-              item.id === l.id ? { ...item, title: l.title } : item
-            )
-          );
-        }
-      })
+    // loModules
+    if (Array.isArray(l.loModules?.modules)) {
+      setLoModules(l.loModules.modules);
+    } else {
+      setLoModules(null);
+    }
+
+    setLessons((prev) =>
+      prev.map((item) => (item.id === l.id ? { ...item, title: l.title } : item))
+    );
+  }
+})
       .catch(console.warn);
   }, [currentLessonId, draftTitle]);
 
+  // --- AUDIO UPLOAD (STT) ---
+  const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!currentLessonId) {
+      setErr("Önce bir ders oluştur veya seç (lessonId lazım).");
+      e.target.value = "";
+      return;
+    }
+
+    setErr(null);
+    setSttProgress(0);
+    setSttNow(null);
+    setSttStatus("Yükleniyor...");
+    setSttToast(null);
+
+    const form = new FormData();
+    form.append("file", file);
+    form.append("lessonId", currentLessonId);
+
+    let j: any = null;
+    try {
+      const r = await fetch(`${API_BASE}/api/transcribe/start`, { method: "POST", body: form });
+      j = await r.json();
+
+      if (!r.ok || !j?.ok) {
+        setErr(j?.error || "Transcribe start hatası");
+        setSttStatus("Başlatılamadı ❌");
+        e.target.value = "";
+        return;
+      }
+    } catch (err: any) {
+      setErr(err?.message || "Transcribe start hatası");
+      setSttStatus("Başlatılamadı ❌");
+      e.target.value = "";
+      return;
+    }
+
+    setLectureText(""); // yeni transkript başlatırken temizle
+    setSttStatus("Transkripte ediliyor...");
+
+    const es = new EventSource(`${API_BASE}/api/transcribe/stream/${j.jobId}`);
+
+    // küçük toast timer
+    const setToast = (txt: string) => {
+      setSttToast(txt);
+      (window as any).__sttToastTimer && clearTimeout((window as any).__sttToastTimer);
+      (window as any).__sttToastTimer = setTimeout(() => setSttToast(null), 1200);
+    };
+
+    es.onmessage = (ev) => {
+      try {
+        const msg = JSON.parse(ev.data);
+
+        if (msg.type === "meta") {
+          setSttStatus(`Model: ${msg.model} • Süre: ${(msg.duration / 60).toFixed(1)} dk`);
+          return;
+        }
+
+        if (msg.type === "log") {
+          // backend stderr loglarını status’a kısa göster
+          if (typeof msg.message === "string" && msg.message.trim()) {
+            setSttStatus(`Hazırlanıyor... (${msg.message.trim().slice(0, 60)})`);
+          }
+          return;
+        }
+
+        if (msg.type === "segment") {
+          const p = Math.round((msg.progress ?? 0) * 100);
+          setSttProgress(p);
+
+          if (typeof msg.start === "number" && typeof msg.end === "number") {
+            setSttNow({ start: msg.start, end: msg.end });
+            setSttStatus(`Transcribing ${fmtTime(msg.start)}–${fmtTime(msg.end)} (${p}%)`);
+            setToast(`${fmtTime(msg.start)}–${fmtTime(msg.end)}`);
+          }
+
+          if (msg.text) {
+            const line = `[${formatTime(msg.start)} – ${formatTime(msg.end)}] ${msg.text}`;
+            setLectureText((prev) => (prev ? prev + "\n" : "") + line);
+          }
+          return;
+        }
+
+        if (msg.type === "error") {
+          setErr(msg.message || "Transcribe error");
+          setSttStatus("Hata ❌");
+          setSttNow(null);
+          es.close();
+          return;
+        }
+
+        if (msg.type === "done") {
+          setSttProgress(100);
+          setSttStatus("Bitti ✅");
+          setSttNow(null);
+          setSttToast(null);
+          es.close();
+          return;
+        }
+      } catch {
+        // ignore parse errors
+      }
+    };
+
+    es.onerror = () => {
+      setSttStatus("Bağlantı hatası (SSE) ❌");
+      setSttNow(null);
+      es.close();
+    };
+
+    e.target.value = "";
+  };
+
   // --- PDF YÜKLEME ---
-  const handlePdfUpload = async (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setLoading(true);
@@ -209,18 +339,15 @@ export default function App() {
     setErr(null);
 
     try {
-      const r = await fetch(
-        `${API_BASE}/api/lessons/${currentLessonId}/lo-align`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            transcript: lectureText,
-            slidesText,
-            learningOutcomes,
-          }),
-        }
-      );
+      const r = await fetch(`${API_BASE}/api/lessons/${currentLessonId}/lo-align`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          transcript: lectureText,
+          slidesText,
+          learningOutcomes,
+        }),
+      });
       const j = await r.json();
       if (!r.ok || !j.ok) {
         throw new Error(j.error || "LO hizalama hatası");
@@ -242,9 +369,7 @@ export default function App() {
 
     try {
       const r = await fetch(
-        `${API_BASE}/api/ieu/learning-outcomes?code=${encodeURIComponent(
-          code
-        )}`
+        `${API_BASE}/api/ieu/learning-outcomes?code=${encodeURIComponent(code)}`
       );
       const j = await r.json();
       if (!r.ok || !j.ok) {
@@ -266,9 +391,7 @@ export default function App() {
       return;
     }
     if (!learningOutcomes.length) {
-      setErr(
-        "LO Study için önce IEU'den Learning Outcomes çekmen gerekiyor."
-      );
+      setErr("LO Study için önce IEU'den Learning Outcomes çekmen gerekiyor.");
       return;
     }
 
@@ -276,10 +399,9 @@ export default function App() {
     setErr(null);
 
     try {
-      const r = await fetch(
-        `${API_BASE}/api/lessons/${currentLessonId}/lo-modules`,
-        { method: "POST" }
-      );
+      const r = await fetch(`${API_BASE}/api/lessons/${currentLessonId}/lo-modules`, {
+        method: "POST",
+      });
       const j = await r.json();
       if (!r.ok || !j.ok) {
         throw new Error(j.error || "LO modülleri üretilemedi");
@@ -305,15 +427,10 @@ export default function App() {
     setLoModules(null);
 
     try {
-      // 🎯 İSİM OVERWRITE BUG FİX:
-      const currentLesson = lessons.find(
-        (l) => l.id === currentLessonId
-      );
+      const currentLesson = lessons.find((l) => l.id === currentLessonId);
 
       const titleToSend =
-        draftTitle ||
-        currentLesson?.title ||
-        `Lecture ${new Date().toLocaleDateString()}`;
+        draftTitle || currentLesson?.title || `Lecture ${new Date().toLocaleDateString()}`;
 
       const r = await fetch(`${API_BASE}/api/plan-from-text`, {
         method: "POST",
@@ -321,12 +438,10 @@ export default function App() {
         body: JSON.stringify({
           lectureText,
           slidesText,
-          title: titleToSend, // Backend'e "Bu ismi kullan" diyoruz
+          title: titleToSend,
           lessonId: currentLessonId ?? undefined,
           courseCode: courseCode.trim() || undefined,
-          learningOutcomes: learningOutcomes.length
-            ? learningOutcomes
-            : undefined,
+          learningOutcomes: learningOutcomes.length ? learningOutcomes : undefined,
         }),
       });
       const j = await r.json();
@@ -336,27 +451,18 @@ export default function App() {
         setCurrentLessonId(j.lessonId);
         localStorage.setItem("lc.lastLessonId", j.lessonId);
 
-        // Listeyi güncelle (Varsa ismini koru/güncelle, yoksa ekle)
         setLessons((prev) => {
           const exists = prev.find((x) => x.id === j.lessonId);
-          if (exists) return prev; // Zaten listede varsa elleme
-          return [
-            {
-              id: j.lessonId,
-              title: titleToSend,
-              date: new Date().toISOString(),
-            },
-            ...prev,
-          ];
+          if (exists) return prev;
+          return [{ id: j.lessonId, title: titleToSend, date: new Date().toISOString() }, ...prev];
         });
 
-        setDraftTitle(""); // Taslak modundan çık
-        await fetchLessons(); // Listeyi backend'den tazelemek en garantisi
+        setDraftTitle("");
+        await fetchLessons();
       }
 
       setPlan(j.plan);
-      if (j.plan?.seed_quiz?.length)
-        setQuiz(j.plan.seed_quiz.slice(0, 12));
+      if (j.plan?.seed_quiz?.length) setQuiz(j.plan.seed_quiz.slice(0, 12));
       setMode("alignment");
     } catch (e: any) {
       setErr(e.message);
@@ -370,7 +476,6 @@ export default function App() {
     const name = newLessonTitle.trim();
     if (!name) return;
 
-    // Formu temizle
     setLectureText("");
     setSlidesText("");
     setPlan(null);
@@ -381,7 +486,6 @@ export default function App() {
     setLoAlignment(null);
     setLoModules(null);
 
-    // Backend'de boş ders oluştur
     try {
       const r = await fetch(`${API_BASE}/api/lessons`, {
         method: "POST",
@@ -391,16 +495,11 @@ export default function App() {
       const j = await r.json();
 
       if (r.ok && j.id) {
-        // Başarılıysa listeye ekle ve seç
-        setLessons((prev) => [
-          { id: j.id, title: j.title, date: new Date().toISOString() },
-          ...prev,
-        ]);
+        setLessons((prev) => [{ id: j.id, title: j.title, date: new Date().toISOString() }, ...prev]);
         setCurrentLessonId(j.id);
         localStorage.setItem("lc.lastLessonId", j.id);
-        setDraftTitle(""); // Artık taslak değil, gerçek ID'si var
+        setDraftTitle("");
       } else {
-        // Hata olduysa veya ID dönmediyse local taslak olarak devam et
         setCurrentLessonId(null);
       }
     } catch (e) {
@@ -412,21 +511,20 @@ export default function App() {
     setNewLessonTitle("");
   };
 
-return (
-  <div className="page">
-    {/* Navbar */}
-    <div className="nav">
-      <div className="nav-inner">
-        <div className="brand">
-          <span className="brand-text">LearnCraft</span>
+  return (
+    <div className="page">
+      {/* Navbar */}
+      <div className="nav">
+        <div className="nav-inner">
+          <div className="brand">
+            <span className="brand-text">LearnCraft</span>
+          </div>
+          <div className="flex-1" />
+          <div className="pill">v2.1 (Analyst Mode)</div>
         </div>
-        <div className="flex-1" />
-        <div className="pill">v2.1 (Analyst Mode)</div>
       </div>
-    </div>
 
-    <div className="lc-container">
-
+      <div className="lc-container">
         <header className="hero">
           <h1 className="h1">Ders Planlayıcı &amp; Analiz</h1>
         </header>
@@ -441,18 +539,35 @@ return (
                 value={currentLessonId ?? (draftTitle ? "__draft__" : "")}
                 onChange={(e) => {
                   const val = e.target.value;
+
                   if (val === "__new__") {
+                    // ✅ Anında temizle (UI’da eski ders yazıları kalmasın)
+                    setCurrentLessonId(null);
+                    localStorage.removeItem("lc.lastLessonId");
+                    setDraftTitle(""); // eski draft varsa kaldır
+
+                    setLectureText("");
+                    setSlidesText("");
+                    setPlan(null);
+                    setQuiz([]);
+                    setErr(null);
+
+                    setCourseCode("");
+                    setLearningOutcomes([]);
+                    setLoAlignment(null);
+                    setLoModules(null);
+
                     setShowNewLessonModal(true);
-                    // Select'in görsel olarak "Yeni Ders"te kalmasını engellemek için:
-                    e.target.value = currentLessonId ?? "";
                     return;
                   }
-                  if (val === "__draft__") return; // Taslak seçiliyse bir şey yapma
+
+                  if (val === "__draft__") return;
 
                   setCurrentLessonId(val === "" ? null : val);
                   if (val) localStorage.setItem("lc.lastLessonId", val);
                   else localStorage.removeItem("lc.lastLessonId");
                 }}
+
               >
                 <option value="" className="muted">
                   -- Seçiniz --
@@ -460,9 +575,7 @@ return (
                 <option value="__new__" className="fw-700">
                   ➕ Yeni Ders Oluştur
                 </option>
-                {draftTitle && (
-                  <option value="__draft__">📝 Taslak: {draftTitle}</option>
-                )}
+                {draftTitle && <option value="__draft__">📝 Taslak: {draftTitle}</option>}
                 {lessons.map((l) => (
                   <option key={l.id} value={l.id}>
                     {l.title}
@@ -491,11 +604,7 @@ return (
 
               {learningOutcomes.length > 0 && (
                 <div className="muted-block small mb-3">
-                  <div
-                    style={{ fontWeight: 600, marginBottom: 4 }}
-                  >
-                    Learning Outcomes
-                  </div>
+                  <div style={{ fontWeight: 600, marginBottom: 4 }}>Learning Outcomes</div>
                   <ol className="ol">
                     {learningOutcomes.map((lo, i) => (
                       <li key={i} className="small">
@@ -504,7 +613,6 @@ return (
                     ))}
                   </ol>
 
-                  {/* 🔹 Transcript–LO hizalama butonu */}
                   <button
                     type="button"
                     className="btn btn-ghost mt-2"
@@ -514,20 +622,13 @@ return (
                     {loading ? "Hizalanıyor..." : "Transcript ile eşleştir"}
                   </button>
 
-                  {/* 🔹 LO Study Modu butonu */}
                   <button
                     type="button"
                     className="btn btn-ghost mt-2"
                     onClick={handleGenerateLoModules}
-                    disabled={
-                      !currentLessonId ||
-                      loModulesLoading ||
-                      !learningOutcomes.length
-                    }
+                    disabled={!currentLessonId || loModulesLoading || !learningOutcomes.length}
                   >
-                    {loModulesLoading
-                      ? "LO Study oluşturuluyor..."
-                      : "LO Study Modu Oluştur"}
+                    {loModulesLoading ? "LO Study oluşturuluyor..." : "LO Study Modu Oluştur"}
                   </button>
                 </div>
               )}
@@ -556,6 +657,7 @@ return (
                   />
                 </div>
               </div>
+
               <textarea
                 className="lc-textarea textarea"
                 value={slidesText}
@@ -564,9 +666,56 @@ return (
                 rows={6}
               />
 
-              <label className="label mt-4">
-                Speech to Text (Transcript)
-              </label>
+              <label className="label mt-4">Speech to Text (Transcript)</label>
+
+              {/* mini actions row */}
+              <div className="stt-row">
+                <div className="stt-left">
+                  <span className="stt-hint">
+                    {sttStatus || "İstersen burayı elle de düzenleyebilirsin."}
+                    {sttNow && (
+                      <span className="stt-now">
+                        {fmtTime(sttNow.start)}–{fmtTime(sttNow.end)}
+                      </span>
+                    )}
+                  </span>
+                </div>
+
+                <div className="stt-right">
+                  <label className="stt-upload" htmlFor="audio-upload" title="Audio yükle ve transkripte çevir">
+                    🎙️ Audio Yükle
+                  </label>
+
+                  <button
+                    type="button"
+                    className="stt-clear"
+                    onClick={() => {
+                      setLectureText("");
+                      setSttProgress(0);
+                      setSttStatus(null);
+                      setSttNow(null);
+                      setSttToast(null);
+                    }}
+                    title="Transcript alanını temizle"
+                  >
+                    Temizle
+                  </button>
+
+                  <input
+                    id="audio-upload"
+                    type="file"
+                    accept=".mp3,.wav,.m4a,.flac,.ogg"
+                    onChange={handleAudioUpload}
+                    style={{ display: "none" }}
+                  />
+                </div>
+              </div>
+
+              {/* mini progress bar */}
+              <div className="stt-progress" aria-hidden={sttProgress <= 0}>
+                <div className="stt-progress-bar" style={{ width: `${sttProgress}%` }} />
+              </div>
+
               <textarea
                 className="lc-textarea textarea"
                 value={lectureText}
@@ -583,11 +732,8 @@ return (
                 >
                   {loading ? "Analiz Ediliyor..." : "Planla ve Analiz Et"}
                 </button>
-                {err && (
-                  <div className="error mt-2 text-red-500 text-sm">
-                    {err}
-                  </div>
-                )}
+
+                {err && <div className="error mt-2 text-red-500 text-sm">{err}</div>}
               </div>
             </form>
           </div>
@@ -600,19 +746,11 @@ return (
               (plan ? (
                 <PlanPane plan={plan} />
               ) : (
-                <div className="muted-block">
-                  Henüz plan oluşturulmadı. Soldan veri giriniz.
-                </div>
+                <div className="muted-block">Henüz plan oluşturulmadı. Soldan veri giriniz.</div>
               ))}
 
             {mode === "alignment" &&
-              (plan ? (
-                <AlignmentPane plan={plan} />
-              ) : (
-                <div className="muted-block">
-                  Eşleştirme verisi yok.
-                </div>
-              ))}
+              (plan ? <AlignmentPane plan={plan} /> : <div className="muted-block">Eşleştirme verisi yok.</div>)}
 
             {mode === "lecturer-note" && (
               <LecturerNotePane
@@ -635,13 +773,11 @@ return (
               />
             )}
 
-            {mode === "lo-study" && (
-              <LoStudyPane modules={loModules || []} />
-            )}
+            {mode === "lo-study" && <LoStudyPane modules={loModules || []} />}
 
             {mode === "history" && (
               <LessonsHistoryPane
-                currentLessonId={currentLessonId} // 👈 Artık hangi derste olduğunu biliyor
+                currentLessonId={currentLessonId}
                 setMode={setMode}
                 setQuiz={setQuiz}
                 onSelectLesson={(id) => {
@@ -650,22 +786,20 @@ return (
                 }}
               />
             )}
+
             {mode === "deep-dive" && <DeepDivePane />}
             {mode === "exam-sprint" && <ExamSprintPane />}
           </div>
         </div>
       </div>
 
+      {/* Mini toast: şu an işlenen aralık */}
+      {sttToast && <div className="stt-toast">{sttToast}</div>}
+
       {/* Yeni Ders Modal */}
       {showNewLessonModal && (
-        <div
-          className="modal-backdrop"
-          onClick={() => setShowNewLessonModal(false)}
-        >
-          <div
-            className="modal"
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div className="modal-backdrop" onClick={() => setShowNewLessonModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-title h3 mb-4">Yeni Ders Oluştur</div>
             <input
               autoFocus
@@ -679,16 +813,10 @@ return (
               }}
             />
             <div className="modal-actions flex justify-end gap-2">
-              <button
-                className="btn btn-secondary"
-                onClick={() => setShowNewLessonModal(false)}
-              >
+              <button className="btn btn-secondary" onClick={() => setShowNewLessonModal(false)}>
                 İptal
               </button>
-              <button
-                className="btn btn-primary"
-                onClick={handleCreateLesson}
-              >
+              <button className="btn btn-primary" onClick={handleCreateLesson}>
                 Oluştur
               </button>
             </div>

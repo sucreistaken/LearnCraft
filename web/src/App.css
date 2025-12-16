@@ -1842,3 +1842,152 @@ pre, code, .preview-box, .lc-textarea, .aligned-table {
     transform: translateY(0) scale(1);
   }
 }
+/* --- STT mini row (minimal, mevcut tasarıma uyumlu) --- */
+.stt-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin:6px 0 8px;
+}
+
+.stt-hint{
+  font-size:12px;
+  color: var(--muted);
+  opacity:.9;
+}
+
+.stt-right{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+/* Upload chip (label gibi davranıyor) */
+.stt-upload{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background: var(--card);
+  font-size:12px;
+  font-weight:600;
+  cursor:pointer;
+  transition: box-shadow .2s, border-color .2s, transform .06s;
+}
+
+.stt-upload:hover{
+  border-color: rgba(0,122,255,.35);
+  box-shadow: 0 0 0 6px var(--ring);
+}
+
+.stt-upload:active{
+  transform: translateY(1px);
+}
+
+/* Clear - ghost pill */
+.stt-clear{
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background: transparent;
+  font-size:12px;
+  font-weight:600;
+  cursor:pointer;
+  transition: background .2s, border-color .2s, transform .06s;
+}
+
+.stt-clear:hover{ background:#f9f9fb; }
+.stt-clear:active{ transform: translateY(1px); }
+
+/* progress bar: textarea ile aynı dil (hairline) */
+.stt-progress{
+  height:6px;
+  border-radius:999px;
+  background: #ececf2;       /* hairline tone */
+  border:1px solid var(--hair);
+  overflow:hidden;
+  margin:0 0 10px;
+}
+
+.stt-progress-bar{
+  height:100%;
+  border-radius:999px;
+  background: var(--accent-2); /* iOS blue */
+  width:0%;
+  transition: width 180ms ease;
+}
+
+/* küçük ekranda sağ taraf aşağı insin */
+@media (max-width: 520px){
+  .stt-row{ align-items:flex-start; }
+  .stt-right{ justify-content:flex-end; }
+}
+  .stt-now{
+  margin-left:8px;
+  display:inline-flex;
+  align-items:center;
+  padding:2px 8px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:#fff;
+  font-size:11px;
+  font-weight:600;
+  color: var(--text);
+}
+
+.stt-toast{
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  z-index: 50;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(17,17,17,0.92);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 10px 26px rgba(0,0,0,0.20);
+}
+.stt-clear {
+  all: unset;                 /* input gibi davranmasını sıfırla */
+  cursor: pointer;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 6px 10px;
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+
+  color: #6b7280;              /* muted */
+  background: #f3f4f6;         /* light gray */
+
+  border: 1px solid #e5e7eb;
+  transition: 
+    background 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.05s ease;
+}
+
+.stt-clear:hover {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.stt-clear:active {
+  transform: scale(0.97);
+}
+
+.stt-clear:focus-visible {
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.35);
+}

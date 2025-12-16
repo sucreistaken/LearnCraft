@@ -6,6 +6,13 @@ Ayrıca projede alternatif öğrenme yolu: alignment + emphases + süre tahmini 
 
 import dotenv from "dotenv";
 dotenv.config();
+import multer from "multer";
+import path from "path";
+import os from "os";
+import fs from "fs";
+import { spawn } from "child_process";
+import readline from "readline";
+import { EventEmitter } from "events";
 
 import express from "express";
 import cors from "cors";
@@ -33,7 +40,7 @@ import {
 declare const fetch: any;
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: "2mb" }));
 
 // ---- ENV check
@@ -88,7 +95,14 @@ const hasAlignment = (plan: any) =>
  * Split transcript into segments.
  * - First split by double newline (paragraph-based).
  * - If there are more than 40 parts, merge them back to ~40 segments.
+ * 
+ * 
+ * 
  */
+
+
+
+
 function segmentTranscript(lectureText: string): { index: number; text: string }[] {
   const raw = (lectureText || "").replace(/\r\n/g, "\n");
   let parts = raw
@@ -112,6 +126,20 @@ function segmentTranscript(lectureText: string): { index: number; text: string }
 
   return parts.map((text, index) => ({ index, text }));
 }
+const upload = multer({ dest: path.join(os.tmpdir(), "learncraft_uploads") });
+
+type Job = {
+  emitter: EventEmitter;
+  done: boolean;
+  transcript: string;
+};
+
+const jobs = new Map<string, Job>();
+
+function uid() {
+  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+
 
 // ---------- LO STUDY MODULES PROMPT BUILDER ----------
 function buildLoModulesPrompt(input: {
@@ -207,7 +235,114 @@ RULES:
  * POST /api/lessons/:id/lo-modules
  * Body can be empty; it will use lesson data.
  * Output: { ok: true, modules: LoStudyModule[], lessonId }
+ * 
  */
+app.post("/api/transcribe/start", upload.single("file"), async (req, res) => {
+  try {
+    const file = (req as any).file as Express.Multer.File | undefined;
+    const { lessonId } = req.body as { lessonId?: string };
+    if (!file) return res.status(400).json({ ok: false, error: "file is required" });
+
+    const jobId = uid();
+    const emitter = new EventEmitter();
+    jobs.set(jobId, { emitter, done: false, transcript: "" });
+
+    // ✅ pyPath: process.cwd() tuzak (backend klasöründen çalıştırınca backend/backend olur)
+    // server.ts backend klasöründeyse __dirname en güvenlisi:
+    const pyPath = path.resolve(__dirname, "transcribe", "run.py");
+    const pythonBin = process.env.PYTHON_BIN || "python";
+
+    // DEBUG (istersen sonra kaldır)
+    console.log("[STT] start", { jobId, lessonId, file: file.originalname, tmp: file.path, pyPath });
+
+    const proc = spawn(pythonBin, [pyPath, file.path, "--lang", "en"], {
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+
+    proc.stderr.on("data", (d) => {
+      const msg = String(d || "").trim();
+      if (msg) emitter.emit("msg", { type: "log", message: msg.slice(0, 800) });
+    });
+
+    const rl = readline.createInterface({ input: proc.stdout });
+
+    rl.on("line", (line) => {
+      try {
+        const msg = JSON.parse(line);
+        const job = jobs.get(jobId);
+        if (!job) return;
+
+        if (msg.type === "segment" && msg.text) {
+          job.transcript += `[${Number(msg.start).toFixed(2)} - ${Number(msg.end).toFixed(2)}] ${msg.text}\n`;
+        }
+
+        emitter.emit("msg", msg);
+      } catch {
+        // JSON değilse ignore
+      }
+    });
+
+    proc.on("close", (code) => {
+      const job = jobs.get(jobId);
+      if (!job) return;
+
+      job.done = true;
+      emitter.emit("msg", { type: "done", progress: 1.0, code });
+
+      // temp cleanup
+      try { fs.unlinkSync(file.path); } catch {}
+
+      // lesson’a yaz
+      if (lessonId) {
+        const existing = getLesson(lessonId);
+        if (existing) upsertLesson({ id: lessonId, transcript: job.transcript });
+      }
+
+      // job’ı bir süre sonra sil (memory leak olmasın)
+      setTimeout(() => jobs.delete(jobId), 5 * 60 * 1000);
+    });
+
+    return res.json({ ok: true, jobId });
+  } catch (e: any) {
+    console.error("[STT] start error:", e);
+    return res.status(500).json({ ok: false, error: e?.message || "server error" });
+  }
+});
+
+app.get("/api/transcribe/stream/:jobId", (req, res) => {
+  const job = jobs.get(req.params.jobId);
+  if (!job) return res.status(404).end("not found");
+
+  res.status(200);
+  res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
+  res.setHeader("Cache-Control", "no-cache, no-transform");
+  res.setHeader("Connection", "keep-alive");
+  // CORS (SSE’de bazen şart)
+  res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "*");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+
+  // bazı env’lerde lazım
+  (res as any).flushHeaders?.();
+
+  const send = (msg: any) => {
+    res.write(`data: ${JSON.stringify(msg)}\n\n`);
+  };
+
+  // ✅ bağlantı canlı kalsın diye heartbeat (proxy’ler SSE’yi öldürmesin)
+  const heartbeat = setInterval(() => {
+    res.write(`: ping\n\n`);
+  }, 15000);
+
+  const onMsg = (msg: any) => send(msg);
+  job.emitter.on("msg", onMsg);
+
+  req.on("close", () => {
+    clearInterval(heartbeat);
+    job.emitter.off("msg", onMsg);
+    res.end();
+  });
+});
+
 app.post("/api/lessons/:id/lo-modules", async (req, res) => {
   try {
     const lessonId = req.params.id;
