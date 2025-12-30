@@ -25,6 +25,7 @@ import {
   getLesson,
   upsertLesson,
   updateProgress,
+  deleteLesson,
   getMemory,
   // quiz attachment
   attachQuizPack,
@@ -74,6 +75,7 @@ export type LoAlignment = {
 
 // ---- Gemini SDK
 const genAI = new GoogleGenerativeAI(API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
 
 // ---- helpers
 const stripCodeFences = (s: string) =>
@@ -283,7 +285,12 @@ GOAL:
 Transform the raw transcript and slides into SMALL, HIGH-RECALL learning modules,
 each tightly linked to ONE official Learning Outcome (LO). The student wants to
 learn the course in the shortest possible time with maximum retention and higher
-test scores. Remove anything that is not helping understanding or exam performance.
+test scores.
+
+CRITICAL ALIGNMENT RULES:
+1.  **STRICT EVIDENCE CHECK**: Only generate content for an LO if there is clear evidence in the Transcript (LEC) or Slides (SLIDE).
+2.  **NO HALLUCINATIONS**: If an LO is NOT covered in the provided text, explicitly state that in the "oneLineGist" (e.g., "This LO was not covered in this specific lecture/slide") and keep the other fields minimal or empty. Do NOT invent content to fill the void.
+3.  **SOURCE PRIORITY**: Prioritize the Transcript (what the professor actually said) over the Slides for the "Core Ideas" and "Intuitive Explanation". Use Slides for structure and definitions.
 
 CONTEXT (DO NOT REPEAT VERBATIM):
 - Raw transcript of the lecture (LEC)
@@ -405,7 +412,7 @@ app.post("/api/transcribe/start", upload.single("file"), async (req, res) => {
       emitter.emit("msg", { type: "done", progress: 1.0, code });
 
       // temp cleanup
-      try { fs.unlinkSync(file.path); } catch {}
+      try { fs.unlinkSync(file.path); } catch { }
 
       // lesson’a yaz
       if (lessonId) {
@@ -421,6 +428,137 @@ app.post("/api/transcribe/start", upload.single("file"), async (req, res) => {
   } catch (e: any) {
     console.error("[STT] start error:", e);
     return res.status(500).json({ ok: false, error: e?.message || "server error" });
+  }
+});
+
+/**
+ * POST /api/slides/upload
+ * Uses Python OCR to extract text from PDF/Image slides.
+ */
+app.post("/api/slides/upload", upload.single("file"), async (req, res) => {
+  try {
+    const file = (req as any).file as Express.Multer.File | undefined;
+    const { lessonId } = req.body as { lessonId?: string };
+
+    if (!file) return res.status(400).json({ ok: false, error: "No file uploaded" });
+    if (!lessonId) return res.status(400).json({ ok: false, error: "lessonId is required" });
+
+    // Path to our new python script
+    const pyPath = path.resolve(__dirname, "ocr_service.py");
+    const pythonBin = process.env.PYTHON_BIN || "python";
+
+    // ✅ FIX: Multer saves without extension. Python script relies on extension.
+    // Rename file to include original extension.
+    const originalExt = path.extname(file.originalname);
+    const newPath = file.path + originalExt;
+    fs.renameSync(file.path, newPath);
+    file.path = newPath; // Update reference for cleanup later
+
+    console.log(`[OCR] Starting for lesson ${lessonId}, file: ${file.path}`);
+
+    const proc = spawn(pythonBin, [pyPath, file.path]);
+
+    let stdoutData = "";
+    let stderrData = "";
+
+    proc.stdout.on("data", (data) => {
+      stdoutData += data.toString();
+    });
+
+    proc.stderr.on("data", (data) => {
+      stderrData += data.toString();
+      console.error("[OCR Stderr]:", data.toString());
+    });
+
+    proc.on("close", async (code) => {
+      // Clean up uploaded file
+      try { fs.unlinkSync(file.path); } catch { }
+
+      if (code !== 0) {
+        console.error(`[OCR] Process exited with code ${code}`);
+        console.error(`[OCR] Stderr: ${stderrData}`);
+        return res.status(500).json({
+          ok: false,
+          error: "OCR script failed",
+          code: code,
+          details: stderrData
+        });
+      }
+
+      // Extract text between markers
+      const startMarker = "===OCR_START===";
+      const endMarker = "===OCR_END===";
+
+      const startIndex = stdoutData.indexOf(startMarker);
+      const endIndex = stdoutData.indexOf(endMarker);
+
+      let extractedText = "";
+      if (startIndex !== -1 && endIndex !== -1) {
+        extractedText = stdoutData.substring(startIndex + startMarker.length, endIndex).trim();
+      } else {
+        extractedText = stdoutData.trim();
+      }
+
+      // --- NEW: AI IMAGE ANALYSIS ---
+      // 1. Find all image markers
+      const markerRegex = /\[\[\[IMAGE_ANALYSIS_REQUIRED:(.*?)\]\]\]/g;
+      const matches = [...extractedText.matchAll(markerRegex)];
+
+      if (matches.length > 0) {
+        console.log(`[AI Analysis] Found ${matches.length} images to analyze...`);
+
+        // 2. Process in parallel
+        await Promise.all(matches.map(async (match) => {
+          const marker = match[0];
+          const imgPath = match[1].trim();
+
+          if (fs.existsSync(imgPath)) {
+            try {
+              const ext = path.extname(imgPath).toLowerCase().replace(".", "");
+              const mimeType = ext === "png" ? "image/png" : "image/jpeg";
+              const imgData = fs.readFileSync(imgPath).toString("base64");
+
+              const prompt = "Bu ders slaytındaki görseli analiz et. Eğer bir şema, tablo, grafik veya diyagram ise içeriğini ve ne anlattığını detaylıca (Türkçe) açıkla. Eğer sadece dekoratif bir resim, ikon veya anlamsız bir görsel ise sadece 'SKIP' yaz.";
+
+              const result = await model.generateContent([
+                prompt,
+                { inlineData: { data: imgData, mimeType } }
+              ]);
+
+              const description = result.response.text().trim();
+
+              if (description === "SKIP") {
+                extractedText = extractedText.replace(marker, ""); // Remove marker
+              } else {
+                const formattedDesc = `\n> 🤖 **[Yapay Zeka Görsel Analizi]**\n> ${description.split("\n").join("\n> ")}\n`;
+                extractedText = extractedText.replace(marker, formattedDesc);
+              }
+
+              // Delete temp image
+              fs.unlinkSync(imgPath);
+
+            } catch (err) {
+              console.error(`[AI Analysis Error] ${imgPath}:`, err);
+              extractedText = extractedText.replace(marker, "\n[Görsel Analizi Başarısız]\n");
+            }
+          } else {
+            extractedText = extractedText.replace(marker, ""); // File missing
+          }
+        }));
+      }
+
+      // Save to lesson
+      const lesson = getLesson(lessonId);
+      if (lesson) {
+        upsertLesson({ id: lessonId, slideText: extractedText });
+      }
+
+      return res.json({ ok: true, text: extractedText });
+    });
+
+  } catch (e: any) {
+    console.error("[OCR] error:", e);
+    return res.status(500).json({ ok: false, error: e.message });
   }
 });
 
@@ -724,8 +862,8 @@ app.post("/api/plan-from-text", async (req, res) => {
     const LO_BLOCK =
       Array.isArray(learningOutcomes) && learningOutcomes.length
         ? learningOutcomes
-            .map((lo, i) => `${i + 1}. ${String(lo || "").trim()}`)
-            .join("\n")
+          .map((lo, i) => `${i + 1}. ${String(lo || "").trim()}`)
+          .join("\n")
         : "—";
 
     // ---------- ALIGNMENT ONLY MODU ----------
@@ -1280,6 +1418,101 @@ function extractLearningOutcomes(html: string): string[] {
 
   return out;
 }
+app.post("/api/lessons/:id/deviation", async (req, res) => {
+  try {
+    const lessonId = req.params.id;
+    const lesson = getLesson(lessonId);
+    if (!lesson) return res.status(404).json({ ok: false, error: "Lesson not found" });
+
+    const transcript = String(lesson.transcript || "").trim();
+    const slideText = String(lesson.slideText || "").trim();
+    if (!transcript || !slideText) {
+      return res.status(400).json({
+        ok: false,
+        error: "Transcript and slideText are required (upload audio + pdf first).",
+      });
+    }
+
+    // cache: daha önce hesaplandıysa direkt dön (force=true ile atlanabilir)
+    const forceReanalyze = req.query.force === 'true';
+    if (!forceReanalyze && (lesson as any).deviation?.segments?.length) {
+      return res.json({ ok: true, deviation: (lesson as any).deviation, cached: true });
+    }
+
+    const tmpDir = path.join(os.tmpdir(), "learncraft_deviation");
+    fs.mkdirSync(tmpDir, { recursive: true });
+
+    const trPath = path.join(tmpDir, `${lessonId}.transcript.txt`);
+    const slPath = path.join(tmpDir, `${lessonId}.slides.txt`);
+
+    fs.writeFileSync(trPath, transcript, "utf-8");
+    fs.writeFileSync(slPath, slideText, "utf-8");
+
+    // Fix path: check if we are already in backend dir or root
+    let pyPath = path.join(process.cwd(), "backend", "transcribe", "deviation.py");
+    if (!fs.existsSync(pyPath)) {
+      // try without "backend" prefix (if running from backend dir)
+      pyPath = path.join(process.cwd(), "transcribe", "deviation.py");
+    }
+    const pythonBin = process.env.PYTHON_BIN || "python";
+
+    console.log(`[Deviation] Running: ${pythonBin} ${pyPath}`);
+    console.log(`[Deviation] TrPath: ${trPath}`);
+    console.log(`[Deviation] SlPath: ${slPath}`);
+    console.log(`[Deviation] Title: ${lesson.title || "Untitled"}`);
+
+    const proc = spawn(pythonBin, [
+      pyPath,
+      "--transcript", trPath,
+      "--slides", slPath,
+      "--title", lesson.title || "Untitled Lesson"
+    ], {
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+
+    let out = "";
+    let err = "";
+
+    proc.stdout.on("data", (data) => (out += data.toString()));
+    proc.stderr.on("data", (data) => (err += data.toString()));
+
+    proc.on("close", (code) => {
+      // temp cleanup
+      try { fs.unlinkSync(trPath); } catch { }
+      try { fs.unlinkSync(slPath); } catch { }
+
+      if (code !== 0) {
+        console.error(`[Deviation] Script failed with code ${code}`);
+        console.error(`[Deviation] Stderr: ${err}`);
+        console.error(`[Deviation] Stdout: ${out}`);
+        return res.status(500).json({
+          ok: false,
+          error: `Deviation script failed: ${(err || out || "Unknown error").slice(0, 500)}`,
+          details: (err || out || "")
+        });
+      }
+
+      let result: any;
+      try {
+        result = JSON.parse(out);
+      } catch (e) {
+        console.error("[Deviation] JSON parse error:", e);
+        console.error("[Deviation] Output was:", out);
+        return res.status(500).json({ ok: false, error: "Failed to parse script output" });
+      }
+
+      if (!result?.ok) {
+        return res.status(500).json({ ok: false, error: result?.error || "Script returned error" });
+      }
+
+      // Save using upsertLesson
+      const saved = upsertLesson({ id: lessonId, deviation: result } as any);
+      return res.json({ ok: true, lessonId: saved.id, deviation: result });
+    });
+  } catch (e: any) {
+    return res.status(500).json({ ok: false, error: e?.message || "server error" });
+  }
+});
 
 app.get("/api/ieu/learning-outcomes", async (req, res) => {
   try {
@@ -1330,6 +1563,586 @@ app.get("/api/ieu/learning-outcomes", async (req, res) => {
   }
 });
 
+// 🧠 Deep Dive Chat API - Enhanced with suggestions
+app.post("/api/lessons/:id/chat", async (req, res) => {
+  try {
+    const lessonId = req.params.id;
+    const { message, history } = req.body;
+    const lesson = getLesson(lessonId);
+    if (!lesson) return res.status(404).json({ error: "Lesson not found" });
+
+    const plan = lesson.plan as any;
+    const modules = plan?.modules || [];
+    const emphases = lesson.professorEmphases || plan?.emphases || [];
+
+    // Enhanced context with more data
+    const context = `
+=== LESSON INFORMATION ===
+Title: ${lesson.title || "Untitled Lesson"}
+
+=== KEY TOPICS (from modules) ===
+${modules.slice(0, 5).map((m: any, i: number) => `${i + 1}. ${m.title || m.name || 'Topic'}`).join('\n')}
+
+=== PROFESSOR EMPHASES ===
+${emphases.slice(0, 5).map((e: any) => `• ${e.statement || e}`).join('\n') || 'None'}
+
+=== TRANSCRIPT EXCERPT ===
+${(lesson.transcript || "").slice(0, 4000)}
+
+=== SLIDE CONTENT EXCERPT ===
+${(lesson.slideText || "").slice(0, 3000)}
+`;
+
+    const chat = model.startChat({
+      history: history?.map((h: any) => ({
+        role: h.role === 'user' ? 'user' : 'model',
+        parts: [{ text: h.content }]
+      })) || [],
+    });
+
+    const prompt = `
+You are an ELITE AI TUTOR for this university lesson. You help students understand concepts deeply.
+
+=== YOUR PERSONALITY ===
+- Friendly but professional 🎓
+- Uses analogies and examples
+- Encourages curiosity
+- Celebrates when student understands
+
+=== LESSON CONTEXT ===
+${context}
+
+=== FORMATTING RULES ===
+- Use **bold** for key terms
+- Use bullet points for lists
+- Use \`code\` for technical terms
+- Keep paragraphs short (2-3 sentences max)
+- Include relevant emojis sparingly
+
+=== RESPONSE FORMAT ===
+Answer the student's question thoroughly but concisely.
+At the END of your response, add this EXACT format:
+
+---
+💡 **Önerilen Sorular:**
+1. [First suggested follow-up question in Turkish]
+2. [Second suggested follow-up question in Turkish]
+3. [Third suggested follow-up question in Turkish]
+
+The suggested questions should be:
+- Related to the current topic
+- Progressively deeper or exploring related concepts
+- Written in Turkish
+
+=== STUDENT QUESTION ===
+${message}
+`;
+
+    const result = await chat.sendMessage(prompt);
+    let text = result.response.text();
+
+    // Parse suggestions from response
+    const suggestionsMatch = text.match(/💡\s*\*\*Önerilen Sorular:\*\*\s*([\s\S]*?)$/);
+    let suggestions: string[] = [];
+
+    if (suggestionsMatch) {
+      const suggestionLines = suggestionsMatch[1].trim().split('\n');
+      suggestions = suggestionLines
+        .map(line => line.replace(/^\d+\.\s*/, '').trim())
+        .filter(s => s.length > 5)
+        .slice(0, 3);
+    }
+
+    return res.json({ ok: true, text, suggestions });
+  } catch (e: any) {
+    console.error("Chat error:", e);
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// 🗺️ Mind Map API
+app.post("/api/lessons/:id/mindmap", async (req, res) => {
+  try {
+    const lessonId = req.params.id;
+    const lesson = getLesson(lessonId);
+    if (!lesson || !lesson.plan) return res.status(404).json({ error: "Plan not found" });
+
+    // Extract useful data from lesson
+    const plan = lesson.plan as any;
+    const title = lesson.title || plan.title || "Lesson Topic";
+    const modules = plan.modules || [];
+    const emphases = lesson.professorEmphases || plan.emphases || [];
+    const highlights = lesson.highlights || [];
+
+    // Get transcript and slides excerpts
+    const transcript = (lesson.transcript || "").substring(0, 2000);
+    const slides = (lesson.slideText || "").substring(0, 1500);
+
+    // Build content summary for AI
+    const moduleNames = modules.slice(0, 4).map((m: any) => m.title || m.name || "Module");
+    const keyPoints = emphases.slice(0, 6).map((e: any) => e.statement || e).filter(Boolean);
+    const concepts = highlights.slice(0, 8);
+
+    console.log("[Mindmap v2-Rich+] Building for:", {
+      title,
+      moduleNames,
+      keyPoints: keyPoints.length,
+      concepts: concepts.length,
+      transcriptLen: transcript.length,
+      slidesLen: slides.length
+    });
+
+    // EDUCATIONAL STUDY GUIDE PROMPT - Optimized for learning
+    const prompt = `
+You are a MASTER EDUCATOR creating a STUDY GUIDE mindmap.
+This mindmap should help a student:
+1. Understand the topic quickly
+2. Prepare for exams
+3. Remember key concepts
+
+=== MERMAID SYNTAX (STRICT) ===
+- Start with: mindmap
+- Root: root((📚 Topic Name))
+- Use 2-space indentation
+- NO special chars: no [], (), {}, :, backticks, quotes
+- Labels: MAX 18 chars, keywords only
+
+=== EDUCATIONAL STRUCTURE (5 BRANCHES) ===
+📚 TOPIC (root)
+├── ❓ What - Definition and meaning
+├── 🎯 Why - Purpose and benefits  
+├── ⚡ How - Implementation steps
+├── 💡 Practice - Examples to try
+└── 📝 Remember - Key exam points
+
+=== CONTENT GUIDELINES ===
+For WHAT branch:
+- Simple definition in 2-3 words
+- Core meaning
+- What it does
+
+For WHY branch:
+- Main benefits
+- Why we use it
+- Problem it solves
+
+For HOW branch:
+- Step by step
+- Syntax or structure
+- Key components
+
+For PRACTICE branch:
+- Simple example
+- Try this exercise
+- Common use case
+
+For REMEMBER branch:
+- Exam tip
+- Common mistake
+- Important rule
+
+=== LABEL RULES ===
+- Use student-friendly language
+- Action-oriented: Learn, Use, Try, Remember
+- Start branches with verbs when possible
+- Max 4 items per branch
+
+=== LESSON DATA ===
+Topic: ${title}
+Sections: ${moduleNames.join(", ") || "Introduction, Main Content, Practice"}
+Key points: ${keyPoints.slice(0, 4).join(" | ") || "Important concepts"}
+Terms: ${concepts.slice(0, 6).join(", ") || "vocabulary"}
+
+=== LECTURE CONTENT ===
+${transcript.substring(0, 1000) || "No transcript"}
+
+=== SLIDE CONTENT ===
+${slides.substring(0, 800) || "No slides"}
+
+=== EXAMPLE (FOLLOW THIS PATTERN) ===
+mindmap
+  root((📚 Python Functions))
+    ❓ What
+      Reusable code
+      Named block
+      Does one task
+    🎯 Why
+      Avoid repetition
+      Clean code
+      Easy to debug
+    ⚡ How
+      Use def keyword
+      Add parameters
+      Return result
+    💡 Practice
+      Hello function
+      Add two numbers
+      List processor
+    📝 Remember
+      One task only
+      Use good names
+      Always test it
+
+=== YOUR TASK ===
+Create a STUDY GUIDE mindmap for "${title}".
+Make it helpful for exam preparation.
+OUTPUT ONLY the mermaid code, nothing else.
+`;
+
+    const result = await model.generateContent(prompt);
+    let code = result.response.text();
+
+    // ULTRA-AGGRESSIVE SANITIZATION to prevent syntax errors
+    code = code
+      .replace(/```mermaid/gi, "")
+      .replace(/```/g, "")
+      .replace(/\r\n/g, "\n")
+      .trim();
+
+    // Process line by line
+    const lines = code.split("\n");
+    const cleanLines: string[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i];
+      const trimmed = line.trim();
+
+      // Skip empty lines at the start
+      if (!trimmed && cleanLines.length < 2) continue;
+      // Skip code fence remnants
+      if (trimmed.includes('```')) continue;
+      // Skip lines that are just punctuation
+      if (/^[:\-\[\]\(\)\{\}]+$/.test(trimmed)) continue;
+
+      // For non-root lines, sanitize special chars that break Mermaid
+      if (!trimmed.startsWith('mindmap') && !trimmed.startsWith('root((')) {
+        // Remove problematic chars from label content
+        line = line.replace(/[:\[\]\{\}`"]/g, "");
+        // Fix parentheses that aren't part of root(())
+        if (!line.includes('root((')) {
+          line = line.replace(/\(/g, "").replace(/\)/g, "");
+        }
+        // Limit line length (very long labels can cause issues)
+        if (line.trim().length > 50) {
+          const indent = line.match(/^\s*/)?.[0] || "";
+          line = indent + line.trim().substring(0, 50);
+        }
+      }
+
+      if (line.trim()) {
+        cleanLines.push(line);
+      }
+    }
+
+    // Ensure starts with mindmap
+    if (!cleanLines[0]?.trim().startsWith('mindmap')) {
+      cleanLines.unshift('mindmap');
+    }
+
+    // Validate we have at least root node
+    const hasRoot = cleanLines.some(l => l.includes('root(('));
+    if (!hasRoot && cleanLines.length > 1) {
+      cleanLines.splice(1, 0, '  root((📚 ' + (title || 'Topic').substring(0, 15) + '))');
+    }
+
+    code = cleanLines.join("\n");
+
+    console.log("[Mindmap] Generated code:", code.substring(0, 400));
+
+    return res.json({ ok: true, code });
+  } catch (e: any) {
+    console.error("Mindmap error:", e);
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// 📋 Get lesson modules list for multi-map feature
+app.get("/api/lessons/:id/modules", (req, res) => {
+  try {
+    const lessonId = req.params.id;
+    const lesson = getLesson(lessonId);
+    if (!lesson || !lesson.plan) return res.status(404).json({ error: "Lesson not found" });
+
+    const plan = lesson.plan as any;
+    const modules = plan.modules || [];
+
+    // Extract module info
+    const moduleList = modules.map((m: any, index: number) => ({
+      id: index,
+      title: m.title || m.name || `Module ${index + 1}`,
+      topics: (m.topics || m.content || []).slice(0, 5).map((t: any) =>
+        typeof t === 'string' ? t : (t.title || t.name || 'Topic')
+      )
+    }));
+
+    // Add "All Modules" option
+    const allModulesOption = {
+      id: -1,
+      title: "📚 Tüm Modüller (Genel Bakış)",
+      topics: moduleList.slice(0, 4).map((m: any) => m.title)
+    };
+
+    return res.json({
+      ok: true,
+      lessonTitle: lesson.title || "Lesson",
+      modules: [allModulesOption, ...moduleList]
+    });
+  } catch (e: any) {
+    console.error("Modules list error:", e);
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// 🗺️ Generate mindmap for specific module
+app.post("/api/lessons/:id/mindmap/module", async (req, res) => {
+  try {
+    const lessonId = req.params.id;
+    const moduleIndex = req.body.moduleIndex ?? -1; // -1 = all modules
+
+    const lesson = getLesson(lessonId);
+    if (!lesson || !lesson.plan) return res.status(404).json({ error: "Plan not found" });
+
+    const plan = lesson.plan as any;
+    const modules = plan.modules || [];
+    const lessonTitle = lesson.title || plan.title || "Lesson Topic";
+
+    let targetTitle: string;
+    let targetContent: string;
+
+    if (moduleIndex === -1) {
+      // All modules - overview
+      targetTitle = lessonTitle;
+      targetContent = modules.slice(0, 4).map((m: any) => {
+        const title = m.title || m.name || "Module";
+        const topics = (m.topics || m.content || []).slice(0, 3).map((t: any) =>
+          typeof t === 'string' ? t : (t.title || '')
+        ).join(", ");
+        return `${title}: ${topics}`;
+      }).join("\n");
+    } else {
+      // Specific module
+      const targetModule = modules[moduleIndex];
+      if (!targetModule) return res.status(404).json({ error: "Module not found" });
+
+      targetTitle = targetModule.title || targetModule.name || `Module ${moduleIndex + 1}`;
+      const topics = targetModule.topics || targetModule.content || [];
+      targetContent = topics.map((t: any) =>
+        typeof t === 'string' ? t : (t.title || t.name || t.description || '')
+      ).join("\n");
+    }
+
+    console.log("[Mindmap Module] Building for:", { targetTitle, moduleIndex, contentLen: targetContent.length });
+
+    const prompt = `
+You are a MASTER EDUCATOR creating a STUDY GUIDE mindmap for a specific module.
+
+=== MERMAID SYNTAX (STRICT) ===
+- Start with: mindmap
+- Root: root((📚 Topic Name))
+- Use 2-space indentation
+- NO special chars: no [], (), {}, :, backticks, quotes
+- Labels: MAX 18 chars
+
+=== STRUCTURE (5 BRANCHES) ===
+📚 TOPIC
+├── ❓ What - Definition
+├── 🎯 Why - Purpose  
+├── ⚡ How - Steps
+├── 💡 Practice - Examples
+└── 📝 Remember - Key points
+
+=== MODULE DATA ===
+Module Title: ${targetTitle}
+Module Content: ${targetContent.substring(0, 1000)}
+
+=== EXAMPLE ===
+mindmap
+  root((📚 ${targetTitle.substring(0, 15)}))
+    ❓ What
+      Definition
+      Core concept
+    🎯 Why
+      Main benefit
+      Purpose
+    ⚡ How
+      Step one
+      Step two
+    💡 Practice
+      Simple example
+    📝 Remember
+      Key point
+
+=== OUTPUT ===
+Create mindmap for "${targetTitle}". OUTPUT ONLY mermaid code.
+`;
+
+    const result = await model.generateContent(prompt);
+    let code = result.response.text();
+
+    // Sanitization (same as main mindmap)
+    code = code.replace(/```mermaid/gi, "").replace(/```/g, "").replace(/\r\n/g, "\n").trim();
+
+    const lines = code.split("\n");
+    const cleanLines: string[] = [];
+
+    for (const line of lines) {
+      let processedLine = line;
+      const trimmed = line.trim();
+
+      if (!trimmed && cleanLines.length < 2) continue;
+      if (trimmed.includes('```')) continue;
+      if (/^[:\-\[\]\(\)\{\}]+$/.test(trimmed)) continue;
+
+      if (!trimmed.startsWith('mindmap') && !trimmed.startsWith('root((')) {
+        processedLine = processedLine.replace(/[:\[\]\{\}`"]/g, "");
+        if (!processedLine.includes('root((')) {
+          processedLine = processedLine.replace(/\(/g, "").replace(/\)/g, "");
+        }
+        if (processedLine.trim().length > 50) {
+          const indent = processedLine.match(/^\s*/)?.[0] || "";
+          processedLine = indent + processedLine.trim().substring(0, 50);
+        }
+      }
+
+      if (processedLine.trim()) cleanLines.push(processedLine);
+    }
+
+    if (!cleanLines[0]?.trim().startsWith('mindmap')) cleanLines.unshift('mindmap');
+
+    const hasRoot = cleanLines.some(l => l.includes('root(('));
+    if (!hasRoot) {
+      cleanLines.splice(1, 0, '  root((📚 ' + targetTitle.substring(0, 15) + '))');
+    }
+
+    code = cleanLines.join("\n");
+    console.log("[Mindmap Module] Generated:", code.substring(0, 300));
+
+    return res.json({ ok: true, code, moduleTitle: targetTitle });
+  } catch (e: any) {
+    console.error("Module mindmap error:", e);
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// 🧠 Mindmap Node Detail API - AI-powered explanations for clicked nodes
+app.post("/api/lessons/:id/mindmap/node-detail", async (req, res) => {
+  try {
+    const lessonId = req.params.id;
+    const { nodeName, action } = req.body as { nodeName: string; action: "explain" | "example" | "quiz" };
+
+    if (!nodeName || !action) {
+      return res.status(400).json({ ok: false, error: "nodeName and action are required" });
+    }
+
+    const lesson = getLesson(lessonId);
+    if (!lesson) return res.status(404).json({ ok: false, error: "Lesson not found" });
+
+    const plan = lesson.plan as any;
+    const transcript = (lesson.transcript || "").substring(0, 3000);
+    const slides = (lesson.slideText || "").substring(0, 2000);
+    const lessonTitle = lesson.title || "Lesson";
+
+    let prompt = "";
+
+    if (action === "explain") {
+      prompt = `
+You are an expert tutor. Explain the concept "${nodeName}" from the lesson "${lessonTitle}".
+
+=== LESSON CONTEXT ===
+${transcript.substring(0, 1500)}
+
+${slides.substring(0, 1000)}
+
+=== INSTRUCTIONS ===
+1. Give a clear, concise explanation (2-3 paragraphs max)
+2. Use simple language a student can understand
+3. Highlight key points with **bold**
+4. Include relevant emoji sparingly
+
+=== OUTPUT FORMAT ===
+Return ONLY valid JSON:
+{
+  "title": "${nodeName}",
+  "explanation": "Your explanation here...",
+  "keyPoints": ["point 1", "point 2", "point 3"],
+  "relatedConcepts": ["concept 1", "concept 2"]
+}
+`;
+    } else if (action === "example") {
+      prompt = `
+You are an expert tutor. Give a real-world example for the concept "${nodeName}" from the lesson "${lessonTitle}".
+
+=== LESSON CONTEXT ===
+${transcript.substring(0, 1500)}
+
+=== INSTRUCTIONS ===
+1. Give a concrete, relatable example
+2. Connect it to everyday life if possible
+3. Explain step by step how the concept applies
+4. Keep it simple and memorable
+
+=== OUTPUT FORMAT ===
+Return ONLY valid JSON:
+{
+  "title": "${nodeName}",
+  "example": {
+    "scenario": "The real-world situation...",
+    "explanation": "How this concept applies...",
+    "takeaway": "What to remember..."
+  }
+}
+`;
+    } else if (action === "quiz") {
+      prompt = `
+You are an exam creator. Create a quiz question about "${nodeName}" from the lesson "${lessonTitle}".
+
+=== LESSON CONTEXT ===
+${transcript.substring(0, 1500)}
+
+=== INSTRUCTIONS ===
+1. Create a multiple choice question (4 options)
+2. Make it test understanding, not just memorization
+3. Include a brief explanation for the correct answer
+
+=== OUTPUT FORMAT ===
+Return ONLY valid JSON:
+{
+  "title": "${nodeName}",
+  "quiz": {
+    "question": "Your question here?",
+    "options": ["A) Option 1", "B) Option 2", "C) Option 3", "D) Option 4"],
+    "correctAnswer": "A",
+    "explanation": "Why this is correct..."
+  }
+}
+`;
+    }
+
+    const result = await model.generateContent(prompt);
+    let responseText = result.response.text();
+
+    // Clean and parse JSON
+    responseText = responseText
+      .replace(/```json?/gi, "")
+      .replace(/```/g, "")
+      .trim();
+
+    let parsed;
+    try {
+      parsed = JSON.parse(responseText);
+    } catch (e) {
+      console.error("[Node Detail] JSON parse error:", e);
+      console.error("[Node Detail] Response was:", responseText.substring(0, 500));
+      return res.status(500).json({ ok: false, error: "Failed to parse AI response" });
+    }
+
+    return res.json({ ok: true, action, ...parsed });
+  } catch (e: any) {
+    console.error("[Node Detail] Error:", e);
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 // ---- Lessons & Memory API ----
 app.get("/api/lessons", (_req, res) => res.json(listLessons()));
 app.get("/api/lessons/:id", (req, res) => {
@@ -1345,6 +2158,13 @@ app.patch("/api/lessons/:id/progress", (req, res) => {
   const l = updateProgress(req.params.id, req.body); // {lastMode, percent}
   if (!l) return res.status(404).json({ error: "Not found" });
   res.json(l);
+});
+// 🗑️ Delete lesson
+app.delete("/api/lessons/:id", (req, res) => {
+  const id = req.params.id;
+  const success = deleteLesson(id);
+  if (!success) return res.status(404).json({ ok: false, error: "Not found" });
+  return res.json({ ok: true, deleted: id });
 });
 app.get("/api/memory", (_req, res) => res.json(getMemory()));
 

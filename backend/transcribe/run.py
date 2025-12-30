@@ -38,7 +38,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("input")
     ap.add_argument("--model", default=os.getenv("WHISPER_MODEL", "small"))
-    ap.add_argument("--device", default=os.getenv("WHISPER_DEVICE", "cpu"))
+    ap.add_argument("--device", default=os.getenv("WHISPER_DEVICE", "cuda"))
     ap.add_argument("--compute", default=os.getenv("WHISPER_COMPUTE", "int8"))
     ap.add_argument("--lang", default="en")
     args = ap.parse_args()
@@ -66,6 +66,8 @@ def main():
         vad_filter=True,
         beam_size=5,
         temperature=0.0
+      #  beam_size=1,          # hız
+       # best_of=1
     )
 
     last_end = 0.0

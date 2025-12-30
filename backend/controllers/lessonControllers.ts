@@ -67,14 +67,14 @@ export type Lesson = {
 
   // Zaman damgaları:
   createdAt?: string;      // ISO string
-  updatedAt?: string;  
+  updatedAt?: string;
   courseCode?: string;          // "MATH 153" gibi
   learningOutcomes?: string[];  // IEU'den çekilen resmi LO listesi
 
   // 🔹 Transcript–LO alignment (şimdilik any bırakabiliriz)
-  loAlignment?: any;             
+  loAlignment?: any;
   loModules?: LessonLoModules;
-   // ISO string
+  // ISO string
 };
 
 type GlobalMemory = {
@@ -84,14 +84,14 @@ type GlobalMemory = {
 };
 
 // ---- Yollar ----
-const DATA_DIR      = path.join(process.cwd(), "backend", "data");
-const LESSONS_PATH  = path.join(DATA_DIR, "lessons.json");
-const MEMORY_PATH   = path.join(DATA_DIR, "memory.json");
+const DATA_DIR = path.join(process.cwd(), "backend", "data");
+const LESSONS_PATH = path.join(DATA_DIR, "lessons.json");
+const MEMORY_PATH = path.join(DATA_DIR, "memory.json");
 
 // Başlangıç dosyalarını garanti altına al
 ensureDataFiles([
   { path: LESSONS_PATH, initial: [] },
-  { path: MEMORY_PATH,  initial: { recurringConcepts: [], recentEmphases: [], lastUpdated: new Date().toISOString() } }
+  { path: MEMORY_PATH, initial: { recurringConcepts: [], recentEmphases: [], lastUpdated: new Date().toISOString() } }
 ]);
 
 // ---- Yardımcılar ----
@@ -286,4 +286,14 @@ export function updateProgress(
   list[i].updatedAt = new Date().toISOString();
   saveLessons(list);
   return list[i];
+}
+
+// 🗑️ Ders silme
+export function deleteLesson(lessonId: string): boolean {
+  const list = loadLessons();
+  const idx = list.findIndex((l) => l.id === lessonId);
+  if (idx === -1) return false;
+  list.splice(idx, 1);
+  saveLessons(list);
+  return true;
 }
