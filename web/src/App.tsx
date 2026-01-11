@@ -1,30 +1,51 @@
-import React, { useEffect, useMemo, useState } from "react";
+// src/App.tsx - Refactored with Zustand, React Router, and Lazy Loading
+import React, { Suspense, lazy, useEffect, useMemo } from "react";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import "./App.css";
-import { API_BASE } from "./config";
-import { Plan, ModeId, LoAlignment, LoStudyModule, CheatSheet } from "./types";
-import LoStudyPane from "./components/LoStudyPane";
 
-// --- Bileşen Importları ---
-import PlanPane from "./components/PlanPane";
-import AlignmentPane from "./components/AlignmentPane";
-import LecturerNotePane from "./components/LecturerNotePane";
-import QuizPane from "./components/QuizPane";
-import DeepDivePane from "./components/DeepDivePane";
-import ExamSprintPane from "./components/ExamSprintPane";
+// Stores
+import { useLessonStore } from "./stores/lessonStore";
+import { useUiStore } from "./stores/uiStore";
+
+// Hooks
+import { useLesson } from "./hooks/useLesson";
+import { useTranscription } from "./hooks/useTranscription";
+
+// Components (eagerly loaded)
 import ModeRibbon from "./components/ModeRibbon";
-import LessonsHistoryPane from "./components/LessonsHistoryPane";
-import CheatSheetPane from "./components/CheatSheetPane";
+import ThemeToggle from "./components/ui/ThemeToggle";
+import { MobileNav } from "./components/layout/MobileNav";
+import { Skeleton, CardSkeleton } from "./components/ui/Skeleton";
+import { NoPlanEmpty } from "./components/ui/EmptyState";
 
-/** -------- Helpers -------- */
-function getInitialMode(): ModeId {
-  const sp = new URLSearchParams(window.location.search);
-  const q = sp.get("mode") as ModeId | null;
-  const saved = localStorage.getItem("lc.mode") as ModeId | null;
-  if (q) return q;
-  if (saved) return saved;
-  return "plan";
+// Lazy loaded panes
+const PlanPane = lazy(() => import("./components/PlanPane"));
+const AlignmentPane = lazy(() => import("./components/AlignmentPane"));
+const LecturerNotePane = lazy(() => import("./components/LecturerNotePane"));
+const QuizPane = lazy(() => import("./components/QuizPane"));
+const LoStudyPane = lazy(() => import("./components/LoStudyPane"));
+const CheatSheetPane = lazy(() => import("./components/CheatSheetPane"));
+const LessonsHistoryPane = lazy(() => import("./components/LessonsHistoryPane"));
+const DeepDivePane = lazy(() => import("./components/DeepDivePane"));
+const ExamSprintPane = lazy(() => import("./components/ExamSprintPane"));
+const DeviationPane = lazy(() => import("./components/DeviationPane"));
+const MindMapPane = lazy(() => import("./components/MindMapPane"));
+const NotesPane = lazy(() => import("./components/NotesPane"));
+
+// Loading fallback
+function PaneLoading() {
+  return (
+    <div className="lc-section" style={{ padding: "24px" }}>
+      <Skeleton height={24} width="40%" />
+      <div style={{ marginTop: "16px" }}>
+        <Skeleton lines={4} />
+      </div>
+    </div>
+  );
 }
 
+// --- Time Helpers ---
 function fmtTime(sec: number) {
   const s = Math.max(0, sec || 0);
   const mm = Math.floor(s / 60);
@@ -32,81 +53,42 @@ function fmtTime(sec: number) {
   return `${mm}:${String(ss).padStart(2, "0")}`;
 }
 
-function formatTime(sec: number) {
-  const s = Math.max(0, Math.floor(sec || 0));
-  const h = Math.floor(s / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  const r = s % 60;
-
-  const mm = String(m).padStart(2, "0");
-  const ss = String(r).padStart(2, "0");
-
-  if (h > 0) return `${String(h).padStart(2, "0")}:${mm}:${ss}`;
-  return `${mm}:${ss}`;
-}
-
 export default function App() {
-  // State Tanımları
-  const [lectureText, setLectureText] = useState("");
-  const [slidesText, setSlidesText] = useState("");
-  const [plan, setPlan] = useState<Plan | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-  const [mode, setMode] = useState<ModeId>(getInitialMode());
-  const [quiz, setQuiz] = useState<string[]>([]);
+  // Zustand stores
+  const lesson = useLesson();
+  const transcription = useTranscription();
+  const ui = useUiStore();
 
-  // ✅ Cheat Sheet state
-  const [cheatSheet, setCheatSheet] = useState<CheatSheet | null>(null);
-  const [cheatLoading, setCheatLoading] = useState(false);
-  const [cheatErr, setCheatErr] = useState<string | null>(null);
+  // Detect if on mobile
+  const isMobile = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    return window.innerWidth < 768;
+  }, []);
 
-  // STT UI state
-  const [sttProgress, setSttProgress] = useState(0);
-  const [sttStatus, setSttStatus] = useState<string | null>(null);
-  const [sttNow, setSttNow] = useState<{ start: number; end: number } | null>(null);
-  const [sttToast, setSttToast] = useState<string | null>(null);
-
-  // Ders State'leri
-  const [lessons, setLessons] = useState<any[]>([]);
-  const [currentLessonId, setCurrentLessonId] = useState<string | null>(
-    localStorage.getItem("lc.lastLessonId")
-  );
-
-  // Modal State'leri
-  const [showNewLessonModal, setShowNewLessonModal] = useState(false);
-  const [newLessonTitle, setNewLessonTitle] = useState("");
-  const [draftTitle, setDraftTitle] = useState<string>("");
-
-  // IEU Syllabus / Learning Outcomes
-  const [courseCode, setCourseCode] = useState("");
-  const [learningOutcomes, setLearningOutcomes] = useState<string[]>([]);
-  const [loLoading, setLoLoading] = useState(false);
-  const [loAlignment, setLoAlignment] = useState<LoAlignment | null>(null);
-
-  // LO Study modülleri
-  const [loModules, setLoModules] = useState<LoStudyModule[] | null>(null);
-  const [loModulesLoading, setLoModulesLoading] = useState(false);
-
-  // Submit butonu aktiflik kontrolü
+  // Submit check
   const canSubmit = useMemo(
-    () => !loading && lectureText.trim().length > 0 && slidesText.trim().length > 0,
-    [loading, lectureText, slidesText]
+    () => !ui.isLoading && lesson.lectureText.trim().length > 0 && lesson.slidesText.trim().length > 0,
+    [ui.isLoading, lesson.lectureText, lesson.slidesText]
   );
 
-  // URL & Storage Senkronizasyonu
+  // Fetch lessons on mount
   useEffect(() => {
-    const url = new URL(window.location.href);
-    url.searchParams.set("mode", mode);
-    window.history.replaceState({}, "", url.toString());
-    localStorage.setItem("lc.mode", mode);
-  }, [mode]);
+    lesson.fetchLessons();
+  }, []);
 
-  // Klavye Kısayolları
+  // Load current lesson when ID changes
+  useEffect(() => {
+    if (lesson.currentLessonId) {
+      lesson.loadLesson(lesson.currentLessonId);
+    }
+  }, [lesson.currentLessonId]);
+
+  // Keyboard shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement)?.closest("input,textarea,[contenteditable=true]")) return;
 
-      const map: Record<string, ModeId> = {
+      const map: Record<string, typeof ui.mode> = {
         "1": "plan",
         "2": "alignment",
         "3": "lecturer-note",
@@ -115,577 +97,262 @@ export default function App() {
         "6": "exam-sprint",
         "7": "history",
         "8": "lo-study",
-        "9": "cheat-sheet", // ✅ yeni
+        "9": "cheat-sheet",
       };
-      if (map[e.key]) setMode(map[e.key]);
+      if (map[e.key]) ui.setMode(map[e.key]);
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, []);
+  }, [ui]);
 
-  // Ders Listesini Yükle
-  useEffect(() => {
-    fetchLessons();
-  }, []);
-
-  const fetchLessons = async () => {
-    try {
-      const r = await fetch(`${API_BASE}/api/lessons`);
-      const j = await r.json();
-      if (Array.isArray(j)) setLessons(j);
-    } catch (e) {
-      console.warn("Dersler yüklenemedi", e);
-    }
-  };
-
-  // Ders değiştiğinde LO modüllerini + CheatSheet’i sıfırla
-  useEffect(() => {
-    setLoModules(null);
-    setCheatSheet(null);
-    setCheatErr(null);
-  }, [currentLessonId]);
-
-  // Seçili Dersi ve Detaylarını Getir
-  useEffect(() => {
-    if (!currentLessonId) {
-      if (!draftTitle) {
-        setLectureText("");
-        setSlidesText("");
-        setPlan(null);
-
-        setCourseCode("");
-        setLearningOutcomes([]);
-        setLoAlignment(null);
-        setLoModules(null);
-
-        setCheatSheet(null);
-        setCheatErr(null);
-      }
-      return;
-    }
-
-    fetch(`${API_BASE}/api/lessons/${currentLessonId}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((l) => {
-        if (l) {
-          setLectureText(l.transcript ?? "");
-          setSlidesText(l.slideText ?? "");
-          setPlan(l.plan ?? null);
-
-          // ✅ her zaman overwrite (yoksa boşla)
-          setCourseCode(l.courseCode ?? "");
-          setLearningOutcomes(Array.isArray(l.learningOutcomes) ? l.learningOutcomes : []);
-          setLoAlignment(l.loAlignment ?? null);
-
-          // loModules
-          if (Array.isArray(l.loModules?.modules)) setLoModules(l.loModules.modules);
-          else setLoModules(null);
-
-          // ✅ cheat sheet (backend kaydediyorsa)
-          setCheatSheet(l.cheatSheet ?? null);
-
-          setLessons((prev) =>
-            prev.map((item) => (item.id === l.id ? { ...item, title: l.title } : item))
-          );
-        }
-      })
-      .catch(console.warn);
-  }, [currentLessonId, draftTitle]);
-
-  // --- AUDIO UPLOAD (STT) ---
+  // --- Audio Upload Handler ---
   const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    if (!currentLessonId) {
-      setErr("Önce bir ders oluştur veya seç (lessonId lazım).");
-      e.target.value = "";
-      return;
-    }
-
-    setErr(null);
-    setSttProgress(0);
-    setSttNow(null);
-    setSttStatus("Yükleniyor...");
-    setSttToast(null);
-
-    const form = new FormData();
-    form.append("file", file);
-    form.append("lessonId", currentLessonId);
-
-    let j: any = null;
-    try {
-      const r = await fetch(`${API_BASE}/api/transcribe/start`, { method: "POST", body: form });
-      j = await r.json();
-
-      if (!r.ok || !j?.ok) {
-        setErr(j?.error || "Transcribe start hatası");
-        setSttStatus("Başlatılamadı ❌");
-        e.target.value = "";
-        return;
-      }
-    } catch (err: any) {
-      setErr(err?.message || "Transcribe start hatası");
-      setSttStatus("Başlatılamadı ❌");
-      e.target.value = "";
-      return;
-    }
-
-    setLectureText(""); // yeni transkript başlatırken temizle
-    setSttStatus("Transkripte ediliyor...");
-
-    const es = new EventSource(`${API_BASE}/api/transcribe/stream/${j.jobId}`);
-
-    const setToast = (txt: string) => {
-      setSttToast(txt);
-      (window as any).__sttToastTimer && clearTimeout((window as any).__sttToastTimer);
-      (window as any).__sttToastTimer = setTimeout(() => setSttToast(null), 1200);
-    };
-
-    es.onmessage = (ev) => {
-      try {
-        const msg = JSON.parse(ev.data);
-
-        if (msg.type === "meta") {
-          setSttStatus(`Model: ${msg.model} • Süre: ${(msg.duration / 60).toFixed(1)} dk`);
-          return;
-        }
-
-        if (msg.type === "log") {
-          if (typeof msg.message === "string" && msg.message.trim()) {
-            setSttStatus(`Hazırlanıyor... (${msg.message.trim().slice(0, 60)})`);
-          }
-          return;
-        }
-
-        if (msg.type === "segment") {
-          const p = Math.round((msg.progress ?? 0) * 100);
-          setSttProgress(p);
-
-          if (typeof msg.start === "number" && typeof msg.end === "number") {
-            setSttNow({ start: msg.start, end: msg.end });
-            setSttStatus(`Transcribing ${fmtTime(msg.start)}–${fmtTime(msg.end)} (${p}%)`);
-            setToast(`${fmtTime(msg.start)}–${fmtTime(msg.end)}`);
-          }
-
-          if (msg.text) {
-            const line = `[${formatTime(msg.start)} – ${formatTime(msg.end)}] ${msg.text}`;
-            setLectureText((prev) => (prev ? prev + "\n" : "") + line);
-          }
-          return;
-        }
-
-        if (msg.type === "error") {
-          setErr(msg.message || "Transcribe error");
-          setSttStatus("Hata ❌");
-          setSttNow(null);
-          es.close();
-          return;
-        }
-
-        if (msg.type === "done") {
-          setSttProgress(100);
-          setSttStatus("Bitti ✅");
-          setSttNow(null);
-          setSttToast(null);
-          es.close();
-          return;
-        }
-      } catch {
-        // ignore
-      }
-    };
-
-    es.onerror = () => {
-      setSttStatus("Bağlantı hatası (SSE) ❌");
-      setSttNow(null);
-      es.close();
-    };
-
+    await transcription.startTranscription(file);
     e.target.value = "";
   };
 
-  // ✅ Cheat Sheet generate
-  async function handleGenerateCheatSheet() {
-    if (!currentLessonId) {
-      setCheatErr("Önce bir ders seç.");
-      return;
-    }
-
-    setCheatLoading(true);
-    setCheatErr(null);
-
-    try {
-      const r = await fetch(`${API_BASE}/api/lessons/${currentLessonId}/cheat-sheet`, {
-        method: "POST",
-      });
-      const j = await r.json();
-      if (!r.ok || !j.ok) throw new Error(j.error || "Cheat sheet üretilemedi");
-
-      setCheatSheet(j.cheatSheet || null);
-      setMode("cheat-sheet");
-    } catch (e: any) {
-      setCheatErr(e.message || "Cheat sheet üretilemedi");
-    } finally {
-      setCheatLoading(false);
-    }
-  }
-
-  // --- PDF YÜKLEME ---
+  // --- PDF Upload Handler ---
   const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setLoading(true);
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const r = await fetch(`${API_BASE}/api/upload/pdf`, {
-        method: "POST",
-        body: formData,
-      });
-      const j = await r.json();
-      if (j.ok && j.text) {
-        setSlidesText((prev) => (prev ? prev + "\n\n" : "") + j.text);
-      } else {
-        alert("Hata: " + (j.error || "Bilinmeyen hata"));
-      }
-    } catch (err: any) {
-      alert("Yükleme başarısız: " + err.message);
-    } finally {
-      setLoading(false);
-      e.target.value = "";
-    }
+    await lesson.uploadPdf(file);
+    e.target.value = "";
   };
 
-  // --- Transcript + LO hizalama ---
-  async function handleAlignWithLO() {
-    if (!currentLessonId) {
-      setErr("Önce bir ders oluştur veya seç.");
-      return;
-    }
-    if (!learningOutcomes.length) {
-      setErr("Önce IEU'den Learning Outcomes çek.");
-      return;
-    }
-    if (!lectureText.trim()) {
-      setErr("Transcript boş, hizalanacak metin yok.");
-      return;
-    }
-
-    setLoading(true);
-    setErr(null);
-
-    try {
-      const r = await fetch(`${API_BASE}/api/lessons/${currentLessonId}/lo-align`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          transcript: lectureText,
-          slidesText,
-          learningOutcomes,
-        }),
-      });
-      const j = await r.json();
-      if (!r.ok || !j.ok) throw new Error(j.error || "LO hizalama hatası");
-      setLoAlignment(j.loAlignment || null);
-    } catch (e: any) {
-      setErr(e.message || "LO hizalama hatası");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  // --- IEU LEARNING OUTCOMES ÇEKME ---
-  async function fetchLearningOutcomes() {
-    const code = courseCode.trim();
-    if (!code) return;
-    setLoLoading(true);
-    setErr(null);
-
-    try {
-      const r = await fetch(`${API_BASE}/api/ieu/learning-outcomes?code=${encodeURIComponent(code)}`);
-      const j = await r.json();
-      if (!r.ok || !j.ok) throw new Error(j.error || "Learning Outcomes bulunamadı");
-      setLearningOutcomes(j.learningOutcomes || []);
-    } catch (e: any) {
-      setErr(e.message || "LO çekilirken hata");
-      setLearningOutcomes([]);
-    } finally {
-      setLoLoading(false);
-    }
-  }
-
-  // --- LO STUDY MODÜLLERİ OLUŞTURMA ---
-  async function handleGenerateLoModules() {
-    if (!currentLessonId) {
-      setErr("Önce bir ders oluştur veya seç.");
-      return;
-    }
-    if (!learningOutcomes.length) {
-      setErr("LO Study için önce IEU'den Learning Outcomes çekmen gerekiyor.");
-      return;
-    }
-
-    setLoModulesLoading(true);
-    setErr(null);
-
-    try {
-      const r = await fetch(`${API_BASE}/api/lessons/${currentLessonId}/lo-modules`, {
-        method: "POST",
-      });
-      const j = await r.json();
-      if (!r.ok || !j.ok) throw new Error(j.error || "LO modülleri üretilemedi");
-      setLoModules(j.modules || []);
-      setMode("lo-study");
-    } catch (e: any) {
-      setErr(e.message || "LO modülleri üretilemedi");
-    } finally {
-      setLoModulesLoading(false);
-    }
-  }
-
-  // --- ANA PLAN OLUŞTURMA (SUBMIT) ---
+  // --- Submit Handler ---
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSubmit) return;
-    setLoading(true);
-    setErr(null);
-    setPlan(null);
-    setQuiz([]);
-    setLoAlignment(null);
-    setLoModules(null);
-
-    try {
-      const currentLesson = lessons.find((l) => l.id === currentLessonId);
-
-      const titleToSend =
-        draftTitle || currentLesson?.title || `Lecture ${new Date().toLocaleDateString()}`;
-
-      const r = await fetch(`${API_BASE}/api/plan-from-text`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          lectureText,
-          slidesText,
-          title: titleToSend,
-          lessonId: currentLessonId ?? undefined,
-          courseCode: courseCode.trim() || undefined,
-          learningOutcomes: learningOutcomes.length ? learningOutcomes : undefined,
-        }),
-      });
-
-      const j = await r.json();
-      if (!r.ok || !j?.ok) throw new Error(j?.error || "Hata");
-
-      if (j.lessonId) {
-        setCurrentLessonId(j.lessonId);
-        localStorage.setItem("lc.lastLessonId", j.lessonId);
-
-        setLessons((prev) => {
-          const exists = prev.find((x) => x.id === j.lessonId);
-          if (exists) return prev;
-          return [{ id: j.lessonId, title: titleToSend, date: new Date().toISOString() }, ...prev];
-        });
-
-        setDraftTitle("");
-        await fetchLessons();
-      }
-
-      setPlan(j.plan);
-      if (j.plan?.seed_quiz?.length) setQuiz(j.plan.seed_quiz.slice(0, 12));
-      setMode("alignment");
-    } catch (e: any) {
-      setErr(e.message);
-    } finally {
-      setLoading(false);
-    }
+    await lesson.generatePlan();
   }
 
-  // --- YENİ DERS OLUŞTURMA ---
+  // --- Create Lesson Handler ---
   const handleCreateLesson = async () => {
-    const name = newLessonTitle.trim();
+    const name = ui.newLessonTitle.trim();
     if (!name) return;
 
-    // ✅ UI temizle
-    setLectureText("");
-    setSlidesText("");
-    setPlan(null);
-    setQuiz([]);
-    setDraftTitle(name);
-    setErr(null);
+    lesson.clearCurrentLesson();
+    await lesson.createLesson(name);
 
-    setCourseCode("");
-    setLearningOutcomes([]);
-    setLoAlignment(null);
-    setLoModules(null);
+    ui.setShowNewLessonModal(false);
+    ui.setNewLessonTitle("");
+  };
 
-    setCheatSheet(null);
-    setCheatErr(null);
+  // --- Render Current Pane ---
+  const renderPane = () => {
+    return (
+      <Suspense fallback={<PaneLoading />}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={ui.mode}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            {ui.mode === "plan" && (
+              lesson.plan ? <PlanPane plan={lesson.plan} /> : <NoPlanEmpty />
+            )}
 
-    try {
-      const r = await fetch(`${API_BASE}/api/lessons`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: name }),
-      });
-      const j = await r.json();
+            {ui.mode === "alignment" && (
+              lesson.plan ? (
+                <AlignmentPane plan={lesson.plan} deviation={lesson.deviation} />
+              ) : (
+                <NoPlanEmpty />
+              )
+            )}
 
-      if (r.ok && j.id) {
-        setLessons((prev) => [{ id: j.id, title: j.title, date: new Date().toISOString() }, ...prev]);
-        setCurrentLessonId(j.id);
-        localStorage.setItem("lc.lastLessonId", j.id);
-        setDraftTitle("");
-      } else {
-        setCurrentLessonId(null);
-      }
-    } catch (e) {
-      console.error("Ders oluşturma hatası:", e);
-      setCurrentLessonId(null);
-    }
+            {ui.mode === "deviation" && (
+              <DeviationPane
+                deviation={lesson.deviation as any}
+                loading={ui.devLoading}
+                error={ui.devErr}
+                onGenerate={lesson.analyzeDeviation}
+                onReanalyze={lesson.reanalyzeDeviation}
+              />
+            )}
 
-    setShowNewLessonModal(false);
-    setNewLessonTitle("");
+            {ui.mode === "lecturer-note" && (
+              <LecturerNotePane
+                lectureText={lesson.lectureText}
+                slidesText={lesson.slidesText}
+                emphases={lesson.plan?.emphases || []}
+                learningOutcomes={lesson.learningOutcomes}
+                loAlignment={lesson.loAlignment}
+              />
+            )}
+
+            {ui.mode === "quiz" && (
+              <QuizPane
+                quiz={lesson.quiz}
+                setQuiz={lesson.setQuiz}
+                hasPlan={!!lesson.plan}
+                plan={lesson.plan}
+                lectureText={lesson.lectureText}
+                slidesText={lesson.slidesText}
+              />
+            )}
+
+            {ui.mode === "lo-study" && <LoStudyPane modules={lesson.loModules || []} />}
+
+            {ui.mode === "cheat-sheet" && (
+              <CheatSheetPane
+                cheatSheet={lesson.cheatSheet}
+                loading={ui.cheatLoading}
+                error={ui.cheatErr}
+                onGenerate={lesson.generateCheatSheet}
+              />
+            )}
+
+            {ui.mode === "history" && (
+              <LessonsHistoryPane
+                currentLessonId={lesson.currentLessonId}
+                setMode={ui.setMode}
+                setQuiz={lesson.setQuiz}
+                onSelectLesson={(id) => {
+                  lesson.setCurrentLessonId(id);
+                  ui.setMode("plan");
+                }}
+              />
+            )}
+
+            {ui.mode === "deep-dive" && <DeepDivePane />}
+            {ui.mode === "mindmap" && <MindMapPane />}
+            {ui.mode === "exam-sprint" && <ExamSprintPane />}
+            {ui.mode === "notes" && <NotesPane />}
+          </motion.div>
+        </AnimatePresence>
+      </Suspense>
+    );
   };
 
   return (
     <div className="page">
       {/* Navbar */}
-      <div className="nav">
+      <nav className="nav" role="navigation" aria-label="Ana navigasyon">
         <div className="nav-inner">
           <div className="brand">
-            <span className="brand-text">LearnCraft</span>
+            <span className="brand-text">AIcelerate</span>
           </div>
           <div className="flex-1" />
-          <div className="pill">v2.1 (Analyst Mode)</div>
+          <ThemeToggle />
+          <div className="pill">v2.2 (Optimized)</div>
         </div>
-      </div>
+      </nav>
 
       <div className="lc-container">
         <header className="hero">
-          <h1 className="h1">Ders Planlayıcı &amp; Analiz</h1>
+          <h1 className="h1">Lesson Planner &amp; Analysis</h1>
         </header>
 
         <div className="lc-shell">
-          {/* SOL: Form */}
+          {/* LEFT: Form */}
           <div className="lc-sticky">
-            <form className="card" onSubmit={handleSubmit}>
-              <label className="label">Ders Seçimi</label>
+            <form className="card" onSubmit={handleSubmit} aria-label="Lesson form">
+              <label className="label" htmlFor="lesson-select">Select Lesson</label>
 
               <select
+                id="lesson-select"
                 className="lc-select mb-4"
-                value={currentLessonId ?? (draftTitle ? "__draft__" : "")}
+                value={lesson.currentLessonId ?? (ui.draftTitle ? "__draft__" : "")}
                 onChange={(e) => {
                   const val = e.target.value;
 
                   if (val === "__new__") {
-                    // ✅ Anında temizle (UI’da eski ders yazıları kalmasın)
-                    setCurrentLessonId(null);
-                    localStorage.removeItem("lc.lastLessonId");
-                    setDraftTitle("");
-
-                    setLectureText("");
-                    setSlidesText("");
-                    setPlan(null);
-                    setQuiz([]);
-                    setErr(null);
-
-                    setCourseCode("");
-                    setLearningOutcomes([]);
-                    setLoAlignment(null);
-                    setLoModules(null);
-
-                    setCheatSheet(null);
-                    setCheatErr(null);
-
-                    setShowNewLessonModal(true);
+                    lesson.clearCurrentLesson();
+                    ui.setDraftTitle("");
+                    ui.setShowNewLessonModal(true);
                     return;
                   }
 
                   if (val === "__draft__") return;
 
-                  setCurrentLessonId(val === "" ? null : val);
+                  lesson.setCurrentLessonId(val === "" ? null : val);
                   if (val) localStorage.setItem("lc.lastLessonId", val);
                   else localStorage.removeItem("lc.lastLessonId");
                 }}
+                aria-describedby="lesson-help"
               >
-                <option value="" className="muted">
-                  -- Seçiniz --
-                </option>
-                <option value="__new__" className="fw-700">
-                  ➕ Yeni Ders Oluştur
-                </option>
-                {draftTitle && <option value="__draft__">📝 Taslak: {draftTitle}</option>}
-                {lessons.map((l) => (
-                  <option key={l.id} value={l.id}>
-                    {l.title}
-                  </option>
+                <option value="" className="muted">-- Select --</option>
+                <option value="__new__" className="fw-700">➕ Create New Lesson</option>
+                {ui.draftTitle && <option value="__draft__">📝 Draft: {ui.draftTitle}</option>}
+                {lesson.lessons.map((l) => (
+                  <option key={l.id} value={l.id}>{l.title}</option>
                 ))}
               </select>
 
-              {/* Ders Kodu & LO Çekme */}
-              <label className="label mt-2">Ders Kodu (IEU Syllabus)</label>
+              {/* Course Code & LO */}
+              <label className="label mt-2" htmlFor="course-code">Course Code (IEU Syllabus)</label>
               <div className="flex-between mb-2" style={{ gap: 8 }}>
                 <input
+                  id="course-code"
                   className="lc-textarea input"
-                  placeholder="Örn: MATH 153"
-                  value={courseCode}
-                  onChange={(e) => setCourseCode(e.target.value)}
+                  placeholder="Ex: MATH 153"
+                  value={lesson.courseCode}
+                  onChange={(e) => lesson.setCourseCode(e.target.value)}
+                  aria-label="Course code"
                 />
                 <button
                   type="button"
                   className="btn btn-ghost"
-                  onClick={fetchLearningOutcomes}
-                  disabled={!courseCode.trim() || loLoading}
+                  onClick={lesson.fetchLearningOutcomes}
+                  disabled={!lesson.courseCode.trim() || ui.loLoading}
+                  aria-busy={ui.loLoading}
                 >
-                  {loLoading ? "LO Çekiliyor..." : "LO Çek"}
+                  {ui.loLoading ? "Fetching LOs..." : "Fetch LOs"}
                 </button>
               </div>
 
-              {learningOutcomes.length > 0 && (
-                <div className="muted-block small mb-3">
+              {lesson.learningOutcomes.length > 0 && (
+                <div className="muted-block small mb-3" role="region" aria-label="Learning Outcomes">
                   <div style={{ fontWeight: 600, marginBottom: 4 }}>Learning Outcomes</div>
                   <ol className="ol">
-                    {learningOutcomes.map((lo, i) => (
-                      <li key={i} className="small">
-                        {`LO${i + 1}`} – {lo}
-                      </li>
+                    {lesson.learningOutcomes.map((lo, i) => (
+                      <li key={i} className="small">{`LO${i + 1}`} – {lo}</li>
                     ))}
                   </ol>
+                  <button
+                    type="button"
+                    className="btn btn-ghost mt-2"
+                    onClick={lesson.analyzeDeviation}
+                    disabled={!lesson.currentLessonId || ui.devLoading}
+                  >
+                    {ui.devLoading ? "Analyzing deviation..." : "Slide Deviation Analysis"}
+                  </button>
+
+                  {ui.devErr && <div className="error mt-2 text-red-500 text-sm">{ui.devErr}</div>}
 
                   <button
                     type="button"
                     className="btn btn-ghost mt-2"
-                    onClick={handleAlignWithLO}
-                    disabled={!currentLessonId || loading}
+                    onClick={lesson.alignWithLO}
+                    disabled={!lesson.currentLessonId || ui.isLoading}
                   >
-                    {loading ? "Hizalanıyor..." : "Transcript ile eşleştir"}
+                    {ui.isLoading ? "Aligning..." : "Align with Transcript"}
                   </button>
 
                   <button
                     type="button"
                     className="btn btn-ghost mt-2"
-                    onClick={handleGenerateLoModules}
-                    disabled={!currentLessonId || loModulesLoading || !learningOutcomes.length}
+                    onClick={lesson.generateLoModules}
+                    disabled={!lesson.currentLessonId || ui.loModulesLoading || !lesson.learningOutcomes.length}
                   >
-                    {loModulesLoading ? "LO Study oluşturuluyor..." : "LO Study Modu Oluştur"}
+                    {ui.loModulesLoading ? "Generating LO Study..." : "Create LO Study Mode"}
                   </button>
                 </div>
               )}
 
-              {/* PDF Upload Butonu */}
+              {/* PDF Upload */}
               <div className="flex-between mb-2">
                 <label className="label m-0">Slide</label>
                 <div className="file-upload-wrapper">
                   <label
                     htmlFor="pdf-upload"
-                    className="btn-small text-xs cursor-pointer"
-                    style={{
-                      border: "1px solid #ccc",
-                      padding: "2px 8px",
-                      borderRadius: "4px",
-                    }}
+                    className="btn-small"
                   >
-                    📄 PDF Yükle
+                    📄 Upload PDF / Slides
                   </label>
                   <input
                     id="pdf-upload"
@@ -694,15 +361,41 @@ export default function App() {
                     onChange={handlePdfUpload}
                     style={{ display: "none" }}
                   />
+                  {ui.isLoading && ui.loadingMessage?.includes("PDF") && (
+                    <div className="mt-2">
+                      <div style={{
+                        height: 4,
+                        background: 'var(--border)',
+                        borderRadius: 2,
+                        overflow: 'hidden',
+                        width: '100%'
+                      }}>
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: "100%" }}
+                          transition={{ duration: 2, ease: "easeInOut", repeat: Infinity }}
+                          style={{
+                            height: '100%',
+                            background: 'var(--accent-2)',
+                            borderRadius: 2
+                          }}
+                        />
+                      </div>
+                      <div style={{ fontSize: 10, marginTop: 4, opacity: 0.7, textAlign: 'center' }}>
+                        {ui.loadingMessage}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
               <textarea
                 className="lc-textarea textarea"
-                value={slidesText}
-                onChange={(e) => setSlidesText(e.target.value)}
-                placeholder="Slayt içeriği buraya gelecek..."
+                value={lesson.slidesText}
+                onChange={(e) => lesson.setSlidesText(e.target.value)}
+                placeholder="Slide content will appear here..."
                 rows={6}
+                aria-label="Slide content"
               />
 
               <label className="label mt-4">Speech to Text (Transcript)</label>
@@ -710,8 +403,12 @@ export default function App() {
               <div className="stt-row">
                 <div className="stt-left">
                   <span className="stt-hint">
-                    {sttStatus || "İstersen burayı elle de düzenleyebilirsin."}
-                    {sttNow && <span className="stt-now">{fmtTime(sttNow.start)}–{fmtTime(sttNow.end)}</span>}
+                    {transcription.stt.status || "You can edit this manually if needed."}
+                    {transcription.stt.now && (
+                      <span className="stt-now">
+                        {fmtTime(transcription.stt.now.start)}–{fmtTime(transcription.stt.now.end)}
+                      </span>
+                    )}
                   </span>
                 </div>
 
@@ -719,24 +416,18 @@ export default function App() {
                   <label
                     className="stt-upload"
                     htmlFor="audio-upload"
-                    title="Audio yükle ve transkripte çevir"
+                    title="Upload Audio & Transcribe"
                   >
-                    🎙️ Audio Yükle
+                    🎙️ Upload Audio
                   </label>
 
                   <button
                     type="button"
                     className="stt-clear"
-                    onClick={() => {
-                      setLectureText("");
-                      setSttProgress(0);
-                      setSttStatus(null);
-                      setSttNow(null);
-                      setSttToast(null);
-                    }}
-                    title="Transcript alanını temizle"
+                    onClick={transcription.clearTranscription}
+                    title="Clear transcript"
                   >
-                    Temizle
+                    Clear
                   </button>
 
                   <input
@@ -749,118 +440,120 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="stt-progress" aria-hidden={sttProgress <= 0}>
-                <div className="stt-progress-bar" style={{ width: `${sttProgress}%` }} />
+              <div className="stt-progress" aria-hidden={transcription.stt.progress <= 0}>
+                <div className="stt-progress-bar" style={{ width: `${transcription.stt.progress}%` }} />
               </div>
 
               <textarea
                 className="lc-textarea textarea"
-                value={lectureText}
-                onChange={(e) => setLectureText(e.target.value)}
-                placeholder="Video transcripti buraya..."
+                value={lesson.lectureText}
+                onChange={(e) => lesson.setLectureText(e.target.value)}
+                placeholder="Video transcript goes here..."
                 rows={6}
+                aria-label="Transcript"
               />
 
               <div className="actions mt-4">
-                <button type="submit" disabled={!canSubmit} className={canSubmit ? "btn" : "btn btn--disabled"}>
-                  {loading ? "Analiz Ediliyor..." : "Planla ve Analiz Et"}
-                </button>
+                <motion.button
+                  type="submit"
+                  disabled={!canSubmit}
+                  className={canSubmit ? "btn" : "btn btn--disabled"}
+                  whileHover={canSubmit ? { scale: 1.02 } : {}}
+                  whileTap={canSubmit ? { scale: 0.98 } : {}}
+                  aria-busy={ui.isLoading}
+                >
+                  {ui.isLoading ? "Analyzing..." : "Plan & Analyze"}
+                </motion.button>
 
-                {err && <div className="error mt-2 text-red-500 text-sm">{err}</div>}
+                {lesson.error && (
+                  <div className="error mt-2 text-red-500 text-sm" role="alert">
+                    {lesson.error}
+                  </div>
+                )}
               </div>
             </form>
           </div>
 
-          {/* SAĞ: Paneller */}
+          {/* RIGHT: Panels */}
           <div className="lc-plan-pane">
-            <ModeRibbon mode={mode} setMode={setMode} />
-
-            {mode === "plan" &&
-              (plan ? <PlanPane plan={plan} /> : <div className="muted-block">Henüz plan oluşturulmadı. Soldan veri giriniz.</div>)}
-
-            {mode === "alignment" &&
-              (plan ? <AlignmentPane plan={plan} /> : <div className="muted-block">Eşleştirme verisi yok.</div>)}
-
-            {mode === "lecturer-note" && (
-              <LecturerNotePane
-                lectureText={lectureText}
-                slidesText={slidesText}
-                emphases={plan?.emphases || []}
-                learningOutcomes={learningOutcomes}
-                loAlignment={loAlignment}
-              />
-            )}
-
-            {mode === "quiz" && (
-              <QuizPane
-                quiz={quiz}
-                setQuiz={setQuiz}
-                hasPlan={!!plan}
-                plan={plan}
-                lectureText={lectureText}
-                slidesText={slidesText}
-              />
-            )}
-
-            {mode === "lo-study" && <LoStudyPane modules={loModules || []} />}
-
-            {mode === "cheat-sheet" && (
-              <CheatSheetPane
-                cheatSheet={cheatSheet}
-                loading={cheatLoading}
-                error={cheatErr}
-                onGenerate={handleGenerateCheatSheet}
-              />
-            )}
-
-            {mode === "history" && (
-              <LessonsHistoryPane
-                currentLessonId={currentLessonId}
-                setMode={setMode}
-                setQuiz={setQuiz}
-                onSelectLesson={(id) => {
-                  setCurrentLessonId(id);
-                  setMode("plan");
-                }}
-              />
-            )}
-
-            {mode === "deep-dive" && <DeepDivePane />}
-            {mode === "exam-sprint" && <ExamSprintPane />}
+            <ModeRibbon mode={ui.mode} setMode={ui.setMode} />
+            {renderPane()}
           </div>
         </div>
       </div>
 
-      {/* Mini toast: şu an işlenen aralık */}
-      {sttToast && <div className="stt-toast">{sttToast}</div>}
+      {/* STT Toast */}
+      <AnimatePresence>
+        {transcription.stt.toast && (
+          <motion.div
+            className="stt-toast"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+          >
+            {transcription.stt.toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Yeni Ders Modal */}
-      {showNewLessonModal && (
-        <div className="modal-backdrop" onClick={() => setShowNewLessonModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-title h3 mb-4">Yeni Ders Oluştur</div>
-            <input
-              autoFocus
-              className="lc-textarea input mb-4 w-full"
-              placeholder="Örn: Calculus 101"
-              value={newLessonTitle}
-              onChange={(e) => setNewLessonTitle(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleCreateLesson();
-                if (e.key === "Escape") setShowNewLessonModal(false);
-              }}
-            />
-            <div className="modal-actions flex justify-end gap-2">
-              <button className="btn btn-secondary" onClick={() => setShowNewLessonModal(false)}>
-                İptal
-              </button>
-              <button className="btn btn-primary" onClick={handleCreateLesson}>
-                Oluştur
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Mobile Navigation */}
+      {isMobile && <MobileNav />}
+
+      {/* New Lesson Modal */}
+      <AnimatePresence>
+        {ui.showNewLessonModal && (
+          <motion.div
+            className="modal-backdrop"
+            onClick={() => ui.setShowNewLessonModal(false)}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
+          >
+            <motion.div
+              className="modal"
+              onClick={(e) => e.stopPropagation()}
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+            >
+              <div id="modal-title" className="modal-title h3 mb-4">
+                Create New Lesson
+              </div>
+              <input
+                autoFocus
+                className="lc-textarea input mb-4 w-full"
+                placeholder="Ex: Calculus 101"
+                value={ui.newLessonTitle}
+                onChange={(e) => ui.setNewLessonTitle(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleCreateLesson();
+                  if (e.key === "Escape") ui.setShowNewLessonModal(false);
+                }}
+                aria-label="Lesson name"
+              />
+              <div className="modal-actions flex justify-end gap-2">
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => ui.setShowNewLessonModal(false)}
+                >
+                  Cancel
+                </button>
+                <motion.button
+                  className="btn btn-primary"
+                  onClick={handleCreateLesson}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Create
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

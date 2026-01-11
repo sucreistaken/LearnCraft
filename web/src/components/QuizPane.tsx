@@ -1,6 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { API_BASE } from "../config";
 import { Plan } from "../types";
+import { useLessonStore } from "../stores/lessonStore";
+
+const QUIZ_ANSWERS_KEY_PREFIX = 'lc.quiz.answers.';
 
 export default function QuizPane({
   quiz, setQuiz, hasPlan, plan, lectureText, slidesText,
@@ -12,9 +15,41 @@ export default function QuizPane({
   lectureText: string;
   slidesText: string;
 }) {
+  const { currentLessonId } = useLessonStore();
   const [answers, setAnswers] = useState<Record<number, any>>({});
   const [loading, setLoading] = useState(false);
   const [loadingAns, setLoadingAns] = useState(false);
+
+  // Load answers from localStorage when lesson changes
+  useEffect(() => {
+    if (!currentLessonId) {
+      setAnswers({});
+      return;
+    }
+
+    const storageKey = QUIZ_ANSWERS_KEY_PREFIX + currentLessonId;
+    const savedData = localStorage.getItem(storageKey);
+
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData);
+        setAnswers(parsed || {});
+      } catch (e) {
+        console.error('Failed to parse saved quiz answers:', e);
+        setAnswers({});
+      }
+    } else {
+      setAnswers({});
+    }
+  }, [currentLessonId]);
+
+  // Save answers to localStorage whenever they change
+  useEffect(() => {
+    if (!currentLessonId || Object.keys(answers).length === 0) return;
+
+    const storageKey = QUIZ_ANSWERS_KEY_PREFIX + currentLessonId;
+    localStorage.setItem(storageKey, JSON.stringify(answers));
+  }, [answers, currentLessonId]);
 
   // 1. Plandan Quiz Üretme (Mevcut Plan Varsa)
   const generateQuizFromPlan = async () => {
@@ -30,6 +65,10 @@ export default function QuizPane({
       if (j.ok && Array.isArray(j.questions)) {
         setQuiz(j.questions);
         setAnswers({}); // Yeni quiz gelince eski cevapları sil
+        // Clear old answers from localStorage
+        if (currentLessonId) {
+          localStorage.removeItem(QUIZ_ANSWERS_KEY_PREFIX + currentLessonId);
+        }
       } else {
         alert(j.error || "Quiz üretilemedi");
       }
@@ -94,39 +133,39 @@ export default function QuizPane({
         </div>
 
         {/* BUTON GRUBU */}
-        <div className="flex-gap-8" style={{display: "flex", gap: "10px", flexWrap: "wrap"}}>
-            
-            {/* Buton 1: Plandan Quiz Oluştur */}
-            <button 
-                className={hasPlan ? "btn btn-primary" : "btn btn--disabled"} 
-                onClick={generateQuizFromPlan} 
-                disabled={!hasPlan || loading}
-            >
-                 {loading ? "Oluşturuluyor..." : "Plandan Quiz Oluştur"}
-            </button>
+        <div className="flex-gap-8" style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
 
-            {/* Buton 2: Cevapları Göster */}
-            <button 
-                className={quiz.length ? "btn" : "btn btn--disabled"} 
-                onClick={fetchAnswers} 
-                disabled={!quiz.length || loadingAns}
-            >
-                 {loadingAns ? "Cevaplar Getiriliyor..." : "Cevapları Göster"}
-            </button>
+          {/* Buton 1: Plandan Quiz Oluştur */}
+          <button
+            className={hasPlan ? "btn btn-primary" : "btn btn--disabled"}
+            onClick={generateQuizFromPlan}
+            disabled={!hasPlan || loading}
+          >
+            {loading ? "Oluşturuluyor..." : "Plandan Quiz Oluştur"}
+          </button>
 
-            {/* Buton 3: Soruları Kopyala */}
-            {quiz.length > 0 && (
-                <button className="btn btn-ghost" onClick={() => navigator.clipboard.writeText(quiz.join("\n"))}>
-                    Kopyala
-                </button>
-            )}
+          {/* Buton 2: Cevapları Göster */}
+          <button
+            className={quiz.length ? "btn" : "btn btn--disabled"}
+            onClick={fetchAnswers}
+            disabled={!quiz.length || loadingAns}
+          >
+            {loadingAns ? "Cevaplar Getiriliyor..." : "Cevapları Göster"}
+          </button>
+
+          {/* Buton 3: Soruları Kopyala */}
+          {quiz.length > 0 && (
+            <button className="btn btn-ghost" onClick={() => navigator.clipboard.writeText(quiz.join("\n"))}>
+              Kopyala
+            </button>
+          )}
         </div>
 
         {/* UYARI MESAJI */}
         {!hasPlan && (
-            <div className="op-60 fs-12 mt-2">
-                ⚠️ Quiz oluşturmak için önce soldaki panelden ders verisi girip "Planla" butonuna basmalısınız.
-            </div>
+          <div className="op-60 fs-12 mt-2">
+            ⚠️ Quiz oluşturmak için önce soldaki panelden ders verisi girip "Planla" butonuna basmalısınız.
+          </div>
         )}
 
         {/* SORU LİSTESİ */}
@@ -136,20 +175,20 @@ export default function QuizPane({
               {quiz.map((q, i) => (
                 <li key={i} className="q-item">
                   <div className="fw-700 mb-2">{q}</div>
-                  
+
                   {/* Cevap Kartı */}
                   {answers[i] ? (
-                    <div className="lc-section answer-card" style={{background: "#f9f9fb", border: "1px solid #e5e5ea"}}>
+                    <div className="lc-section answer-card" style={{ background: "#f9f9fb", border: "1px solid #e5e5ea" }}>
                       <div className="mb-2"><b>Kısa Cevap:</b> {answers[i].short_answer}</div>
                       <div className="mb-2 op-80">{answers[i].explanation}</div>
-                      
+
                       {/* Kanıtlar */}
                       {answers[i].evidence && (
-                          <div className="evidence text-xs mt-3 p-2 bg-white rounded border">
-                              <div className="op-60 mb-1">🔍 KANIT:</div>
-                              {answers[i].evidence.lec?.map((e:any, k:number)=><div key={k} className="mb-1">"{e.quote}"</div>)}
-                              {answers[i].evidence.slide?.map((e:any, k:number)=><div key={k} className="mb-1">"{e.quote}"</div>)}
-                          </div>
+                        <div className="evidence text-xs mt-3 p-2 bg-white rounded border">
+                          <div className="op-60 mb-1">🔍 KANIT:</div>
+                          {answers[i].evidence.lec?.map((e: any, k: number) => <div key={k} className="mb-1">"{e.quote}"</div>)}
+                          {answers[i].evidence.slide?.map((e: any, k: number) => <div key={k} className="mb-1">"{e.quote}"</div>)}
+                        </div>
                       )}
                     </div>
                   ) : null}

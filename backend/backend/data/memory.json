@@ -56,89 +56,183 @@
     "Program organization",
     "Flutter Luxuries",
     "Widget Tree",
-    "Source of Information Problem"
+    "Source of Information Problem",
+    "Concurrency",
+    "Race Condition",
+    "Critical Section Problem",
+    "Mutual Exclusion",
+    "Progress",
+    "Bounded Waiting",
+    "Peterson's Algorithm",
+    "Instruction Reordering",
+    "Memory Barriers",
+    "Atomic Operations",
+    "Test-and-Set",
+    "Compare-and-Swap",
+    "Mutex Locks",
+    "Semaphores",
+    "Demand Paging",
+    "Page Fault",
+    "Memory Scarcity",
+    "System Performance Degradation",
+    "Thrashing",
+    "Degree of Multiprogramming",
+    "Working Set Model",
+    "Frames",
+    "I/O Activity",
+    "Page Replacement",
+    "Hard Disk Drives (HDDs)",
+    "Non-Volatile Memory (NVM)",
+    "Solid State Drives (SSDs)",
+    "Disk Scheduling Algorithms",
+    "I/O Performance Metrics",
+    "Seek Time",
+    "Rotational Latency",
+    "Transfer Rate",
+    "Error Detection and Correction",
+    "Storage Device Management",
+    "Swap Space",
+    "RAID",
+    "Cylinders, Tracks, Sectors",
+    "Flash Translation Layer (FTL)",
+    "Wear Leveling",
+    "Garbage Collection",
+    "Mobile UI Frameworks (Flutter, React Native)",
+    "Firm Behavior",
+    "Explicit and Implicit Costs",
+    "Accounting and Economic Profit",
+    "Short Run and Long Run Production",
+    "Fixed and Variable Inputs",
+    "Marginal Product",
+    "Law of Diminishing Marginal Productivity",
+    "Fixed, Variable, and Total Costs",
+    "Average and Marginal Costs",
+    "Economies of Scale",
+    "Long-Run Average Cost Curve",
+    "Firm",
+    "Explicit Costs",
+    "Implicit Costs",
+    "Accounting Profit",
+    "Economic Profit",
+    "Short Run",
+    "Long Run",
+    "Factors of Production",
+    "Production Function",
+    "Fixed Costs",
+    "Variable Costs",
+    "Total Cost",
+    "Average Total Cost (ATC)",
+    "Average Variable Cost (AVC)",
+    "Marginal Cost (MC)",
+    "Long-Run Average Cost (LRAC) Curve",
+    "Constant Returns to Scale",
+    "Diseconomies of Scale",
+    "Market Structures",
+    "Market structure",
+    "Perfect competition criteria",
+    "Price taker",
+    "Profit maximization (MR=MC)",
+    "Total vs. Marginal costs/revenues",
+    "Average cost (AC) and Average variable cost (AVC)",
+    "Break-even point",
+    "Shutdown point",
+    "Long-run equilibrium",
+    "Entry and Exit",
+    "Constant, Increasing, Decreasing cost industries",
+    "Productive efficiency",
+    "Allocative efficiency",
+    "Copy-on-Write",
+    "Effective Access Time (EAT)",
+    "Valid-Invalid Bit",
+    "Copy-on-Write (COW)",
+    "Logical vs. Physical Address Space",
+    "Hard Disk Drives (HDD)",
+    "Nonvolatile Memory (NVM/SSD)",
+    "Disk Performance Metrics",
+    "HDD Scheduling Algorithms (FCFS, SCAN, C-SCAN)",
+    "NVM Scheduling"
   ],
   "recentEmphases": [
     {
-      "statement": "While advanced state management solutions (e.g., Redux, MobX) exist, developers should master basic state management (e.g., using `setState`) first, and only adopt complex solutions when a clear need arises.",
-      "why": "This provides crucial practical guidance for students, preventing them from prematurely adopting overly complex solutions before understanding the foundational principles. This is a common pitfall that can lead to unnecessary complexity in projects."
+      "statement": "Modern operating systems use more sophisticated scheduling algorithms, like the Linux deadline scheduler, to prevent starvation and balance different I/O types.",
+      "why": "This connects the theoretical algorithms (SCAN, etc.) to real-world implementations, showing students the practical relevance. It's a point of emphasis that bridges theory and practice."
     },
     {
-      "statement": "Modern declarative UI frameworks like Flutter offer significant 'developer luxuries' such as hot reload and UI inspection tools, drastically improving development speed and experience.",
-      "why": "Although not a core conceptual paradigm, the lecturer emphasizes these practical benefits extensively at the beginning of the lecture. Understanding these features highlights the appeal and efficiency gains of using modern declarative frameworks for mobile development."
+      "statement": "NVM (SSDs) are fundamentally different from HDDs; they lack moving parts but have unique challenges like wear-leveling and garbage collection.",
+      "why": "Understanding the trade-offs between modern and traditional storage is crucial. The unique constraints of NVMs are a key differentiator and a common source of conceptual questions."
     },
     {
-      "statement": "Unidirectional data flow, managed through 'props' (fixed data passed down) and 'state' (changing data causing rebuilds), is a fundamental principle for organizing data in declarative UIs.",
-      "why": "This is a critical practical concept for designing and implementing interactive declarative UIs. Students must understand how data moves between components and triggers updates, which is central to building responsive applications."
+      "statement": "The SCAN algorithm, also known as the elevator algorithm, services requests in one direction until it hits the end, then reverses.",
+      "why": "The use of an analogy ('elevator algorithm') makes the concept more memorable and easier to understand. Teachers use such analogies for key concepts they want students to retain."
     },
     {
-      "statement": "The 'source of information' problem and the inherent tree structure of UIs are core difficulties in imperative UI development that declarative programming aims to solve.",
-      "why": "This highlights the primary motivation and advantages of the declarative approach, providing essential context for *why* this paradigm shift occurred. Understanding the problems (e.g., spaghetti code, difficulty with tree traversal) helps appreciate the solution and its design principles."
+      "statement": "Disk scheduling algorithms are essential for optimizing HDD performance by minimizing head movement, and you must be able to trace and compare them.",
+      "why": "This is a classic operating systems concept. Exam questions frequently require students to trace algorithms like FCFS, SCAN, and C-SCAN for a given request queue and compare their efficiency."
     },
     {
-      "statement": "Declarative UI frameworks (like Flutter, React Native) abstract away complex UI management by making the developer re-create the UI description on every state change, and the framework efficiently determines actual UI updates.",
-      "why": "This explains *how* declarative UI works in practice and addresses a common developer intuition about inefficiency. Understanding this mechanism is crucial for using these frameworks correctly and avoiding anti-patterns, which is vital for performance and maintainability."
+      "statement": "Calculating HDD I/O performance is a critical skill, requiring you to combine seek time, latency, and transfer time.",
+      "why": "This is a quantitative, problem-solving task that is highly likely to appear on an exam. Understanding this calculation demonstrates a deep comprehension of physical disk limitations."
     },
     {
-      "statement": "Declarative programming is a fundamental shift from imperative programming, where you describe *what* the UI should look like rather than *how* to build or update it.",
-      "why": "This is the core conceptual understanding required for modern mobile UI development. Misunderstanding this leads to incorrect development patterns and difficulty in grasping framework concepts. Essential for exam questions on programming paradigms."
+      "statement": "Page replacement is the necessary solution for when a page fault occurs but there are no free frames.",
+      "why": "This concept sets the stage for the next major topic in memory management. Understanding the *problem* (no free frames) is crucial before studying the *solutions* (FIFO, LRU, Optimal algorithms)."
     },
     {
-      "statement": "While advanced state management solutions (e.g., Redux, MobX) exist, developers should master basic state management (e.g., using `setState`) first, and only adopt complex solutions when a clear need arises.",
-      "why": "This provides crucial practical guidance for students, preventing them from prematurely adopting overly complex solutions before understanding the foundational principles. This is a common pitfall that can lead to unnecessary complexity in projects."
+      "statement": "The valid-invalid bit is the essential hardware mechanism that makes demand paging possible.",
+      "why": "Without understanding this bit, you cannot understand how the system detects that a page is not in memory and triggers the page fault trap. It's the switch that makes the whole system work."
     },
     {
-      "statement": "Modern declarative UI frameworks like Flutter offer significant 'developer luxuries' such as hot reload and UI inspection tools, drastically improving development speed and experience.",
-      "why": "Although not a core conceptual paradigm, the lecturer emphasizes these practical benefits extensively at the beginning of the lecture. Understanding these features highlights the appeal and efficiency gains of using modern declarative frameworks for mobile development."
+      "statement": "The fundamental concept of virtual memory is the separation of the user's logical address space from the machine's physical memory.",
+      "why": "This is the foundational idea upon which the entire chapter is built. All other concepts, like demand paging and page replacement, are implementations of this core principle."
     },
     {
-      "statement": "Unidirectional data flow, managed through 'props' (fixed data passed down) and 'state' (changing data causing rebuilds), is a fundamental principle for organizing data in declarative UIs.",
-      "why": "This is a critical practical concept for designing and implementing interactive declarative UIs. Students must understand how data moves between components and triggers updates, which is central to building responsive applications."
+      "statement": "Calculating Effective Access Time (EAT) is the key method to quantify the performance of a demand-paged system.",
+      "why": "This is a common quantitative problem on exams. You must be able to apply the formula correctly to show you understand the performance trade-offs of virtual memory."
     },
     {
-      "statement": "The 'source of information' problem and the inherent tree structure of UIs are core difficulties in imperative UI development that declarative programming aims to solve.",
-      "why": "This highlights the primary motivation and advantages of the declarative approach, providing essential context for *why* this paradigm shift occurred. Understanding the problems (e.g., spaghetti code, difficulty with tree traversal) helps appreciate the solution and its design principles."
+      "statement": "The step-by-step process of handling a page fault is a critical OS procedure that you must know.",
+      "why": "This is a classic operating systems exam question. Understanding this detailed sequence demonstrates a deep knowledge of how virtual memory is implemented."
     },
     {
-      "statement": "Declarative UI frameworks (like Flutter, React Native) abstract away complex UI management by making the developer re-create the UI description on every state change, and the framework efficiently determines actual UI updates.",
-      "why": "This explains *how* declarative UI works in practice and addresses a common developer intuition about inefficiency. Understanding this mechanism is crucial for using these frameworks correctly and avoiding anti-patterns, which is vital for performance and maintainability."
+      "statement": "Page replacement is necessary when there are no free frames, requiring an algorithm to select a 'victim' page to swap out.",
+      "why": "This sets the stage for upcoming discussions on specific page replacement algorithms (FIFO, LRU, Optimal mentioned in LO3), explaining the fundamental problem they solve."
     },
     {
-      "statement": "Declarative programming is a fundamental shift from imperative programming, where you describe *what* the UI should look like rather than *how* to build or update it.",
-      "why": "This is the core conceptual understanding required for modern mobile UI development. Misunderstanding this leads to incorrect development patterns and difficulty in grasping framework concepts. Essential for exam questions on programming paradigms."
+      "statement": "Copy-on-Write (COW) improves process creation efficiency by sharing pages between parent and child until a modification occurs.",
+      "why": "COW is a specific, important optimization mechanism that directly addresses the overhead of creating new processes, a common OS task."
     },
     {
-      "statement": "While advanced state management solutions (e.g., Redux, MobX) exist, developers should master basic state management (e.g., using `setState`) first, and only adopt complex solutions when a clear need arises.",
-      "why": "This provides crucial practical guidance for students, preventing them from prematurely adopting overly complex solutions before understanding the foundational principles. This is a common pitfall that can lead to unnecessary complexity in projects."
+      "statement": "The Effective Access Time (EAT) for demand paging is highly sensitive to the page-fault rate, and even small fault rates can drastically degrade performance.",
+      "why": "This formula and its implications demonstrate the practical challenges of virtual memory and highlight why page fault rates must be minimized, crucial for exam problems."
     },
     {
-      "statement": "Modern declarative UI frameworks like Flutter offer significant 'developer luxuries' such as hot reload and UI inspection tools, drastically improving development speed and experience.",
-      "why": "Although not a core conceptual paradigm, the lecturer emphasizes these practical benefits extensively at the beginning of the lecture. Understanding these features highlights the appeal and efficiency gains of using modern declarative frameworks for mobile development."
+      "statement": "Page fault handling is a multi-step process involving the OS, page tables, and disk I/O, which must be efficient.",
+      "why": "Understanding the detailed process of a page fault is crucial for comprehending system overhead and the importance of performance metrics like EAT."
     },
     {
-      "statement": "Unidirectional data flow, managed through 'props' (fixed data passed down) and 'state' (changing data causing rebuilds), is a fundamental principle for organizing data in declarative UIs.",
-      "why": "This is a critical practical concept for designing and implementing interactive declarative UIs. Students must understand how data moves between components and triggers updates, which is central to building responsive applications."
+      "statement": "Demand paging loads pages into memory only when they are needed, optimizing I/O and memory usage.",
+      "why": "This is the primary mechanism discussed for implementing virtual memory, essential for understanding how the system actually works."
     },
     {
-      "statement": "The 'source of information' problem and the inherent tree structure of UIs are core difficulties in imperative UI development that declarative programming aims to solve.",
-      "why": "This highlights the primary motivation and advantages of the declarative approach, providing essential context for *why* this paradigm shift occurred. Understanding the problems (e.g., spaghetti code, difficulty with tree traversal) helps appreciate the solution and its design principles."
+      "statement": "Virtual Memory separates user logical memory from physical memory, allowing programs to run even if not fully in physical memory.",
+      "why": "This is the foundational definition and core benefit, critical for understanding all subsequent topics."
     },
     {
-      "statement": "Declarative UI frameworks (like Flutter, React Native) abstract away complex UI management by making the developer re-create the UI description on every state change, and the framework efficiently determines actual UI updates.",
-      "why": "This explains *how* declarative UI works in practice and addresses a common developer intuition about inefficiency. Understanding this mechanism is crucial for using these frameworks correctly and avoiding anti-patterns, which is vital for performance and maintainability."
+      "statement": "Gray background slides are not covered.",
+      "why": "This is a direct instruction from the instructor on what content to exclude from study, crucial for exam focus."
     },
     {
-      "statement": "Declarative programming is a fundamental shift from imperative programming, where you describe *what* the UI should look like rather than *how* to build or update it.",
-      "why": "This is the core conceptual understanding required for modern mobile UI development. Misunderstanding this leads to incorrect development patterns and difficulty in grasping framework concepts. Essential for exam questions on programming paradigms."
+      "statement": "Perfectly competitive markets achieve both productive and allocative efficiency.",
+      "why": "These efficiency concepts are key benefits attributed to perfectly competitive markets and are often contrasted with other market structures. Understanding what they mean and why P=MC is crucial is essential."
     },
     {
-      "statement": "While advanced state management solutions (e.g., Redux, MobX) exist, developers should master basic state management (e.g., using `setState`) first, and only adopt complex solutions when a clear need arises.",
-      "why": "This provides crucial practical guidance for students, preventing them from prematurely adopting overly complex solutions before understanding the foundational principles. This is a common pitfall that can lead to unnecessary complexity in projects."
+      "statement": "In the long run, perfectly competitive firms earn zero economic profits due to free entry and exit.",
+      "why": "This is a hallmark outcome of perfect competition and explains how market adjustments lead to an equilibrium where firms cover all their costs but make no 'extra' profit."
     },
     {
-      "statement": "Modern declarative UI frameworks like Flutter offer significant 'developer luxuries' such as hot reload and UI inspection tools, drastically improving development speed and experience.",
-      "why": "Although not a core conceptual paradigm, the lecturer emphasizes these practical benefits extensively at the beginning of the lecture. Understanding these features highlights the appeal and efficiency gains of using modern declarative frameworks for mobile development."
+      "statement": "Firms face a 'shutdown point' where they cease operations if price falls below average variable cost, distinguishing it from the 'break-even point'.",
+      "why": "The distinction between short-run operational decisions (shutdown) and long-run exit decisions (break-even) is crucial for understanding firm survival and market dynamics. This is often a point of confusion and therefore an exam focus."
     }
   ],
-  "lastUpdated": "2025-12-30T01:33:05.555Z"
+  "lastUpdated": "2026-01-11T21:50:43.188Z"
 }

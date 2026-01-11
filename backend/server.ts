@@ -75,7 +75,7 @@ export type LoAlignment = {
 
 // ---- Gemini SDK
 const genAI = new GoogleGenerativeAI(API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
 // ---- helpers
 const stripCodeFences = (s: string) =>
@@ -110,6 +110,7 @@ function buildCheatSheetPrompt(input: {
   slideText: string;
   learningOutcomes?: string[];
   emphases?: any[];
+  language?: 'tr' | 'en';
 }) {
   const LEC = (input.transcript || "").slice(0, 18000);
   const SLD = (input.slideText || "").slice(0, 12000);
@@ -119,8 +120,15 @@ function buildCheatSheetPrompt(input: {
 
   const EMPH = input.emphases ? JSON.stringify(input.emphases).slice(0, 6000) : "—";
 
+  const lang = input.language || 'tr';
+  const langDirective = lang === 'tr'
+    ? 'IMPORTANT: Write ALL content (title, headings, bullets, formulas, pitfalls, quickQuiz) in TURKISH. Use Turkish language only.'
+    : 'IMPORTANT: Write ALL content (title, headings, bullets, formulas, pitfalls, quickQuiz) in ENGLISH. Use English language only.';
+
   return `
 You are an exam-focused teaching assistant.
+
+${langDirective}
 
 Goal:
 Create a ONE-PAGE "Cheat Sheet" (A4 style) from the lecture transcript + slides.
@@ -169,6 +177,7 @@ ${SLD}
 app.post("/api/lessons/:id/cheat-sheet", async (req, res) => {
   try {
     const lessonId = req.params.id;
+    const { language = 'tr' } = req.body as { language?: 'tr' | 'en' };
     const lesson = getLesson(lessonId);
     if (!lesson) return res.status(404).json({ ok: false, error: "Lesson not found" });
 
@@ -189,9 +198,10 @@ app.post("/api/lessons/:id/cheat-sheet", async (req, res) => {
       slideText,
       learningOutcomes: lesson.learningOutcomes || [],
       emphases: lesson.plan?.emphases || lesson.professorEmphases || [],
+      language,
     });
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
     const result = await model.generateContent(prompt);
     const raw = (result.response.text() || "").trim();
     const cleaned = stripCodeFences(raw);
@@ -471,89 +481,111 @@ app.post("/api/slides/upload", upload.single("file"), async (req, res) => {
     });
 
     proc.on("close", async (code) => {
-      // Clean up uploaded file
-      try { fs.unlinkSync(file.path); } catch { }
+      try {
+        // Clean up uploaded file
+        try { fs.unlinkSync(file.path); } catch { }
 
-      if (code !== 0) {
-        console.error(`[OCR] Process exited with code ${code}`);
-        console.error(`[OCR] Stderr: ${stderrData}`);
-        return res.status(500).json({
-          ok: false,
-          error: "OCR script failed",
-          code: code,
-          details: stderrData
-        });
-      }
+        if (code !== 0) {
+          console.error(`[OCR] Process exited with code ${code}`);
+          console.error(`[OCR] Stderr: ${stderrData}`);
+          return res.status(500).json({
+            ok: false,
+            error: "OCR script failed",
+            code: code,
+            details: stderrData
+          });
+        }
 
-      // Extract text between markers
-      const startMarker = "===OCR_START===";
-      const endMarker = "===OCR_END===";
+        // Extract text between markers
+        const startMarker = "===OCR_START===";
+        const endMarker = "===OCR_END===";
 
-      const startIndex = stdoutData.indexOf(startMarker);
-      const endIndex = stdoutData.indexOf(endMarker);
+        const startIndex = stdoutData.indexOf(startMarker);
+        const endIndex = stdoutData.indexOf(endMarker);
 
-      let extractedText = "";
-      if (startIndex !== -1 && endIndex !== -1) {
-        extractedText = stdoutData.substring(startIndex + startMarker.length, endIndex).trim();
-      } else {
-        extractedText = stdoutData.trim();
-      }
+        let extractedText = "";
+        if (startIndex !== -1 && endIndex !== -1) {
+          extractedText = stdoutData.substring(startIndex + startMarker.length, endIndex).trim();
+        } else {
+          extractedText = stdoutData.trim();
+        }
 
-      // --- NEW: AI IMAGE ANALYSIS ---
-      // 1. Find all image markers
-      const markerRegex = /\[\[\[IMAGE_ANALYSIS_REQUIRED:(.*?)\]\]\]/g;
-      const matches = [...extractedText.matchAll(markerRegex)];
+        // --- NEW: AI IMAGE ANALYSIS ---
+        // 1. Find all image markers
+        const markerRegex = /\[\[\[IMAGE_ANALYSIS_REQUIRED:(.*?)\]\]\]/g;
+        const matches = [...extractedText.matchAll(markerRegex)];
 
-      if (matches.length > 0) {
-        console.log(`[AI Analysis] Found ${matches.length} images to analyze...`);
+        if (matches.length > 0) {
+          console.log(`[AI Analysis] Found ${matches.length} images to analyze...`);
 
-        // 2. Process in parallel
-        await Promise.all(matches.map(async (match) => {
-          const marker = match[0];
-          const imgPath = match[1].trim();
+          // 2. Process in parallel
+          await Promise.all(matches.map(async (match) => {
+            const marker = match[0];
+            const imgPath = match[1].trim();
 
-          if (fs.existsSync(imgPath)) {
-            try {
-              const ext = path.extname(imgPath).toLowerCase().replace(".", "");
-              const mimeType = ext === "png" ? "image/png" : "image/jpeg";
-              const imgData = fs.readFileSync(imgPath).toString("base64");
+            if (fs.existsSync(imgPath)) {
+              try {
+                const ext = path.extname(imgPath).toLowerCase().replace(".", "");
+                const mimeType = ext === "png" ? "image/png" : "image/jpeg";
+                const imgData = fs.readFileSync(imgPath).toString("base64");
 
-              const prompt = "Bu ders slaytındaki görseli analiz et. Eğer bir şema, tablo, grafik veya diyagram ise içeriğini ve ne anlattığını detaylıca (Türkçe) açıkla. Eğer sadece dekoratif bir resim, ikon veya anlamsız bir görsel ise sadece 'SKIP' yaz.";
+                const prompt = `
+Analyze the visual content of this slide image and provide a structured response using exactly the format below.
+If the visual is completely irrelevant (e.g. simple layout decoration, geometric shape with no meaning), just output "SKIP".
 
-              const result = await model.generateContent([
-                prompt,
-                { inlineData: { data: imgData, mimeType } }
-              ]);
+> 🤖 **[Visual Analysis]**
+> - Is there a visual?: {yes / no}
+> - Visual type: {decorative icon | diagram | table | code | chart | photograph | mixed}
+> - Relevance to the topic: {relevant | partially relevant | irrelevant}
+> - Content summary (1–2 sentences): {Summarize the content and what the visual depicts in detail in ENGLISH.}
+> - Does it contain text?: {yes / no}
+> - Academic value: {high | medium | low | none}
+> - Usage recommendation: {should be explained / briefly mentioned / can be completely ignored}
+> - Confidence note: {uncertain details mark as "approximate"}
+`;
 
-              const description = result.response.text().trim();
+                const result = await model.generateContent([
+                  prompt,
+                  { inlineData: { data: imgData, mimeType } }
+                ]);
 
-              if (description === "SKIP") {
-                extractedText = extractedText.replace(marker, ""); // Remove marker
-              } else {
-                const formattedDesc = `\n> 🤖 **[Yapay Zeka Görsel Analizi]**\n> ${description.split("\n").join("\n> ")}\n`;
-                extractedText = extractedText.replace(marker, formattedDesc);
+                const description = result.response.text().trim();
+
+                if (description === "SKIP") {
+                  extractedText = extractedText.replace(marker, ""); // Remove marker
+                } else {
+                  // The model returns the formatted block, so we just insert it.
+                  // Ensure it starts on a new line
+                  extractedText = extractedText.replace(marker, `\n${description}\n`);
+                }
+
+                // Delete temp image
+                fs.unlinkSync(imgPath);
+
+              } catch (err) {
+                console.error(`[AI Analysis Error] ${imgPath}:`, err);
+                extractedText = extractedText.replace(marker, "\n[Görsel Analizi Başarısız]\n");
               }
-
-              // Delete temp image
-              fs.unlinkSync(imgPath);
-
-            } catch (err) {
-              console.error(`[AI Analysis Error] ${imgPath}:`, err);
-              extractedText = extractedText.replace(marker, "\n[Görsel Analizi Başarısız]\n");
+            } else {
+              extractedText = extractedText.replace(marker, ""); // File missing
             }
-          } else {
-            extractedText = extractedText.replace(marker, ""); // File missing
-          }
-        }));
-      }
+          }));
+        }
 
-      // Save to lesson
-      const lesson = getLesson(lessonId);
-      if (lesson) {
-        upsertLesson({ id: lessonId, slideText: extractedText });
-      }
+        // Save to lesson
+        const lesson = getLesson(lessonId);
+        if (lesson) {
+          upsertLesson({ id: lessonId, slideText: extractedText });
+        }
 
-      return res.json({ ok: true, text: extractedText });
+        return res.json({ ok: true, text: extractedText });
+
+      } catch (err: any) {
+        console.error("[OCR Handler Error]:", err);
+        if (!res.headersSent) {
+          return res.status(500).json({ ok: false, error: "Internal processing error", details: err.message });
+        }
+      }
     });
 
   } catch (e: any) {
@@ -618,7 +650,7 @@ app.post("/api/lessons/:id/lo-modules", async (req, res) => {
       plan,
     });
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
     const result = await model.generateContent(prompt);
     const raw = result.response.text() || "";
     const cleaned = stripCodeFences(raw);
@@ -704,7 +736,7 @@ ${SEGMENTS_JSON}
 ${SLD || "—"}
 `.trim();
 
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
   const result = await model.generateContent(prompt);
   const rawText = result.response.text() || "";
   const cleaned = stripCodeFences(rawText);
@@ -786,7 +818,7 @@ ${LEC}
 ${SLD}
 `.trim();
 
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
   const result = await model.generateContent(prompt);
   const rawText = result.response.text() || "";
   const cleaned = stripCodeFences(rawText);
@@ -1029,7 +1061,7 @@ ${LEC}
 ${SLD}
 `.trim();
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
     const result = await model.generateContent(prompt);
     const rawText = result.response.text() || "";
     const cleaned = stripCodeFences(rawText);
@@ -1184,7 +1216,7 @@ PLAN:
 ${JSON.stringify(plan).slice(0, 8000)}
 `.trim();
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
     const result = await model.generateContent(prompt);
     const text = (result.response.text() || "").replace(/```/g, "").trim();
     const questions = text
@@ -1258,7 +1290,7 @@ ${plan ? JSON.stringify(plan).slice(0, 6000) : "—"}
 ${Q.map((q, i) => `${i + 1}. ${q}`).join("\n")}
 `.trim();
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
     const result = await model.generateContent(prompt);
     const cleaned = (result.response.text() || "")
       .replace(/```json?/gi, "")
@@ -1563,7 +1595,7 @@ app.get("/api/ieu/learning-outcomes", async (req, res) => {
   }
 });
 
-// 🧠 Deep Dive Chat API - Enhanced with suggestions
+// 🧠 Deep Dive Chat API - Enhanced with better context, instruction-following, and language detection
 app.post("/api/lessons/:id/chat", async (req, res) => {
   try {
     const lessonId = req.params.id;
@@ -1575,23 +1607,59 @@ app.post("/api/lessons/:id/chat", async (req, res) => {
     const modules = plan?.modules || [];
     const emphases = lesson.professorEmphases || plan?.emphases || [];
 
-    // Enhanced context with more data
+    // Detect user language (Turkish or English)
+    const turkishPattern = /[ğüşıöçĞÜŞİÖÇ]|merhaba|nasıl|nedir|açıkla|özetle|anlat|yap|ver|sor|bana|bu|bir|için|ile|gibi|ama|ve|veya|ne|neden|nasıl/i;
+    const userLang = turkishPattern.test(message) ? 'tr' : 'en';
+
+    // Build rich context with all available lesson data
+    const deviationData = (lesson as any).deviation;
+    const deviationSummary = deviationData?.segments
+      ?.filter((s: any) => s.deviation_type !== 'on_topic')
+      ?.slice(0, 4)
+      ?.map((s: any) => `• [${s.deviation_type}] ${s.summary || s.topic || 'N/A'}`)
+      ?.join('\n') || '';
+
+    const cheatSheet = (lesson as any).cheatSheet;
+    const cheatSheetHighlights = cheatSheet?.pitfalls?.slice(0, 4)?.join('\n• ') || '';
+    const cheatSheetFormulas = cheatSheet?.formulas?.slice(0, 3)?.join('; ') || '';
+
+    const loAlignment = (lesson as any).loAlignment;
+    const loSummary = loAlignment?.segments
+      ?.slice(0, 3)
+      ?.flatMap((s: any) => s.lo_links?.map((l: any) => l.lo_title) || [])
+      ?.filter(Boolean)
+      ?.slice(0, 5)
+      ?.join(', ') || '';
+
+    // Summarize conversation history for context
+    const recentHistory = (history || []).slice(-6);
+    const historyContext = recentHistory.length > 2
+      ? `\n=== RECENT CONVERSATION ===\n${recentHistory.map((h: any) => `${h.role === 'user' ? 'Student' : 'Tutor'}: ${(h.content || '').slice(0, 200)}...`).join('\n')}\n`
+      : '';
+
+    // Build comprehensive context
     const context = `
 === LESSON INFORMATION ===
 Title: ${lesson.title || "Untitled Lesson"}
+Course: ${(lesson as any).courseCode || 'N/A'}
 
-=== KEY TOPICS (from modules) ===
-${modules.slice(0, 5).map((m: any, i: number) => `${i + 1}. ${m.title || m.name || 'Topic'}`).join('\n')}
+=== KEY TOPICS (Modules) ===
+${modules.slice(0, 6).map((m: any, i: number) => `${i + 1}. ${m.title || m.name || 'Topic'}: ${m.goal || ''}`).join('\n') || 'Not available'}
 
-=== PROFESSOR EMPHASES ===
-${emphases.slice(0, 5).map((e: any) => `• ${e.statement || e}`).join('\n') || 'None'}
+=== PROFESSOR EMPHASES (What the teacher stressed) ===
+${emphases.slice(0, 6).map((e: any) => `• ${e.statement || e}${e.why ? ` → ${e.why}` : ''}`).join('\n') || 'None recorded'}
+
+${deviationSummary ? `=== LECTURE DEVIATIONS (Extra topics teacher covered) ===\n${deviationSummary}\n` : ''}
+${loSummary ? `=== LEARNING OUTCOMES COVERED ===\n${loSummary}\n` : ''}
+${cheatSheetHighlights ? `=== COMMON PITFALLS/MISTAKES ===\n• ${cheatSheetHighlights}\n` : ''}
+${cheatSheetFormulas ? `=== KEY FORMULAS ===\n${cheatSheetFormulas}\n` : ''}
 
 === TRANSCRIPT EXCERPT ===
-${(lesson.transcript || "").slice(0, 4000)}
+${(lesson.transcript || "").slice(0, 8000)}
 
 === SLIDE CONTENT EXCERPT ===
-${(lesson.slideText || "").slice(0, 3000)}
-`;
+${(lesson.slideText || "").slice(0, 5000)}
+${historyContext}`;
 
     const chat = model.startChat({
       history: history?.map((h: any) => ({
@@ -1600,53 +1668,82 @@ ${(lesson.slideText || "").slice(0, 3000)}
       })) || [],
     });
 
+    // Language-specific instructions
+    const langInstructions = userLang === 'tr'
+      ? `YANIT DİLİ: Türkçe yanıt ver. Kullanıcı Türkçe yazdı.
+Önerilen sorular da Türkçe olmalı.`
+      : `RESPONSE LANGUAGE: Respond in English. User wrote in English.
+Suggested questions should also be in English.`;
+
+    const suggestionsLabel = userLang === 'tr' ? 'Önerilen Sorular' : 'Suggested Questions';
+
     const prompt = `
-You are an ELITE AI TUTOR for this university lesson. You help students understand concepts deeply.
+=== CRITICAL RULES (FOLLOW EXACTLY) ===
+1. **INSTRUCTION FOLLOWING**: When the user explicitly asks you to do something (e.g., "summarize in 3 points", "give me an example", "explain simply"), DO EXACTLY WHAT THEY ASK. Do not deviate or add unnecessary content.
+
+2. **LANGUAGE MATCHING**: ${langInstructions}
+
+3. **CONTEXT-BASED ANSWERS**: Base your answers on the LESSON CONTEXT provided below. Reference specific content from the transcript, slides, or professor emphases when relevant.
+
+4. **ACCURACY**: If information is not in the lesson context, say so honestly. Do not make up information.
+
+=== YOUR ROLE ===
+You are an EXPERT AI TUTOR for this specific university lesson. You have access to:
+- The lecture transcript (what the professor said)
+- The slide content
+- Professor emphases (what they stressed as important)
+- Learning outcomes
+- Common pitfalls students face
+
+=== YOUR CAPABILITIES ===
+✓ Explain concepts from this lesson deeply
+✓ Answer questions about lecture/slide content
+✓ Create practice questions or quizzes
+✓ Summarize topics (in any format the user requests)
+✓ Compare and contrast concepts
+✓ Give real-world examples
+✓ Identify what's most important for exams
 
 === YOUR PERSONALITY ===
-- Friendly but professional 🎓
-- Uses analogies and examples
-- Encourages curiosity
-- Celebrates when student understands
+- Helpful and patient 🎓
+- Uses clear analogies and examples
+- Acknowledges when you're referencing specific lecture content
+- Concise but thorough
 
 === LESSON CONTEXT ===
 ${context}
 
-=== FORMATTING RULES ===
+=== FORMATTING ===
 - Use **bold** for key terms
-- Use bullet points for lists
-- Use \`code\` for technical terms
-- Keep paragraphs short (2-3 sentences max)
-- Include relevant emojis sparingly
+- Use bullet points for organized lists
+- Use \`code\` for technical terms or formulas
+- Keep paragraphs short (2-3 sentences)
+- Use emojis sparingly for clarity
 
-=== RESPONSE FORMAT ===
-Answer the student's question thoroughly but concisely.
-At the END of your response, add this EXACT format:
+=== RESPONSE STRUCTURE ===
+1. Answer the student's question directly and completely
+2. Reference lesson content when applicable
+3. At the END, add suggested follow-up questions in this format:
 
 ---
-💡 **Önerilen Sorular:**
-1. [First suggested follow-up question in Turkish]
-2. [Second suggested follow-up question in Turkish]
-3. [Third suggested follow-up question in Turkish]
+💡 **${suggestionsLabel}:**
+1. [Related follow-up question]
+2. [Deeper exploration question]
+3. [Practical application question]
 
-The suggested questions should be:
-- Related to the current topic
-- Progressively deeper or exploring related concepts
-- Written in Turkish
-
-=== STUDENT QUESTION ===
+=== STUDENT MESSAGE ===
 ${message}
 `;
 
     const result = await chat.sendMessage(prompt);
     let text = result.response.text();
 
-    // Parse suggestions from response
-    const suggestionsMatch = text.match(/💡\s*\*\*Önerilen Sorular:\*\*\s*([\s\S]*?)$/);
+    // Parse suggestions from response (handle both Turkish and English labels)
+    const suggestionsMatch = text.match(/💡\s*\*\*(Önerilen Sorular|Suggested Questions):\*\*\s*([\s\S]*?)$/);
     let suggestions: string[] = [];
 
     if (suggestionsMatch) {
-      const suggestionLines = suggestionsMatch[1].trim().split('\n');
+      const suggestionLines = suggestionsMatch[2].trim().split('\n');
       suggestions = suggestionLines
         .map(line => line.replace(/^\d+\.\s*/, '').trim())
         .filter(s => s.length > 5)
@@ -2046,49 +2143,45 @@ app.post("/api/lessons/:id/mindmap/node-detail", async (req, res) => {
 
     if (action === "explain") {
       prompt = `
-You are an expert tutor. Explain the concept "${nodeName}" from the lesson "${lessonTitle}".
+You are an expert tutor. Explain "${nodeName}" VERY BRIEFLY.
 
 === LESSON CONTEXT ===
-${transcript.substring(0, 1500)}
+${transcript.substring(0, 1000)}
 
-${slides.substring(0, 1000)}
+=== RULES (STRICT) ===
+1. Explanation: MAX 3 sentences, simple language
+2. Key points: MAX 3 bullet points, each under 10 words
+3. Related concepts: MAX 2 items
+4. NO fluff, be direct
 
-=== INSTRUCTIONS ===
-1. Give a clear, concise explanation (2-3 paragraphs max)
-2. Use simple language a student can understand
-3. Highlight key points with **bold**
-4. Include relevant emoji sparingly
-
-=== OUTPUT FORMAT ===
-Return ONLY valid JSON:
+=== OUTPUT (ONLY JSON) ===
 {
   "title": "${nodeName}",
-  "explanation": "Your explanation here...",
-  "keyPoints": ["point 1", "point 2", "point 3"],
-  "relatedConcepts": ["concept 1", "concept 2"]
+  "explanation": "Short 2-3 sentence explanation",
+  "keyPoints": ["short point 1", "short point 2"],
+  "relatedConcepts": ["concept 1"]
 }
 `;
     } else if (action === "example") {
       prompt = `
-You are an expert tutor. Give a real-world example for the concept "${nodeName}" from the lesson "${lessonTitle}".
+You are an expert tutor. Give ONE simple real-world example for "${nodeName}".
 
 === LESSON CONTEXT ===
-${transcript.substring(0, 1500)}
+${transcript.substring(0, 1000)}
 
-=== INSTRUCTIONS ===
-1. Give a concrete, relatable example
-2. Connect it to everyday life if possible
-3. Explain step by step how the concept applies
-4. Keep it simple and memorable
+=== RULES (STRICT) ===
+1. Scenario: 1-2 sentences max
+2. Explanation: 1 sentence max
+3. Takeaway: 5-8 words max
+4. Use everyday examples (phone, coffee, etc.)
 
-=== OUTPUT FORMAT ===
-Return ONLY valid JSON:
+=== OUTPUT (ONLY JSON) ===
 {
   "title": "${nodeName}",
   "example": {
-    "scenario": "The real-world situation...",
-    "explanation": "How this concept applies...",
-    "takeaway": "What to remember..."
+    "scenario": "One sentence real-world situation",
+    "explanation": "One sentence how concept applies",
+    "takeaway": "5-8 word summary"
   }
 }
 `;

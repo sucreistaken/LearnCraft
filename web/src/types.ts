@@ -96,19 +96,22 @@ export type Plan = {
   emphases?: Emphasis[];
   seed_quiz?: string[];
   alignment?: Alignment;
-   learning_outcomes?: LearningOutcome[];
+  learning_outcomes?: LearningOutcome[];
 };
 
 export type ModeId =
   | "plan"
   | "alignment"
+  | "deviation"
   | "lecturer-note"
   | "quiz"
   | "deep-dive"
+  | "mindmap"
   | "exam-sprint"
   | "history"
   | "lo-study"
-  | "cheat-sheet";
+  | "cheat-sheet"
+  | "notes";
 
 export type CheatSheet = {
   title: string;
@@ -118,6 +121,5 @@ export type CheatSheet = {
   pitfalls?: string[];
   quickQuiz?: Array<{ q: string; a: string }>;
 };
-        // 🔹 yeni mod
+// 🔹 yeni mod
 
-  

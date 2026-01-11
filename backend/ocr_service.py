@@ -104,6 +104,56 @@ class LectureOCR:
 
         return text
 
+    def extract_text_with_structure(self, page):
+        """
+        Extracts text while preserving structure (H1, H2) based on font sizes.
+        """
+        blocks = page.get_text("dict")["blocks"]
+        text_blocks = []
+        font_sizes = []
+
+        # 1. Collect all text spans and their font sizes
+        for b in blocks:
+            if "lines" in b:
+                for line in b["lines"]:
+                    for span in line["spans"]:
+                        text = span["text"].strip()
+                        if text:
+                            size = span["size"]
+                            font_sizes.append(size)
+                            text_blocks.append({"text": text, "size": size})
+
+        if not text_blocks:
+            return ""
+
+        # 2. Determine "Body Text" size (Mode)
+        # Round sizes to nearest integer to group similar sizes
+        rounded_sizes = [round(s) for s in font_sizes]
+        if rounded_sizes:
+            mode_size = max(set(rounded_sizes), key=rounded_sizes.count)
+        else:
+            mode_size = 12 # Fallback
+
+        # 3. Reconstruct text with Markdown headers
+        formatted_text = []
+        for block in text_blocks:
+            size = block["size"]
+            text = block["text"]
+            
+            # Simple Heuristic:
+            # > 4pt larger than mode = H1 (#)
+            # > 2pt larger than mode = H2 (##)
+            # significantly smaller = Small text (quoted?) -> keeping simple for now
+            
+            if size > mode_size + 4:
+                formatted_text.append(f"# {text}")
+            elif size > mode_size + 2:
+                formatted_text.append(f"## {text}")
+            else:
+                formatted_text.append(text)
+
+        return "\n".join(formatted_text)
+
     def process_file(self, file_path):
         ext = os.path.splitext(file_path)[1].lower()
         full_text = []
@@ -127,15 +177,18 @@ class LectureOCR:
                 
                 with tempfile.TemporaryDirectory() as temp_dir:
                     for i, page in enumerate(doc):
-                        # A. TEXT EXTRACTION
-                        text = page.get_text("text").strip()
+                        # A. STRUCTURAL TEXT EXTRACTION
+                        # We use the new smart extractor first to check for content
+                        structured_text = self.extract_text_with_structure(page)
                         
-                        # Decide on text source (Digital vs OCR)
-                        if len(text) > 50:
-                            print(f"    Page {i+1}: Digital text found ({len(text)} chars).")
-                            full_text.append(f"--- Slide {i+1} (Extracted) ---\n{text}\n")
+                        # Decide on text source (Digital vs OCR) based on raw text length
+                        plain_text = page.get_text("text").strip() # Quick check length
+                        
+                        if len(plain_text) > 50:
+                            print(f"    Page {i+1}: Digital text found ({len(plain_text)} chars).")
+                            full_text.append(f"--- Slide {i+1} (Extracted) ---\n{structured_text}\n")
                         else:
-                            print(f"    Page {i+1}: Low text ({len(text)} chars). Applying OCR...")
+                            print(f"    Page {i+1}: Low text ({len(plain_text)} chars). Applying OCR...")
                             pix = page.get_pixmap(dpi=300)
                             page_image_path = os.path.join(temp_dir, f"page_{i}.png")
                             pix.save(page_image_path)
