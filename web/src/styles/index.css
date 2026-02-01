@@ -1,0 +1,27 @@
+/* =========================================
+   LearnCraft – Master Stylesheet
+   =========================================
+   Import order matters:
+   1. Design tokens (variables)
+   2. Base reset
+   3. Utilities
+   4. New component styles
+   5. Legacy App.css (all existing styles)
+   ========================================= */
+
+@import "./tokens.css";
+@import "./base.css";
+@import "./utilities.css";
+
+/* Component styles */
+@import "./components/button.css";
+@import "./components/card.css";
+@import "./components/input.css";
+@import "./components/select.css";
+@import "./components/modal.css";
+@import "./components/badge.css";
+@import "./components/spinner.css";
+@import "./components/tabs.css";
+
+/* Legacy styles — everything existing continues to work */
+@import "../App.css";

@@ -1,0 +1,54 @@
+/* =========================================
+   LearnCraft – Spinner Component
+   ========================================= */
+
+.lc-spinner {
+  display: inline-block;
+  border-style: solid;
+  border-color: transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: lc-spin 0.65s linear infinite;
+}
+
+/* --- Sizes --- */
+.lc-spinner--sm {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+}
+
+.lc-spinner--md {
+  width: 24px;
+  height: 24px;
+  border-width: 2.5px;
+}
+
+.lc-spinner--lg {
+  width: 32px;
+  height: 32px;
+  border-width: 3px;
+}
+
+.lc-spinner--xl {
+  width: 48px;
+  height: 48px;
+  border-width: 4px;
+}
+
+/* --- Colors --- */
+.lc-spinner--current {
+  color: currentColor;
+}
+
+.lc-spinner--primary {
+  color: var(--accent-2);
+}
+
+.lc-spinner--muted {
+  color: var(--muted);
+}
+
+@keyframes lc-spin {
+  to { transform: rotate(360deg); }
+}

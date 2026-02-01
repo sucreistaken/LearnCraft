@@ -3,6 +3,7 @@ import mermaid from "mermaid";
 import { deepDiveApi } from "../services/api";
 import { useLessonStore } from "../stores/lessonStore";
 import { motion, AnimatePresence } from "framer-motion";
+import { exportToPdf } from "../utils/pdfExport";
 
 interface ModuleInfo {
     id: number;
@@ -63,6 +64,20 @@ export default function MindMapPane() {
 
     // Quiz interaction state
     const [selectedQuizAnswer, setSelectedQuizAnswer] = useState<string | null>(null);
+
+    // PDF export
+    const [pdfLoading, setPdfLoading] = useState(false);
+    const handleExportPdf = async () => {
+        if (!svgContainerRef.current) return;
+        setPdfLoading(true);
+        try {
+            await exportToPdf(svgContainerRef.current, "MindMap", { orientation: "landscape" });
+        } catch (err) {
+            console.error("PDF export error:", err);
+        } finally {
+            setPdfLoading(false);
+        }
+    };
     const [showQuizResult, setShowQuizResult] = useState(false);
 
     // Progress tracking state
@@ -613,6 +628,15 @@ export default function MindMapPane() {
                                     title="Download as SVG"
                                 >
                                     📐 SVG
+                                </button>
+                                <button
+                                    onClick={handleExportPdf}
+                                    className="btn-icon"
+                                    style={{ padding: '4px 8px', fontSize: 12 }}
+                                    disabled={pdfLoading}
+                                    title="Download as PDF"
+                                >
+                                    {pdfLoading ? "..." : "PDF"}
                                 </button>
                             </div>
 

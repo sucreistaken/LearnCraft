@@ -1,0 +1,34 @@
+{
+  "deepDive": {
+    "messages": [
+      {
+        "id": "ddmsg-ml2rkpo3-eq4v",
+        "role": "user",
+        "text": "selam",
+        "authorId": "u-ml2rhwfr-94mt",
+        "authorNickname": "Kadir Room",
+        "authorAvatar": "#4f46e5",
+        "timestamp": "2026-01-31T20:28:07.539Z",
+        "reactions": [],
+        "savedAsInsight": false
+      }
+    ],
+    "savedInsights": []
+  },
+  "flashcards": [],
+  "mindMapAnnotations": [],
+  "notes": [
+    {
+      "title": "hot reload önemli",
+      "content": "hot reload önemli",
+      "category": "concept",
+      "authorId": "u-ml2rhwfr-94mt",
+      "authorNickname": "Kadir Room",
+      "authorAvatar": "#4f46e5",
+      "source": "manual",
+      "id": "note-ml2rlrrm-zag6",
+      "createdAt": "2026-01-31T20:28:56.914Z",
+      "pinned": false
+    }
+  ]
+}

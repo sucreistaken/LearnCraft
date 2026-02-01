@@ -16,6 +16,8 @@ import { EventEmitter } from "events";
 
 import express from "express";
 import cors from "cors";
+import http from "http";
+import { Server as SocketServer } from "socket.io";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // ✅ Single source of truth for lessons & quiz relations
@@ -37,6 +39,62 @@ import {
   getQuizPack,
   scoreQuizPack,
 } from "./controllers/quizController";
+
+import {
+  analyzeLessonWeakness,
+  analyzeAllWeaknesses,
+  getWeaknessForLesson,
+  getGlobalWeaknessSummary,
+} from "./controllers/weaknessController";
+
+import {
+  generateFlashcardsForLesson,
+  reviewCard,
+  getDueCards,
+  getFlashcards,
+  getFlashcardStats,
+  deleteFlashcard,
+  createCard,
+  loadFlashcards,
+  saveFlashcards,
+} from "./controllers/flashcardController";
+
+import {
+  getSettings as getSprintSettings,
+  updateSettings as updateSprintSettings,
+  createSession as createSprintSession,
+  updateSession as updateSprintSession,
+  getSprintStats,
+} from "./controllers/sprintController";
+
+import {
+  buildConnections,
+  getConnections,
+} from "./controllers/connectionsController";
+
+import {
+  createShare,
+  getShare,
+  addComment,
+  listShares,
+  deleteShare,
+} from "./controllers/shareController";
+
+import {
+  createRoom,
+  getRoom as getRoomById,
+  getRoomByCode,
+  listActiveRooms,
+  deleteRoom,
+  getRoomsByUserId,
+} from "./controllers/roomController";
+
+import {
+  loadWorkspace,
+  saveWorkspace,
+} from "./controllers/workspaceController";
+
+import { setupSocketHandler } from "./socketHandler";
 
 declare const fetch: any;
 
@@ -75,7 +133,7 @@ export type LoAlignment = {
 
 // ---- Gemini SDK
 const genAI = new GoogleGenerativeAI(API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
 // ---- helpers
 const stripCodeFences = (s: string) =>
@@ -92,6 +150,43 @@ const tryParseJSON = (s: string) => {
 const hasAlignment = (plan: any) =>
   !!plan?.alignment?.items?.length &&
   Number.isFinite(plan?.alignment?.average_duration_min ?? NaN);
+
+// ---- Condensed context helper (Opt 5) ----
+function buildCondensedContext(lesson: any): { lecContext: string; sldContext: string } {
+  const plan = lesson.plan;
+  if (!plan) {
+    return {
+      lecContext: (lesson.transcript || "").slice(0, 18000),
+      sldContext: (lesson.slideText || "").slice(0, 18000),
+    };
+  }
+
+  const parts: string[] = [];
+  if (plan.topic) parts.push(`Topic: ${plan.topic}`);
+  if (plan.key_concepts?.length) parts.push(`Key concepts: ${plan.key_concepts.join(", ")}`);
+  if (plan.modules?.length) {
+    const modSummary = plan.modules
+      .slice(0, 6)
+      .map((m: any) => `- ${m.title || "Module"}: ${m.goal || ""}`)
+      .join("\n");
+    parts.push(`Modules:\n${modSummary}`);
+  }
+  if (plan.emphases?.length) {
+    const emphSummary = plan.emphases
+      .slice(0, 8)
+      .map((e: any) => `- ${e.statement}${e.why ? ` (${e.why})` : ""}`)
+      .join("\n");
+    parts.push(`Professor emphases:\n${emphSummary}`);
+  }
+
+  const condensedPlan = parts.join("\n\n");
+  const transcriptExcerpt = (lesson.transcript || "").slice(0, 4000);
+  const lecContext = `${condensedPlan}\n\n--- Transcript excerpt ---\n${transcriptExcerpt}`;
+
+  const sldContext = (lesson.slideText || "").slice(0, 4000);
+
+  return { lecContext, sldContext };
+}
 
 /**
  * Split transcript into segments.
@@ -181,6 +276,12 @@ app.post("/api/lessons/:id/cheat-sheet", async (req, res) => {
     const lesson = getLesson(lessonId);
     if (!lesson) return res.status(404).json({ ok: false, error: "Lesson not found" });
 
+    // Cache: return cached cheat sheet if same language (bypass with ?force=true)
+    const forceRegen = req.query.force === 'true';
+    if (!forceRegen && lesson.cheatSheet?.sections?.length && (lesson.cheatSheet as any).language === language) {
+      return res.json({ ok: true, lessonId, cheatSheet: lesson.cheatSheet, cached: true });
+    }
+
     const title = lesson.title || "Lesson";
     const transcript = (lesson.transcript || "").trim();
     const slideText = lesson.slideText || "";
@@ -192,17 +293,21 @@ app.post("/api/lessons/:id/cheat-sheet", async (req, res) => {
       });
     }
 
+    // Use condensed context when plan is available (reduces ~18K → ~6K)
+    const { lecContext, sldContext } = buildCondensedContext(lesson);
     const prompt = buildCheatSheetPrompt({
       title,
-      transcript,
-      slideText,
+      transcript: lecContext,
+      slideText: sldContext,
       learningOutcomes: lesson.learningOutcomes || [],
       emphases: lesson.plan?.emphases || lesson.professorEmphases || [],
       language,
     });
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: 3000 },
+    });
     const raw = (result.response.text() || "").trim();
     const cleaned = stripCodeFences(raw);
     const j = tryParseJSON(cleaned);
@@ -219,6 +324,7 @@ app.post("/api/lessons/:id/cheat-sheet", async (req, res) => {
       formulas: Array.isArray(j.formulas) ? j.formulas : [],
       pitfalls: Array.isArray(j.pitfalls) ? j.pitfalls : [],
       quickQuiz: Array.isArray(j.quickQuiz) ? j.quickQuiz : [],
+      language,
     };
 
     const saved = upsertLesson({ id: lessonId, cheatSheet });
@@ -265,6 +371,17 @@ const jobs = new Map<string, Job>();
 
 function uid() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+
+/**
+ * Convert seconds to HH:MM:SS format
+ */
+function formatTimestamp(seconds: number): string {
+  const totalSeconds = Math.floor(seconds);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const secs = totalSeconds % 60;
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
 
@@ -405,7 +522,7 @@ app.post("/api/transcribe/start", upload.single("file"), async (req, res) => {
         if (!job) return;
 
         if (msg.type === "segment" && msg.text) {
-          job.transcript += `[${Number(msg.start).toFixed(2)} - ${Number(msg.end).toFixed(2)}] ${msg.text}\n`;
+          job.transcript += `[${formatTimestamp(msg.start)} – ${formatTimestamp(msg.end)}] ${msg.text}\n`;
         }
 
         emitter.emit("msg", msg);
@@ -544,10 +661,10 @@ If the visual is completely irrelevant (e.g. simple layout decoration, geometric
 > - Confidence note: {uncertain details mark as "approximate"}
 `;
 
-                const result = await model.generateContent([
-                  prompt,
-                  { inlineData: { data: imgData, mimeType } }
-                ]);
+                const result = await model.generateContent({
+                  contents: [{ role: "user", parts: [{ text: prompt }, { inlineData: { data: imgData, mimeType } }] }],
+                  generationConfig: { maxOutputTokens: 500 },
+                });
 
                 const description = result.response.text().trim();
 
@@ -634,6 +751,12 @@ app.post("/api/lessons/:id/lo-modules", async (req, res) => {
     const lesson = getLesson(lessonId);
     if (!lesson) return res.status(404).json({ ok: false, error: "Lesson not found" });
 
+    // Cache: return cached LO modules if available (bypass with ?force=true)
+    const forceRegen = req.query.force === 'true';
+    if (!forceRegen && lesson.loModules?.modules?.length) {
+      return res.json({ ok: true, modules: lesson.loModules.modules, lessonId, cached: true });
+    }
+
     const { transcript, slideText, learningOutcomes, loAlignment, plan } = lesson;
     if (!transcript || !learningOutcomes?.length) {
       return res.status(400).json({
@@ -650,8 +773,10 @@ app.post("/api/lessons/:id/lo-modules", async (req, res) => {
       plan,
     });
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: 6000 },
+    });
     const raw = result.response.text() || "";
     const cleaned = stripCodeFences(raw);
     const j = tryParseJSON(cleaned);
@@ -736,8 +861,10 @@ ${SEGMENTS_JSON}
 ${SLD || "—"}
 `.trim();
 
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
-  const result = await model.generateContent(prompt);
+  const result = await model.generateContent({
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
+    generationConfig: { maxOutputTokens: 4000 },
+  });
   const rawText = result.response.text() || "";
   const cleaned = stripCodeFences(rawText);
   const parsed = tryParseJSON(cleaned);
@@ -818,8 +945,10 @@ ${LEC}
 ${SLD}
 `.trim();
 
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
-  const result = await model.generateContent(prompt);
+  const result = await model.generateContent({
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
+    generationConfig: { maxOutputTokens: 4000 },
+  });
   const rawText = result.response.text() || "";
   const cleaned = stripCodeFences(rawText);
   const j = tryParseJSON(cleaned);
@@ -1061,8 +1190,10 @@ ${LEC}
 ${SLD}
 `.trim();
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: 8000 },
+    });
     const rawText = result.response.text() || "";
     const cleaned = stripCodeFences(rawText);
     let plan = tryParseJSON(cleaned);
@@ -1146,6 +1277,12 @@ app.post("/api/lessons/:id/lo-align", async (req, res) => {
       return res.status(404).json({ ok: false, error: "Lesson not found" });
     }
 
+    // Cache: return cached LO alignment if available (bypass with ?force=true)
+    const forceRegen = req.query.force === 'true';
+    if (!forceRegen && existing.loAlignment?.segments?.length) {
+      return res.json({ ok: true, loAlignment: existing.loAlignment, lessonId, cached: true });
+    }
+
     const {
       transcript,
       slidesText,
@@ -1216,8 +1353,10 @@ PLAN:
 ${JSON.stringify(plan).slice(0, 8000)}
 `.trim();
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: 1500 },
+    });
     const text = (result.response.text() || "").replace(/```/g, "").trim();
     const questions = text
       .split(/\n+/)
@@ -1235,11 +1374,12 @@ ${JSON.stringify(plan).slice(0, 8000)}
 // Answer generation
 app.post("/api/quiz-answers", async (req, res) => {
   try {
-    const { questions, lectureText, slidesText, plan } = req.body as {
+    const { questions, lectureText, slidesText, plan, lessonId } = req.body as {
       questions?: string[];
       lectureText?: string;
       slidesText?: string;
       plan?: any;
+      lessonId?: string;
     };
     if (!questions?.length || !lectureText || !slidesText) {
       return res.status(400).json({
@@ -1249,8 +1389,24 @@ app.post("/api/quiz-answers", async (req, res) => {
     }
 
     const Q = questions.slice(0, 20);
-    const LEC = lectureText.slice(0, 18000);
-    const SLD = slidesText.slice(0, 18000);
+
+    // Use condensed context if lesson has a plan (reduces ~36K → ~10K)
+    let LEC: string;
+    let SLD: string;
+    if (lessonId) {
+      const lesson = getLesson(lessonId);
+      if (lesson?.plan) {
+        const condensed = buildCondensedContext(lesson);
+        LEC = condensed.lecContext;
+        SLD = condensed.sldContext;
+      } else {
+        LEC = lectureText.slice(0, 18000);
+        SLD = slidesText.slice(0, 18000);
+      }
+    } else {
+      LEC = lectureText.slice(0, 18000);
+      SLD = slidesText.slice(0, 18000);
+    }
 
     const prompt = `
 Answer the questions with EVIDENCE. Return ONLY VALID JSON.
@@ -1290,8 +1446,10 @@ ${plan ? JSON.stringify(plan).slice(0, 6000) : "—"}
 ${Q.map((q, i) => `${i + 1}. ${q}`).join("\n")}
 `.trim();
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: 4000 },
+    });
     const cleaned = (result.response.text() || "")
       .replace(/```json?/gi, "")
       .replace(/```/g, "")
@@ -1319,11 +1477,12 @@ ${Q.map((q, i) => `${i + 1}. ${q}`).join("\n")}
 // Single-question evaluation
 app.post("/api/quiz-eval", async (req, res) => {
   try {
-    const { q, student_answer, lectureText, slidesText } = req.body as {
+    const { q, student_answer, lectureText, slidesText, lessonId } = req.body as {
       q?: string;
       student_answer?: string;
       lectureText?: string;
       slidesText?: string;
+      lessonId?: string;
     };
     if (!q || !student_answer || !lectureText || !slidesText) {
       return res.status(400).json({
@@ -1332,8 +1491,23 @@ app.post("/api/quiz-eval", async (req, res) => {
       });
     }
 
-    const LEC = lectureText.slice(0, 14000);
-    const SLD = slidesText.slice(0, 14000);
+    // Use condensed context if lesson has a plan (reduces ~28K → ~8K)
+    let LEC: string;
+    let SLD: string;
+    if (lessonId) {
+      const lesson = getLesson(lessonId);
+      if (lesson?.plan) {
+        const condensed = buildCondensedContext(lesson);
+        LEC = condensed.lecContext;
+        SLD = condensed.sldContext;
+      } else {
+        LEC = lectureText.slice(0, 14000);
+        SLD = slidesText.slice(0, 14000);
+      }
+    } else {
+      LEC = lectureText.slice(0, 14000);
+      SLD = slidesText.slice(0, 14000);
+    }
 
     const prompt = `
 Act as an exam grader. Return ONLY VALID JSON.
@@ -1369,8 +1543,10 @@ ${q}
 ${student_answer}
 `.trim();
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: 800 },
+    });
     const cleaned = (result.response.text() || "")
       .replace(/```json?/gi, "")
       .replace(/```/g, "")
@@ -1390,6 +1566,106 @@ ${student_answer}
     return res.json({ ok: true, ...j });
   } catch (e: any) {
     console.error("[/api/quiz-eval ERROR]", e?.message || e);
+    return res.status(500).json({ ok: false, error: e?.message || "server error" });
+  }
+});
+
+// Batch quiz evaluation - evaluates multiple questions in a single AI call
+app.post("/api/quiz-eval-batch", async (req, res) => {
+  try {
+    const { items, lectureText, slidesText, lessonId } = req.body as {
+      items?: Array<{ q: string; student_answer: string }>;
+      lectureText?: string;
+      slidesText?: string;
+      lessonId?: string;
+    };
+
+    if (!items?.length || !lectureText || !slidesText) {
+      return res.status(400).json({
+        ok: false,
+        error: "items (array of {q, student_answer}), lectureText, slidesText are required",
+      });
+    }
+
+    // Use condensed context if lesson has a plan
+    let LEC: string;
+    let SLD: string;
+    if (lessonId) {
+      const lesson = getLesson(lessonId);
+      if (lesson?.plan) {
+        const condensed = buildCondensedContext(lesson);
+        LEC = condensed.lecContext;
+        SLD = condensed.sldContext;
+      } else {
+        LEC = lectureText.slice(0, 14000);
+        SLD = slidesText.slice(0, 14000);
+      }
+    } else {
+      LEC = lectureText.slice(0, 14000);
+      SLD = slidesText.slice(0, 14000);
+    }
+
+    const questionsBlock = items
+      .slice(0, 20)
+      .map((item, i) => `Q${i + 1}: ${item.q}\nA${i + 1}: ${item.student_answer}`)
+      .join("\n\n");
+
+    const prompt = `
+Act as an exam grader. Grade ALL student answers below. Return ONLY VALID JSON.
+
+SCHEMA:
+{
+  "results": [
+    {
+      "index": number,
+      "grade": "correct" | "partial" | "incorrect",
+      "feedback": "string",
+      "missing_points": string[],
+      "confidence": number
+    }
+  ]
+}
+
+RULES:
+- Grade each answer independently using evidence from LEC/SLIDE.
+- "partial" if there is one or two key points missing.
+- "feedback": short and constructive, 2–3 sentences per question.
+- "index" matches the question number (0-based).
+- No hallucinated quotes.
+
+[LEC]
+${LEC}
+
+[SLIDE]
+${SLD}
+
+[STUDENT ANSWERS]
+${questionsBlock}
+`.trim();
+
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: 4000 },
+    });
+    const cleaned = (result.response.text() || "")
+      .replace(/```json?/gi, "")
+      .replace(/```/g, "")
+      .trim();
+    const j = (() => {
+      try {
+        return JSON.parse(cleaned);
+      } catch {
+        return null;
+      }
+    })();
+
+    if (!j?.results || !Array.isArray(j.results)) {
+      return res.status(500).json({ ok: false, error: "JSON parse/schema error" });
+    }
+
+    return res.json({ ok: true, results: j.results });
+  } catch (e: any) {
+    console.error("[/api/quiz-eval-batch ERROR]", e?.message || e);
     return res.status(500).json({ ok: false, error: e?.message || "server error" });
   }
 });
@@ -1607,9 +1883,7 @@ app.post("/api/lessons/:id/chat", async (req, res) => {
     const modules = plan?.modules || [];
     const emphases = lesson.professorEmphases || plan?.emphases || [];
 
-    // Detect user language (Turkish or English)
-    const turkishPattern = /[ğüşıöçĞÜŞİÖÇ]|merhaba|nasıl|nedir|açıkla|özetle|anlat|yap|ver|sor|bana|bu|bir|için|ile|gibi|ama|ve|veya|ne|neden|nasıl/i;
-    const userLang = turkishPattern.test(message) ? 'tr' : 'en';
+    // Always respond in English (per user preference)
 
     // Build rich context with all available lesson data
     const deviationData = (lesson as any).deviation;
@@ -1666,16 +1940,14 @@ ${historyContext}`;
         role: h.role === 'user' ? 'user' : 'model',
         parts: [{ text: h.content }]
       })) || [],
+      generationConfig: { maxOutputTokens: 2500 },
     });
 
-    // Language-specific instructions
-    const langInstructions = userLang === 'tr'
-      ? `YANIT DİLİ: Türkçe yanıt ver. Kullanıcı Türkçe yazdı.
-Önerilen sorular da Türkçe olmalı.`
-      : `RESPONSE LANGUAGE: Respond in English. User wrote in English.
+    // Language instructions - Always English
+    const langInstructions = `RESPONSE LANGUAGE: Always respond in English regardless of what language the user writes in.
 Suggested questions should also be in English.`;
 
-    const suggestionsLabel = userLang === 'tr' ? 'Önerilen Sorular' : 'Suggested Questions';
+    const suggestionsLabel = 'Suggested Questions';
 
     const prompt = `
 === CRITICAL RULES (FOLLOW EXACTLY) ===
@@ -1738,12 +2010,12 @@ ${message}
     const result = await chat.sendMessage(prompt);
     let text = result.response.text();
 
-    // Parse suggestions from response (handle both Turkish and English labels)
-    const suggestionsMatch = text.match(/💡\s*\*\*(Önerilen Sorular|Suggested Questions):\*\*\s*([\s\S]*?)$/);
+    // Parse suggestions from response
+    const suggestionsMatch = text.match(/💡\s*\*\*Suggested Questions:\*\*\s*([\s\S]*?)$/);
     let suggestions: string[] = [];
 
     if (suggestionsMatch) {
-      const suggestionLines = suggestionsMatch[2].trim().split('\n');
+      const suggestionLines = suggestionsMatch[1].trim().split('\n');
       suggestions = suggestionLines
         .map(line => line.replace(/^\d+\.\s*/, '').trim())
         .filter(s => s.length > 5)
@@ -1763,6 +2035,12 @@ app.post("/api/lessons/:id/mindmap", async (req, res) => {
     const lessonId = req.params.id;
     const lesson = getLesson(lessonId);
     if (!lesson || !lesson.plan) return res.status(404).json({ error: "Plan not found" });
+
+    // Cache: return cached mindmap if available (bypass with ?force=true)
+    const forceRegen = req.query.force === 'true';
+    if (!forceRegen && lesson.mindmapCache?.code) {
+      return res.json({ ok: true, code: lesson.mindmapCache.code, cached: true });
+    }
 
     // Extract useful data from lesson
     const plan = lesson.plan as any;
@@ -1886,7 +2164,10 @@ Make it helpful for exam preparation.
 OUTPUT ONLY the mermaid code, nothing else.
 `;
 
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: 1500 },
+    });
     let code = result.response.text();
 
     // ULTRA-AGGRESSIVE SANITIZATION to prevent syntax errors
@@ -1946,6 +2227,9 @@ OUTPUT ONLY the mermaid code, nothing else.
 
     console.log("[Mindmap] Generated code:", code.substring(0, 400));
 
+    // Save to cache
+    upsertLesson({ id: lessonId, mindmapCache: { code, generatedAt: new Date().toISOString() } } as any);
+
     return res.json({ ok: true, code });
   } catch (e: any) {
     console.error("Mindmap error:", e);
@@ -1998,6 +2282,14 @@ app.post("/api/lessons/:id/mindmap/module", async (req, res) => {
 
     const lesson = getLesson(lessonId);
     if (!lesson || !lesson.plan) return res.status(404).json({ error: "Plan not found" });
+
+    // Cache: return cached module mindmap if available (bypass with ?force=true)
+    const forceRegen = req.query.force === 'true';
+    const cacheKey = String(moduleIndex);
+    const cached = lesson.mindmapModuleCache?.[cacheKey];
+    if (!forceRegen && cached?.code) {
+      return res.json({ ok: true, code: cached.code, moduleTitle: (cached as any).moduleTitle || "", cached: true });
+    }
 
     const plan = lesson.plan as any;
     const modules = plan.modules || [];
@@ -2073,7 +2365,10 @@ mindmap
 Create mindmap for "${targetTitle}". OUTPUT ONLY mermaid code.
 `;
 
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: 1200 },
+    });
     let code = result.response.text();
 
     // Sanitization (same as main mindmap)
@@ -2113,6 +2408,11 @@ Create mindmap for "${targetTitle}". OUTPUT ONLY mermaid code.
 
     code = cleanLines.join("\n");
     console.log("[Mindmap Module] Generated:", code.substring(0, 300));
+
+    // Save to module cache
+    const existingModuleCache = lesson.mindmapModuleCache || {};
+    existingModuleCache[cacheKey] = { code, generatedAt: new Date().toISOString(), moduleTitle: targetTitle } as any;
+    upsertLesson({ id: lessonId, mindmapModuleCache: existingModuleCache } as any);
 
     return res.json({ ok: true, code, moduleTitle: targetTitle });
   } catch (e: any) {
@@ -2211,7 +2511,10 @@ Return ONLY valid JSON:
 `;
     }
 
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: 800 },
+    });
     let responseText = result.response.text();
 
     // Clean and parse JSON
@@ -2297,8 +2600,424 @@ app.post("/api/quiz/:packId/submit", (req, res) => {
   res.json(result);
 });
 
-// ---- server ----
+// ========== WEAKNESS TRACKER API ==========
+app.get("/api/weakness", (_req, res) => {
+  res.json({ ok: true, ...getGlobalWeaknessSummary() });
+});
+
+app.get("/api/weakness/:lessonId", (req, res) => {
+  const analysis = getWeaknessForLesson(req.params.lessonId);
+  if (!analysis) return res.status(404).json({ ok: false, error: "No analysis found" });
+  res.json({ ok: true, analysis });
+});
+
+app.post("/api/weakness/analyze", (_req, res) => {
+  const analyses = analyzeAllWeaknesses();
+  res.json({ ok: true, analyses, summary: getGlobalWeaknessSummary() });
+});
+
+app.post("/api/weakness/:lessonId/analyze", (req, res) => {
+  const analysis = analyzeLessonWeakness(req.params.lessonId);
+  if (!analysis) return res.status(404).json({ ok: false, error: "Lesson not found" });
+  res.json({ ok: true, analysis });
+});
+
+// ========== FLASHCARD / SPACED REPETITION API ==========
+app.post("/api/flashcards/generate/:lessonId", (req, res) => {
+  const cards = generateFlashcardsForLesson(req.params.lessonId);
+  res.json({ ok: true, generated: cards.length, cards });
+});
+
+app.get("/api/flashcards/due", (_req, res) => {
+  const cards = getDueCards();
+  res.json({ ok: true, cards });
+});
+
+app.post("/api/flashcards/:cardId/review", (req, res) => {
+  const { quality } = req.body as { quality: number };
+  if (typeof quality !== "number" || quality < 0 || quality > 5) {
+    return res.status(400).json({ ok: false, error: "quality must be 0-5" });
+  }
+  const result = reviewCard(req.params.cardId, quality);
+  if (!result) return res.status(404).json({ ok: false, error: "Card not found" });
+  res.json({ ok: true, ...result });
+});
+
+app.get("/api/flashcards/stats", (_req, res) => {
+  res.json({ ok: true, ...getFlashcardStats() });
+});
+
+app.get("/api/flashcards", (req, res) => {
+  const lessonId = req.query.lessonId as string | undefined;
+  const cards = getFlashcards(lessonId);
+  res.json({ ok: true, cards });
+});
+
+app.delete("/api/flashcards/:cardId", (req, res) => {
+  const ok = deleteFlashcard(req.params.cardId);
+  if (!ok) return res.status(404).json({ ok: false, error: "Card not found" });
+  res.json({ ok: true });
+});
+
+app.post("/api/flashcards", (req, res) => {
+  const { lessonId, front, back, topicName } = req.body as {
+    lessonId: string; front: string; back: string; topicName?: string;
+  };
+  if (!lessonId || !front || !back) {
+    return res.status(400).json({ ok: false, error: "lessonId, front, back required" });
+  }
+  const cards = loadFlashcards();
+  const card = createCard(lessonId, topicName || "", front, back, "ai-generated");
+  cards.push(card);
+  saveFlashcards(cards);
+  res.json({ ok: true, card });
+});
+
+// ========== SPRINT API ==========
+app.get("/api/sprint/settings", (_req, res) => {
+  res.json({ ok: true, settings: getSprintSettings() });
+});
+
+app.put("/api/sprint/settings", (req, res) => {
+  const settings = updateSprintSettings(req.body);
+  res.json({ ok: true, settings });
+});
+
+app.post("/api/sprint/sessions", (req, res) => {
+  const { lessonId } = req.body as { lessonId?: string };
+  const session = createSprintSession(lessonId);
+  res.json({ ok: true, session });
+});
+
+app.patch("/api/sprint/sessions/:id", (req, res) => {
+  const session = updateSprintSession(req.params.id, req.body);
+  if (!session) return res.status(404).json({ ok: false, error: "Session not found" });
+  res.json({ ok: true, session });
+});
+
+app.get("/api/sprint/stats", (_req, res) => {
+  res.json({ ok: true, ...getSprintStats() });
+});
+
+app.get("/api/sprint/focus/:lessonId", async (req, res) => {
+  try {
+    const lessonId = req.params.lessonId;
+    const lesson = getLesson(lessonId);
+    if (!lesson) return res.status(404).json({ ok: false, error: "Lesson not found" });
+
+    const weakness = getWeaknessForLesson(lessonId);
+    const weakTopics = weakness?.topics?.filter((t) => t.isWeak) || [];
+    const dueCards = getDueCards().filter((c) => c.lessonId === lessonId).slice(0, 5);
+    const cheatHighlights = lesson.cheatSheet?.pitfalls?.slice(0, 3) || [];
+    const emphases = (lesson.plan?.emphases || lesson.professorEmphases || []).slice(0, 5);
+
+    res.json({
+      ok: true,
+      focus: {
+        weakTopics: weakTopics.map((t) => t.topicName),
+        dueFlashcards: dueCards.length,
+        cheatHighlights,
+        emphases: emphases.map((e: any) => e.statement),
+      },
+    });
+  } catch (e: any) {
+    res.status(500).json({ ok: false, error: e?.message || "server error" });
+  }
+});
+
+// ========== CONNECTIONS API ==========
+app.get("/api/connections", (_req, res) => {
+  try {
+    const connections = getConnections();
+    res.json({ ok: true, connections });
+  } catch (err: any) {
+    console.error("GET /api/connections error:", err);
+    res.status(500).json({ ok: false, error: err.message || "Failed to get connections" });
+  }
+});
+
+app.post("/api/connections/build", (_req, res) => {
+  try {
+    const connections = buildConnections();
+    res.json({ ok: true, connections });
+  } catch (err: any) {
+    console.error("POST /api/connections/build error:", err);
+    res.status(500).json({ ok: false, error: err.message || "Failed to build connections" });
+  }
+});
+
+// ========== SHARES API ==========
+app.post("/api/shares", (req, res) => {
+  const { lessonId, createdBy } = req.body as { lessonId: string; createdBy?: string };
+  if (!lessonId) return res.status(400).json({ ok: false, error: "lessonId is required" });
+  const share = createShare(lessonId, createdBy);
+  if (!share) return res.status(404).json({ ok: false, error: "Lesson not found" });
+  res.json({ ok: true, share });
+});
+
+app.get("/api/shares/:shareId", (req, res) => {
+  const share = getShare(req.params.shareId);
+  if (!share) return res.status(404).json({ ok: false, error: "Share not found or expired" });
+  res.json({ ok: true, share });
+});
+
+app.post("/api/shares/:shareId/comments", (req, res) => {
+  const { author, text } = req.body as { author: string; text: string };
+  if (!text) return res.status(400).json({ ok: false, error: "text is required" });
+  const share = addComment(req.params.shareId, author, text);
+  if (!share) return res.status(404).json({ ok: false, error: "Share not found" });
+  res.json({ ok: true, share });
+});
+
+app.get("/api/shares", (_req, res) => {
+  const shares = listShares();
+  res.json({ ok: true, shares });
+});
+
+app.delete("/api/shares/:shareId", (req, res) => {
+  const ok = deleteShare(req.params.shareId);
+  if (!ok) return res.status(404).json({ ok: false, error: "Share not found" });
+  res.json({ ok: true });
+});
+
+app.post("/api/shares/:shareId/import", (req, res) => {
+  const share = getShare(req.params.shareId);
+  if (!share) return res.status(404).json({ ok: false, error: "Share not found" });
+  // Import = create a new lesson from shared bundle
+  const newLesson = upsertLesson({
+    title: `[Imported] ${share.bundle.title}`,
+    plan: share.bundle.plan,
+    cheatSheet: share.bundle.cheatSheet,
+    professorEmphases: share.bundle.emphases,
+  } as any);
+  res.json({ ok: true, lessonId: newLesson.id, lesson: newLesson });
+});
+
+// ============ Rooms API ============
+
+app.post("/api/rooms", (req, res) => {
+  const { name, hostId, settings, lessonId, lessonTitle } = req.body;
+  if (!name || !hostId) return res.status(400).json({ ok: false, error: "name and hostId required" });
+  if (!lessonId) return res.status(400).json({ ok: false, error: "lessonId is required - every room must be linked to a lesson" });
+  const room = createRoom(name, hostId, settings, lessonId, lessonTitle || "");
+  res.json({ ok: true, room });
+});
+
+app.get("/api/rooms", (_req, res) => {
+  const rooms = listActiveRooms();
+  res.json({ ok: true, rooms });
+});
+
+app.get("/api/rooms/my/:userId", (req, res) => {
+  const rooms = getRoomsByUserId(req.params.userId);
+  res.json({ ok: true, rooms });
+});
+
+app.get("/api/rooms/code/:code", (req, res) => {
+  const room = getRoomByCode(req.params.code);
+  if (!room) return res.status(404).json({ ok: false, error: "Room not found" });
+  res.json({ ok: true, room });
+});
+
+app.get("/api/rooms/:id", (req, res) => {
+  const room = getRoomById(req.params.id);
+  if (!room) return res.status(404).json({ ok: false, error: "Room not found" });
+  res.json({ ok: true, room });
+});
+
+app.get("/api/rooms/:id/workspace", (req, res) => {
+  const room = getRoomById(req.params.id);
+  if (!room) return res.status(404).json({ ok: false, error: "Room not found" });
+  const workspace = loadWorkspace(req.params.id);
+  res.json({ ok: true, workspace });
+});
+
+app.delete("/api/rooms/:id", (req, res) => {
+  const requesterId = req.query.userId as string | undefined;
+  const ok = deleteRoom(req.params.id, requesterId);
+  if (!ok) return res.status(404).json({ ok: false, error: "Room not found or not authorized" });
+  res.json({ ok: true });
+});
+
+// ============ Room Deep Dive Chat (AI) ============
+
+app.post("/api/rooms/:id/deepdive/ask", async (req, res) => {
+  try {
+    const room = getRoomById(req.params.id);
+    if (!room) return res.status(404).json({ ok: false, error: "Room not found" });
+
+    const { message, history } = req.body;
+    const lessonId = room.lessonId;
+    if (!lessonId) return res.status(400).json({ ok: false, error: "Room has no linked lesson" });
+
+    const lesson = getLesson(lessonId);
+    if (!lesson) return res.status(404).json({ ok: false, error: "Linked lesson not found" });
+
+    const plan = lesson.plan as any;
+    const modules = plan?.modules || [];
+    const emphases = (lesson as any).professorEmphases || plan?.emphases || [];
+
+    // Use condensed context when plan is available
+    const { lecContext: roomLec, sldContext: roomSld } = buildCondensedContext(lesson);
+
+    const context = `
+=== LESSON INFORMATION ===
+Title: ${lesson.title || "Untitled Lesson"}
+
+=== KEY TOPICS ===
+${modules.slice(0, 6).map((m: any, i: number) => `${i + 1}. ${m.title || m.name || 'Topic'}: ${m.goal || ''}`).join('\n') || 'Not available'}
+
+=== PROFESSOR EMPHASES ===
+${emphases.slice(0, 6).map((e: any) => `- ${e.statement || e}${e.why ? ` (${e.why})` : ''}`).join('\n') || 'None'}
+
+=== TRANSCRIPT EXCERPT ===
+${roomLec.slice(0, 6000)}
+
+=== SLIDE CONTENT EXCERPT ===
+${roomSld.slice(0, 4000)}
+`;
+
+    const recentHistory = (history || []).slice(-10);
+    const chat = model.startChat({
+      history: recentHistory.map((h: any) => ({
+        role: h.role === 'user' ? 'user' : 'model',
+        parts: [{ text: h.content || h.text }]
+      })),
+      generationConfig: { maxOutputTokens: 2500 },
+    });
+
+    const prompt = `You are a collaborative study assistant for a group of students studying together. Use this lesson context to help them:
+
+${context}
+
+Student question: ${message}
+
+Respond helpfully, concisely, and with academic accuracy. If the question relates to the lesson content, reference specific details. Always respond in the same language as the question. Also suggest 2-3 follow-up questions at the end labeled as "Suggested:".`;
+
+    const result = await chat.sendMessage(prompt);
+    const text = result.response.text();
+
+    // Extract suggestions
+    const suggestionsMatch = text.match(/Suggested:?\s*\n([\s\S]*?)$/i);
+    let suggestions: string[] = [];
+    let cleanText = text;
+    if (suggestionsMatch) {
+      cleanText = text.slice(0, suggestionsMatch.index).trim();
+      suggestions = suggestionsMatch[1]
+        .split('\n')
+        .map((s: string) => s.replace(/^[-*\d.)\s]+/, '').trim())
+        .filter((s: string) => s.length > 0)
+        .slice(0, 3);
+    }
+
+    res.json({ ok: true, text: cleanText, suggestions });
+  } catch (err: any) {
+    console.error("Room deep dive error:", err);
+    res.status(500).json({ ok: false, error: err.message || "AI chat failed" });
+  }
+});
+
+// ============ Room Flashcard Generation (AI) ============
+
+app.post("/api/rooms/:id/flashcards/generate", async (req, res) => {
+  try {
+    const room = getRoomById(req.params.id);
+    if (!room) return res.status(404).json({ ok: false, error: "Room not found" });
+
+    const lessonId = room.lessonId;
+    if (!lessonId) return res.status(400).json({ ok: false, error: "Room has no linked lesson" });
+
+    const lesson = getLesson(lessonId);
+    if (!lesson) return res.status(404).json({ ok: false, error: "Linked lesson not found" });
+
+    const plan = lesson.plan as any;
+    const emphases = (lesson as any).professorEmphases || plan?.emphases || [];
+    const modules = plan?.modules || [];
+
+    // Use condensed context
+    const { lecContext: fcLec } = buildCondensedContext(lesson);
+    const context = `
+Title: ${lesson.title}
+Topics: ${modules.map((m: any) => m.title || m.name).join(', ')}
+Key Emphases: ${emphases.slice(0, 5).map((e: any) => e.statement || e).join('; ')}
+Transcript excerpt: ${fcLec.slice(0, 3000)}
+`;
+
+    const prompt = `Generate 8 high-quality flashcards for collaborative study based on this lesson content:
+
+${context}
+
+Return a JSON array of objects with "front", "back", and "topicName" fields.
+Make cards focused on key concepts, definitions, and important relationships.
+Vary difficulty. Return ONLY valid JSON array, no other text.`;
+
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: 2000 },
+    });
+    const raw = result.response.text();
+
+    // Parse JSON from response
+    const jsonMatch = raw.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) {
+      return res.status(500).json({ ok: false, error: "Failed to parse AI response" });
+    }
+
+    const cards = JSON.parse(jsonMatch[0]);
+    res.json({ ok: true, cards });
+  } catch (err: any) {
+    console.error("Room flashcard generation error:", err);
+    res.status(500).json({ ok: false, error: err.message || "Generation failed" });
+  }
+});
+
+// ============ Room Mind Map AI Ask ============
+
+app.post("/api/rooms/:id/mindmap/ask", async (req, res) => {
+  try {
+    const room = getRoomById(req.params.id);
+    if (!room) return res.status(404).json({ ok: false, error: "Room not found" });
+
+    const { nodeLabel, question } = req.body;
+    const lessonId = room.lessonId;
+    if (!lessonId) return res.status(400).json({ ok: false, error: "Room has no linked lesson" });
+
+    const lesson = getLesson(lessonId);
+    if (!lesson) return res.status(404).json({ ok: false, error: "Linked lesson not found" });
+
+    // Use condensed context
+    const { lecContext: mmLec } = buildCondensedContext(lesson);
+    const prompt = `You are helping students understand the topic "${nodeLabel}" from the lesson "${lesson.title}".
+
+Lesson context: ${mmLec.slice(0, 3000)}
+
+Student question: ${question || `Explain "${nodeLabel}" in detail`}
+
+Provide a clear, concise explanation. Respond in the same language as the question.`;
+
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: 1500 },
+    });
+    const text = result.response.text();
+
+    res.json({ ok: true, text });
+  } catch (err: any) {
+    console.error("Room mindmap AI error:", err);
+    res.status(500).json({ ok: false, error: err.message || "AI failed" });
+  }
+});
+
+// ---- server with Socket.IO ----
 const PORT = Number(process.env.PORT || 4000);
-app.listen(PORT, "0.0.0.0", () => {
+const httpServer = http.createServer(app);
+const io = new SocketServer(httpServer, {
+  cors: { origin: true, credentials: true },
+});
+
+// ---- Socket.IO: Delegated to socketHandler.ts ----
+setupSocketHandler(io);
+
+httpServer.listen(PORT, "0.0.0.0", () => {
   console.log(`✅ Backend running at http://localhost:${PORT}`);
 });

@@ -1,0 +1,119 @@
+/* =========================================
+   LearnCraft – Input / Textarea Component
+   ========================================= */
+
+.lc-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.lc-input-wrapper--full {
+  width: 100%;
+}
+
+.lc-input-label {
+  font-weight: var(--font-bold);
+  font-size: var(--text-sm);
+  color: var(--text);
+}
+
+.lc-input-field {
+  width: 100%;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  outline: none;
+  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.02);
+  transition:
+    background var(--duration-base) var(--ease-in-out),
+    border-color var(--duration-base) var(--ease-in-out),
+    box-shadow var(--duration-base) var(--ease-in-out);
+}
+
+.lc-input-field::placeholder {
+  color: var(--muted);
+}
+
+.lc-input-field:focus {
+  background: var(--card);
+  border-color: var(--accent-2);
+  box-shadow: 0 0 0 6px var(--ring), inset 0 1px 0 rgba(0, 0, 0, 0.02);
+}
+
+/* --- Sizes --- */
+.lc-input-field--sm {
+  padding: var(--space-1-5) var(--space-2-5);
+  font-size: var(--text-sm);
+  border-radius: var(--radius-xs);
+}
+
+.lc-input-field--md {
+  padding: var(--space-2-5) var(--space-3);
+  font-size: var(--text-base);
+}
+
+.lc-input-field--lg {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-md);
+}
+
+/* --- With icons --- */
+.lc-input-icon-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.lc-input-icon-wrap .lc-input-field {
+  width: 100%;
+}
+
+.lc-input-icon-wrap--left .lc-input-field {
+  padding-left: var(--space-10);
+}
+
+.lc-input-icon-wrap--right .lc-input-field {
+  padding-right: var(--space-10);
+}
+
+.lc-input-icon {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  pointer-events: none;
+  width: var(--space-10);
+}
+
+.lc-input-icon--left { left: 0; }
+.lc-input-icon--right { right: 0; }
+
+/* --- Error state --- */
+.lc-input-field--error {
+  border-color: var(--danger);
+}
+
+.lc-input-field--error:focus {
+  box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.15), inset 0 1px 0 rgba(0, 0, 0, 0.02);
+}
+
+.lc-input-error {
+  font-size: var(--text-xs);
+  color: var(--danger);
+}
+
+.lc-input-helper {
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+
+/* --- Textarea specific --- */
+.lc-textarea-field {
+  resize: vertical;
+  min-height: 100px;
+}

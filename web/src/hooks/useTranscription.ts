@@ -38,7 +38,7 @@ export function useTranscription() {
         }
         toastTimerRef.current = setTimeout(() => {
             ui.setSttProgress({ toast: null });
-        }, 1200);
+        }, 4000);
     }, [ui]);
 
     const startTranscription = useCallback(async (file: File) => {

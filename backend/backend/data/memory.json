@@ -150,89 +150,647 @@
     "Nonvolatile Memory (NVM/SSD)",
     "Disk Performance Metrics",
     "HDD Scheduling Algorithms (FCFS, SCAN, C-SCAN)",
-    "NVM Scheduling"
+    "NVM Scheduling",
+    "I/O Performance",
+    "RAID Structure",
+    "Disk Scheduling",
+    "Storage Management",
+    "Access Time",
+    "Physical structure of storage devices",
+    "HDD performance metrics (seek time, rotational latency, transfer rate)",
+    "Total I/O time calculation",
+    "Disk I/O scheduling algorithms (FCFS, SCAN, C-SCAN, SSTF, Deadline)",
+    "Storage device interfaces (SATA, NVMe)",
+    "Error detection and correction (ECC, CRC)",
+    "Storage device management (formatting, partitioning, swap space)"
   ],
   "recentEmphases": [
     {
-      "statement": "Modern operating systems use more sophisticated scheduling algorithms, like the Linux deadline scheduler, to prevent starvation and balance different I/O types.",
-      "why": "This connects the theoretical algorithms (SCAN, etc.) to real-world implementations, showing students the practical relevance. It's a point of emphasis that bridges theory and practice."
+      "statement": "Solid State Drives (SSDs) offer much faster performance due to no moving parts but have challenges like limited write cycles and require special management techniques such as wear leveling and garbage collection.",
+      "why": "Understanding the fundamental differences between HDDs and SSDs, beyond just 'faster,' is critical. The specific challenges and the OS/controller mechanisms to overcome them (wear leveling, garbage collection) are key to understanding their design and limitations, which are likely exam topics."
     },
     {
-      "statement": "NVM (SSDs) are fundamentally different from HDDs; they lack moving parts but have unique challenges like wear-leveling and garbage collection.",
-      "why": "Understanding the trade-offs between modern and traditional storage is crucial. The unique constraints of NVMs are a key differentiator and a common source of conceptual questions."
+      "statement": "Accurately calculating total I/O access time by summing seek time, rotational latency, transfer time, and controller overhead is a crucial skill.",
+      "why": "The teacher dedicates significant time to walking through an example calculation, indicating its importance for quantitative understanding and likely exam scenarios. This practical application reinforces theoretical concepts."
     },
     {
-      "statement": "The SCAN algorithm, also known as the elevator algorithm, services requests in one direction until it hits the end, then reverses.",
-      "why": "The use of an analogy ('elevator algorithm') makes the concept more memorable and easier to understand. Teachers use such analogies for key concepts they want students to retain."
+      "statement": "Positional delay (seek time) is the dominating factor in determining the overall I/O time for Hard Disk Drives.",
+      "why": "This highlights the primary bottleneck in HDD performance and justifies the existence and importance of disk scheduling algorithms, which primarily aim to minimize seek time. This concept is fundamental for evaluating and optimizing disk performance."
     },
     {
-      "statement": "Disk scheduling algorithms are essential for optimizing HDD performance by minimizing head movement, and you must be able to trace and compare them.",
-      "why": "This is a classic operating systems concept. Exam questions frequently require students to trace algorithms like FCFS, SCAN, and C-SCAN for a given request queue and compare their efficiency."
+      "statement": "Disk heads must not physically contact the platters; contact results in a 'head crash' which damages the disk.",
+      "why": "This is a critical practical detail about HDD fragility and operational limits, explaining why physical shocks are detrimental and underscoring the precision engineering involved. It's often an important point for practical understanding and troubleshooting."
     },
     {
-      "statement": "Calculating HDD I/O performance is a critical skill, requiring you to combine seek time, latency, and transfer time.",
-      "why": "This is a quantitative, problem-solving task that is highly likely to appear on an exam. Understanding this calculation demonstrates a deep comprehension of physical disk limitations."
+      "statement": "The physical structure of a hard disk drive directly impacts its performance, particularly concerning seek time.",
+      "why": "Understanding the mechanical aspects (platters, heads, arm movement) is foundational to grasping why I/O performance is slower than CPU/RAM and why scheduling algorithms are necessary. This is a core concept for performance analysis."
     },
     {
-      "statement": "Page replacement is the necessary solution for when a page fault occurs but there are no free frames.",
-      "why": "This concept sets the stage for the next major topic in memory management. Understanding the *problem* (no free frames) is crucial before studying the *solutions* (FIFO, LRU, Optimal algorithms)."
+      "statement": "Hard Disk Drives (HDDs) remain critically important, especially for data centers and AI, despite the rise of Solid State Drives (SSDs).",
+      "why": "This challenges the common perception that HDDs are obsolete, highlighting their continued relevance in high-capacity, cost-effective storage scenarios for large-scale data, which is highly relevant for understanding modern computing infrastructure and potential exam questions on future trends."
     },
     {
-      "statement": "The valid-invalid bit is the essential hardware mechanism that makes demand paging possible.",
-      "why": "Without understanding this bit, you cannot understand how the system detects that a page is not in memory and triggers the page fault trap. It's the switch that makes the whole system work."
+      "statement": "Solid State Drives (SSDs) offer much faster performance due to no moving parts but have challenges like limited write cycles and require special management techniques such as wear leveling and garbage collection.",
+      "why": "Understanding the fundamental differences between HDDs and SSDs, beyond just 'faster,' is critical. The specific challenges and the OS/controller mechanisms to overcome them (wear leveling, garbage collection) are key to understanding their design and limitations, which are likely exam topics."
     },
     {
-      "statement": "The fundamental concept of virtual memory is the separation of the user's logical address space from the machine's physical memory.",
-      "why": "This is the foundational idea upon which the entire chapter is built. All other concepts, like demand paging and page replacement, are implementations of this core principle."
+      "statement": "Accurately calculating total I/O access time by summing seek time, rotational latency, transfer time, and controller overhead is a crucial skill.",
+      "why": "The teacher dedicates significant time to walking through an example calculation, indicating its importance for quantitative understanding and likely exam scenarios. This practical application reinforces theoretical concepts."
     },
     {
-      "statement": "Calculating Effective Access Time (EAT) is the key method to quantify the performance of a demand-paged system.",
-      "why": "This is a common quantitative problem on exams. You must be able to apply the formula correctly to show you understand the performance trade-offs of virtual memory."
+      "statement": "Positional delay (seek time) is the dominating factor in determining the overall I/O time for Hard Disk Drives.",
+      "why": "This highlights the primary bottleneck in HDD performance and justifies the existence and importance of disk scheduling algorithms, which primarily aim to minimize seek time. This concept is fundamental for evaluating and optimizing disk performance."
     },
     {
-      "statement": "The step-by-step process of handling a page fault is a critical OS procedure that you must know.",
-      "why": "This is a classic operating systems exam question. Understanding this detailed sequence demonstrates a deep knowledge of how virtual memory is implemented."
+      "statement": "Disk heads must not physically contact the platters; contact results in a 'head crash' which damages the disk.",
+      "why": "This is a critical practical detail about HDD fragility and operational limits, explaining why physical shocks are detrimental and underscoring the precision engineering involved. It's often an important point for practical understanding and troubleshooting."
     },
     {
-      "statement": "Page replacement is necessary when there are no free frames, requiring an algorithm to select a 'victim' page to swap out.",
-      "why": "This sets the stage for upcoming discussions on specific page replacement algorithms (FIFO, LRU, Optimal mentioned in LO3), explaining the fundamental problem they solve."
+      "statement": "The physical structure of a hard disk drive directly impacts its performance, particularly concerning seek time.",
+      "why": "Understanding the mechanical aspects (platters, heads, arm movement) is foundational to grasping why I/O performance is slower than CPU/RAM and why scheduling algorithms are necessary. This is a core concept for performance analysis."
     },
     {
-      "statement": "Copy-on-Write (COW) improves process creation efficiency by sharing pages between parent and child until a modification occurs.",
-      "why": "COW is a specific, important optimization mechanism that directly addresses the overhead of creating new processes, a common OS task."
+      "statement": "Hard Disk Drives (HDDs) remain critically important, especially for data centers and AI, despite the rise of Solid State Drives (SSDs).",
+      "why": "This challenges the common perception that HDDs are obsolete, highlighting their continued relevance in high-capacity, cost-effective storage scenarios for large-scale data, which is highly relevant for understanding modern computing infrastructure and potential exam questions on future trends."
     },
     {
-      "statement": "The Effective Access Time (EAT) for demand paging is highly sensitive to the page-fault rate, and even small fault rates can drastically degrade performance.",
-      "why": "This formula and its implications demonstrate the practical challenges of virtual memory and highlight why page fault rates must be minimized, crucial for exam problems."
+      "statement": "Solid State Drives (SSDs) offer much faster performance due to no moving parts but have challenges like limited write cycles and require special management techniques such as wear leveling and garbage collection.",
+      "why": "Understanding the fundamental differences between HDDs and SSDs, beyond just 'faster,' is critical. The specific challenges and the OS/controller mechanisms to overcome them (wear leveling, garbage collection) are key to understanding their design and limitations, which are likely exam topics."
     },
     {
-      "statement": "Page fault handling is a multi-step process involving the OS, page tables, and disk I/O, which must be efficient.",
-      "why": "Understanding the detailed process of a page fault is crucial for comprehending system overhead and the importance of performance metrics like EAT."
+      "statement": "Accurately calculating total I/O access time by summing seek time, rotational latency, transfer time, and controller overhead is a crucial skill.",
+      "why": "The teacher dedicates significant time to walking through an example calculation, indicating its importance for quantitative understanding and likely exam scenarios. This practical application reinforces theoretical concepts."
     },
     {
-      "statement": "Demand paging loads pages into memory only when they are needed, optimizing I/O and memory usage.",
-      "why": "This is the primary mechanism discussed for implementing virtual memory, essential for understanding how the system actually works."
+      "statement": "Positional delay (seek time) is the dominating factor in determining the overall I/O time for Hard Disk Drives.",
+      "why": "This highlights the primary bottleneck in HDD performance and justifies the existence and importance of disk scheduling algorithms, which primarily aim to minimize seek time. This concept is fundamental for evaluating and optimizing disk performance."
     },
     {
-      "statement": "Virtual Memory separates user logical memory from physical memory, allowing programs to run even if not fully in physical memory.",
-      "why": "This is the foundational definition and core benefit, critical for understanding all subsequent topics."
+      "statement": "Disk heads must not physically contact the platters; contact results in a 'head crash' which damages the disk.",
+      "why": "This is a critical practical detail about HDD fragility and operational limits, explaining why physical shocks are detrimental and underscoring the precision engineering involved. It's often an important point for practical understanding and troubleshooting."
     },
     {
-      "statement": "Gray background slides are not covered.",
-      "why": "This is a direct instruction from the instructor on what content to exclude from study, crucial for exam focus."
+      "statement": "The physical structure of a hard disk drive directly impacts its performance, particularly concerning seek time.",
+      "why": "Understanding the mechanical aspects (platters, heads, arm movement) is foundational to grasping why I/O performance is slower than CPU/RAM and why scheduling algorithms are necessary. This is a core concept for performance analysis."
     },
     {
-      "statement": "Perfectly competitive markets achieve both productive and allocative efficiency.",
-      "why": "These efficiency concepts are key benefits attributed to perfectly competitive markets and are often contrasted with other market structures. Understanding what they mean and why P=MC is crucial is essential."
+      "statement": "Hard Disk Drives (HDDs) remain critically important, especially for data centers and AI, despite the rise of Solid State Drives (SSDs).",
+      "why": "This challenges the common perception that HDDs are obsolete, highlighting their continued relevance in high-capacity, cost-effective storage scenarios for large-scale data, which is highly relevant for understanding modern computing infrastructure and potential exam questions on future trends."
     },
     {
-      "statement": "In the long run, perfectly competitive firms earn zero economic profits due to free entry and exit.",
-      "why": "This is a hallmark outcome of perfect competition and explains how market adjustments lead to an equilibrium where firms cover all their costs but make no 'extra' profit."
+      "statement": "The primary problems declarative UI aims to solve are the 'source of information' issue (data synchronization chaos) and the inherent difficulty humans have maintaining complex UI tree structures.",
+      "why": "Understanding the problems that declarative UI was invented to solve provides the fundamental motivation for its existence and helps students appreciate the benefits of this paradigm. This foundational understanding is important for analytical questions."
     },
     {
-      "statement": "Firms face a 'shutdown point' where they cease operations if price falls below average variable cost, distinguishing it from the 'break-even point'.",
-      "why": "The distinction between short-run operational decisions (shutdown) and long-run exit decisions (break-even) is crucial for understanding firm survival and market dynamics. This is often a point of confusion and therefore an exam focus."
+      "statement": "Advanced state management solutions (e.g., Redux, MobX, Provider) should only be adopted after mastering basic state management (`setState`) and experiencing a genuine need for them in complex applications.",
+      "why": "This practical advice prevents premature over-engineering, ensures a solid understanding of fundamental data flow, and avoids introducing unnecessary complexity into simpler projects. It’s crucial for making informed architectural decisions in real-world development."
     }
   ],
-  "lastUpdated": "2026-01-11T21:50:43.188Z"
+  "lastUpdated": "2026-01-31T23:28:59.088Z",
+  "connections": [
+    {
+      "concept": "imperative programming",
+      "lessonIds": [
+        "lec-1764808314795"
+      ],
+      "lessonTitles": [
+        "Lecture 07.12.2025"
+      ],
+      "strength": 0.65,
+      "relatedConcepts": [
+        "declarative programming",
+        "mobile ui frameworks (flutter, react native)",
+        "ui as a tree structure",
+        "unidirectional data flow",
+        "state management"
+      ]
+    },
+    {
+      "concept": "declarative programming",
+      "lessonIds": [
+        "lec-1764808314795"
+      ],
+      "lessonTitles": [
+        "Lecture 07.12.2025"
+      ],
+      "strength": 0.65,
+      "relatedConcepts": [
+        "imperative programming",
+        "mobile ui frameworks (flutter, react native)",
+        "ui as a tree structure",
+        "unidirectional data flow",
+        "state management"
+      ]
+    },
+    {
+      "concept": "mobile ui frameworks (flutter, react native)",
+      "lessonIds": [
+        "lec-1764808314795"
+      ],
+      "lessonTitles": [
+        "Lecture 07.12.2025"
+      ],
+      "strength": 0.65,
+      "relatedConcepts": [
+        "imperative programming",
+        "declarative programming",
+        "ui as a tree structure",
+        "unidirectional data flow",
+        "state management"
+      ]
+    },
+    {
+      "concept": "ui as a tree structure",
+      "lessonIds": [
+        "lec-1764808314795"
+      ],
+      "lessonTitles": [
+        "Lecture 07.12.2025"
+      ],
+      "strength": 0.65,
+      "relatedConcepts": [
+        "imperative programming",
+        "declarative programming",
+        "mobile ui frameworks (flutter, react native)",
+        "unidirectional data flow",
+        "state management"
+      ]
+    },
+    {
+      "concept": "unidirectional data flow",
+      "lessonIds": [
+        "lec-1764808314795"
+      ],
+      "lessonTitles": [
+        "Lecture 07.12.2025"
+      ],
+      "strength": 0.65,
+      "relatedConcepts": [
+        "imperative programming",
+        "declarative programming",
+        "mobile ui frameworks (flutter, react native)",
+        "ui as a tree structure",
+        "state management"
+      ]
+    },
+    {
+      "concept": "state management",
+      "lessonIds": [
+        "lec-1764808314795"
+      ],
+      "lessonTitles": [
+        "Lecture 07.12.2025"
+      ],
+      "strength": 0.65,
+      "relatedConcepts": [
+        "imperative programming",
+        "declarative programming",
+        "mobile ui frameworks (flutter, react native)",
+        "ui as a tree structure",
+        "unidirectional data flow"
+      ]
+    },
+    {
+      "concept": "hard disk drives (hdds)",
+      "lessonIds": [
+        "lec-1768448481012"
+      ],
+      "lessonTitles": [
+        "ce 323"
+      ],
+      "strength": 0.65,
+      "relatedConcepts": [
+        "solid state drives (ssds)",
+        "non-volatile memory (nvm)",
+        "disk scheduling",
+        "error detection and correction",
+        "storage management"
+      ]
+    },
+    {
+      "concept": "solid state drives (ssds)",
+      "lessonIds": [
+        "lec-1768448481012"
+      ],
+      "lessonTitles": [
+        "ce 323"
+      ],
+      "strength": 0.65,
+      "relatedConcepts": [
+        "hard disk drives (hdds)",
+        "non-volatile memory (nvm)",
+        "disk scheduling",
+        "error detection and correction",
+        "storage management"
+      ]
+    },
+    {
+      "concept": "non-volatile memory (nvm)",
+      "lessonIds": [
+        "lec-1768448481012"
+      ],
+      "lessonTitles": [
+        "ce 323"
+      ],
+      "strength": 0.65,
+      "relatedConcepts": [
+        "hard disk drives (hdds)",
+        "solid state drives (ssds)",
+        "disk scheduling",
+        "error detection and correction",
+        "storage management"
+      ]
+    },
+    {
+      "concept": "disk scheduling",
+      "lessonIds": [
+        "lec-1768448481012"
+      ],
+      "lessonTitles": [
+        "ce 323"
+      ],
+      "strength": 0.65,
+      "relatedConcepts": [
+        "hard disk drives (hdds)",
+        "solid state drives (ssds)",
+        "non-volatile memory (nvm)",
+        "error detection and correction",
+        "storage management"
+      ]
+    },
+    {
+      "concept": "error detection and correction",
+      "lessonIds": [
+        "lec-1768448481012"
+      ],
+      "lessonTitles": [
+        "ce 323"
+      ],
+      "strength": 0.65,
+      "relatedConcepts": [
+        "hard disk drives (hdds)",
+        "solid state drives (ssds)",
+        "non-volatile memory (nvm)",
+        "disk scheduling",
+        "storage management"
+      ]
+    },
+    {
+      "concept": "storage management",
+      "lessonIds": [
+        "lec-1768448481012"
+      ],
+      "lessonTitles": [
+        "ce 323"
+      ],
+      "strength": 0.65,
+      "relatedConcepts": [
+        "hard disk drives (hdds)",
+        "solid state drives (ssds)",
+        "non-volatile memory (nvm)",
+        "disk scheduling",
+        "error detection and correction"
+      ]
+    },
+    {
+      "concept": "access time",
+      "lessonIds": [
+        "lec-1768448481012"
+      ],
+      "lessonTitles": [
+        "ce 323"
+      ],
+      "strength": 0.65,
+      "relatedConcepts": [
+        "hard disk drives (hdds)",
+        "solid state drives (ssds)",
+        "non-volatile memory (nvm)",
+        "disk scheduling",
+        "error detection and correction"
+      ]
+    },
+    {
+      "concept": "raid structure",
+      "lessonIds": [
+        "lec-1768448481012"
+      ],
+      "lessonTitles": [
+        "ce 323"
+      ],
+      "strength": 0.65,
+      "relatedConcepts": [
+        "hard disk drives (hdds)",
+        "solid state drives (ssds)",
+        "non-volatile memory (nvm)",
+        "disk scheduling",
+        "error detection and correction"
+      ]
+    },
+    {
+      "concept": "the live lecture is the",
+      "lessonIds": [
+        "lec-1764808314795"
+      ],
+      "lessonTitles": [
+        "Lecture 07.12.2025"
+      ],
+      "strength": 0.4,
+      "relatedConcepts": [
+        "imperative programming",
+        "declarative programming",
+        "mobile ui frameworks (flutter, react native)",
+        "ui as a tree structure",
+        "unidirectional data flow"
+      ]
+    },
+    {
+      "concept": "flutter's developer experience, specifically hot",
+      "lessonIds": [
+        "lec-1764808314795"
+      ],
+      "lessonTitles": [
+        "Lecture 07.12.2025"
+      ],
+      "strength": 0.4,
+      "relatedConcepts": [
+        "imperative programming",
+        "declarative programming",
+        "mobile ui frameworks (flutter, react native)",
+        "ui as a tree structure",
+        "unidirectional data flow"
+      ]
+    },
+    {
+      "concept": "declarative ui programming fundamentally shifts",
+      "lessonIds": [
+        "lec-1764808314795"
+      ],
+      "lessonTitles": [
+        "Lecture 07.12.2025"
+      ],
+      "strength": 0.4,
+      "relatedConcepts": [
+        "imperative programming",
+        "declarative programming",
+        "mobile ui frameworks (flutter, react native)",
+        "ui as a tree structure",
+        "unidirectional data flow"
+      ]
+    },
+    {
+      "concept": "in declarative ui, developers should",
+      "lessonIds": [
+        "lec-1764808314795"
+      ],
+      "lessonTitles": [
+        "Lecture 07.12.2025"
+      ],
+      "strength": 0.4,
+      "relatedConcepts": [
+        "imperative programming",
+        "declarative programming",
+        "mobile ui frameworks (flutter, react native)",
+        "ui as a tree structure",
+        "unidirectional data flow"
+      ]
+    },
+    {
+      "concept": "advanced state management solutions (e.g.,",
+      "lessonIds": [
+        "lec-1764808314795"
+      ],
+      "lessonTitles": [
+        "Lecture 07.12.2025"
+      ],
+      "strength": 0.4,
+      "relatedConcepts": [
+        "imperative programming",
+        "declarative programming",
+        "mobile ui frameworks (flutter, react native)",
+        "ui as a tree structure",
+        "unidirectional data flow"
+      ]
+    },
+    {
+      "concept": "the primary problems declarative ui",
+      "lessonIds": [
+        "lec-1764808314795"
+      ],
+      "lessonTitles": [
+        "Lecture 07.12.2025"
+      ],
+      "strength": 0.4,
+      "relatedConcepts": [
+        "imperative programming",
+        "declarative programming",
+        "mobile ui frameworks (flutter, react native)",
+        "ui as a tree structure",
+        "unidirectional data flow"
+      ]
+    },
+    {
+      "concept": "module 1: foundations of declarative ui",
+      "lessonIds": [
+        "lec-1764808314795"
+      ],
+      "lessonTitles": [
+        "Lecture 07.12.2025"
+      ],
+      "strength": 0.4,
+      "relatedConcepts": [
+        "imperative programming",
+        "declarative programming",
+        "mobile ui frameworks (flutter, react native)",
+        "ui as a tree structure",
+        "unidirectional data flow"
+      ]
+    },
+    {
+      "concept": "module 2: declarative ui in modern mobile frameworks",
+      "lessonIds": [
+        "lec-1764808314795"
+      ],
+      "lessonTitles": [
+        "Lecture 07.12.2025"
+      ],
+      "strength": 0.4,
+      "relatedConcepts": [
+        "imperative programming",
+        "declarative programming",
+        "mobile ui frameworks (flutter, react native)",
+        "ui as a tree structure",
+        "unidirectional data flow"
+      ]
+    },
+    {
+      "concept": "module 3: data management in declarative uis",
+      "lessonIds": [
+        "lec-1764808314795"
+      ],
+      "lessonTitles": [
+        "Lecture 07.12.2025"
+      ],
+      "strength": 0.4,
+      "relatedConcepts": [
+        "imperative programming",
+        "declarative programming",
+        "mobile ui frameworks (flutter, react native)",
+        "ui as a tree structure",
+        "unidirectional data flow"
+      ]
+    },
+    {
+      "concept": "hard disks are still relevant",
+      "lessonIds": [
+        "lec-1768448481012"
+      ],
+      "lessonTitles": [
+        "ce 323"
+      ],
+      "strength": 0.4,
+      "relatedConcepts": [
+        "hard disk drives (hdds)",
+        "solid state drives (ssds)",
+        "non-volatile memory (nvm)",
+        "disk scheduling",
+        "error detection and correction"
+      ]
+    },
+    {
+      "concept": "transfer rate is an important",
+      "lessonIds": [
+        "lec-1768448481012"
+      ],
+      "lessonTitles": [
+        "ce 323"
+      ],
+      "strength": 0.4,
+      "relatedConcepts": [
+        "hard disk drives (hdds)",
+        "solid state drives (ssds)",
+        "non-volatile memory (nvm)",
+        "disk scheduling",
+        "error detection and correction"
+      ]
+    },
+    {
+      "concept": "positional delay, or seek time,",
+      "lessonIds": [
+        "lec-1768448481012"
+      ],
+      "lessonTitles": [
+        "ce 323"
+      ],
+      "strength": 0.4,
+      "relatedConcepts": [
+        "hard disk drives (hdds)",
+        "solid state drives (ssds)",
+        "non-volatile memory (nvm)",
+        "disk scheduling",
+        "error detection and correction"
+      ]
+    },
+    {
+      "concept": "the concept of cylinders is",
+      "lessonIds": [
+        "lec-1768448481012"
+      ],
+      "lessonTitles": [
+        "ce 323"
+      ],
+      "strength": 0.4,
+      "relatedConcepts": [
+        "hard disk drives (hdds)",
+        "solid state drives (ssds)",
+        "non-volatile memory (nvm)",
+        "disk scheduling",
+        "error detection and correction"
+      ]
+    },
+    {
+      "concept": "access time consists of positional",
+      "lessonIds": [
+        "lec-1768448481012"
+      ],
+      "lessonTitles": [
+        "ce 323"
+      ],
+      "strength": 0.4,
+      "relatedConcepts": [
+        "hard disk drives (hdds)",
+        "solid state drives (ssds)",
+        "non-volatile memory (nvm)",
+        "disk scheduling",
+        "error detection and correction"
+      ]
+    },
+    {
+      "concept": "error detection and correction is",
+      "lessonIds": [
+        "lec-1768448481012"
+      ],
+      "lessonTitles": [
+        "ce 323"
+      ],
+      "strength": 0.4,
+      "relatedConcepts": [
+        "hard disk drives (hdds)",
+        "solid state drives (ssds)",
+        "non-volatile memory (nvm)",
+        "disk scheduling",
+        "error detection and correction"
+      ]
+    },
+    {
+      "concept": "hdd fundamentals and performance",
+      "lessonIds": [
+        "lec-1768448481012"
+      ],
+      "lessonTitles": [
+        "ce 323"
+      ],
+      "strength": 0.4,
+      "relatedConcepts": [
+        "hard disk drives (hdds)",
+        "solid state drives (ssds)",
+        "non-volatile memory (nvm)",
+        "disk scheduling",
+        "error detection and correction"
+      ]
+    },
+    {
+      "concept": "solid state drives and memory management",
+      "lessonIds": [
+        "lec-1768448481012"
+      ],
+      "lessonTitles": [
+        "ce 323"
+      ],
+      "strength": 0.4,
+      "relatedConcepts": [
+        "hard disk drives (hdds)",
+        "solid state drives (ssds)",
+        "non-volatile memory (nvm)",
+        "disk scheduling",
+        "error detection and correction"
+      ]
+    },
+    {
+      "concept": "disk scheduling and storage management",
+      "lessonIds": [
+        "lec-1768448481012"
+      ],
+      "lessonTitles": [
+        "ce 323"
+      ],
+      "strength": 0.4,
+      "relatedConcepts": [
+        "hard disk drives (hdds)",
+        "solid state drives (ssds)",
+        "non-volatile memory (nvm)",
+        "disk scheduling",
+        "error detection and correction"
+      ]
+    }
+  ]
 }

@@ -1,0 +1,70 @@
+/* =========================================
+   LearnCraft – Card Component
+   ========================================= */
+
+.lc-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  transition:
+    box-shadow var(--duration-base) var(--ease-spring),
+    border-color var(--duration-base) var(--ease-spring),
+    transform var(--duration-base) var(--ease-spring);
+}
+
+/* --- Variants --- */
+.lc-card--elevated {
+  box-shadow: var(--shadow-md);
+}
+
+.lc-card--outlined {
+  box-shadow: none;
+}
+
+.lc-card--filled {
+  background: var(--input-bg);
+  box-shadow: none;
+}
+
+/* --- Padding --- */
+.lc-card--pad-none { padding: 0; }
+.lc-card--pad-sm { padding: var(--space-3); }
+.lc-card--pad-md { padding: var(--space-4); }
+.lc-card--pad-lg { padding: var(--space-6); }
+
+/* --- Hoverable --- */
+.lc-card--hoverable:hover {
+  border-color: var(--accent-2);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+/* --- Card sections --- */
+.lc-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-bottom: var(--space-3);
+}
+
+.lc-card__header:not(:last-child) {
+  border-bottom: 1px solid var(--hair);
+  margin-bottom: var(--space-3);
+}
+
+.lc-card__body {
+  flex: 1;
+}
+
+.lc-card__footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+}
+
+.lc-card__footer:not(:first-child) {
+  border-top: 1px solid var(--hair);
+  margin-top: var(--space-3);
+}

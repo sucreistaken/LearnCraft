@@ -1,0 +1,49 @@
+{
+  "settings": {
+    "studyDurationMin": 40,
+    "breakDurationMin": 10,
+    "intensiveMode": false
+  },
+  "sessions": [
+    {
+      "id": "sprint-1769904073454-qc5nlc",
+      "startedAt": "2026-02-01T00:01:13.454Z",
+      "lessonId": "lec-1768462362982",
+      "status": "completed",
+      "pomodorosCompleted": 0,
+      "topicsCovered": [],
+      "totalStudyMinutes": 0,
+      "endedAt": "2026-02-01T00:01:14.019Z"
+    },
+    {
+      "id": "sprint-1769901936894-eker35",
+      "startedAt": "2026-01-31T23:25:36.894Z",
+      "lessonId": "lec-1768462362982",
+      "status": "completed",
+      "pomodorosCompleted": 0,
+      "topicsCovered": [],
+      "totalStudyMinutes": 0,
+      "endedAt": "2026-02-01T00:01:12.908Z"
+    },
+    {
+      "id": "sprint-1769891443145-vi1hqz",
+      "startedAt": "2026-01-31T20:30:43.145Z",
+      "lessonId": "lec-1768448481012",
+      "status": "completed",
+      "pomodorosCompleted": 0,
+      "topicsCovered": [],
+      "totalStudyMinutes": 0,
+      "endedAt": "2026-01-31T20:30:47.146Z"
+    },
+    {
+      "id": "sprint-1769869558824-3bv9a0",
+      "startedAt": "2026-01-31T14:25:58.824Z",
+      "lessonId": "lec-1764808314795",
+      "status": "completed",
+      "pomodorosCompleted": 0,
+      "topicsCovered": [],
+      "totalStudyMinutes": 0,
+      "endedAt": "2026-01-31T14:26:08.536Z"
+    }
+  ]
+}

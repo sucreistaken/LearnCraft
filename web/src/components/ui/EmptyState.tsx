@@ -95,9 +95,9 @@ export function NoPlanEmpty({ onAction }: { onAction?: () => void }) {
     return (
         <EmptyState
             icon="📋"
-            title="Henüz plan oluşturulmadı"
-            description="Sol panelden ders içeriği girin ve 'Planla ve Analiz Et' butonuna tıklayın."
-            action={onAction ? { label: 'Başla', onClick: onAction } : undefined}
+            title="No plan created yet"
+            description="Enter lesson content from the left panel and click 'Plan & Analyze'."
+            action={onAction ? { label: 'Get Started', onClick: onAction } : undefined}
         />
     );
 }
@@ -106,9 +106,9 @@ export function NoQuizEmpty({ onAction }: { onAction?: () => void }) {
     return (
         <EmptyState
             icon="❓"
-            title="Henüz quiz yok"
-            description="Önce bir ders planı oluşturun, ardından quiz oluşturabilirsiniz."
-            action={onAction ? { label: 'Quiz Oluştur', onClick: onAction } : undefined}
+            title="No quiz yet"
+            description="Create a lesson plan first, then you can generate a quiz."
+            action={onAction ? { label: 'Create Quiz', onClick: onAction } : undefined}
         />
     );
 }
@@ -117,9 +117,9 @@ export function NoLessonsEmpty({ onAction }: { onAction?: () => void }) {
     return (
         <EmptyState
             icon="📚"
-            title="Henüz ders yok"
-            description="Yeni bir ders oluşturarak başlayın."
-            action={onAction ? { label: 'Yeni Ders Oluştur', onClick: onAction } : undefined}
+            title="No lessons yet"
+            description="Get started by creating a new lesson."
+            action={onAction ? { label: 'Create New Lesson', onClick: onAction } : undefined}
         />
     );
 }
@@ -128,9 +128,9 @@ export function NoCheatSheetEmpty({ onAction }: { onAction?: () => void }) {
     return (
         <EmptyState
             icon="📝"
-            title="Cheat Sheet oluşturulmadı"
-            description="Ders içeriğinize göre özet bir cheat sheet oluşturun."
-            action={onAction ? { label: 'Oluştur', onClick: onAction } : undefined}
+            title="Cheat Sheet not created"
+            description="Generate a summary cheat sheet based on your lesson content."
+            action={onAction ? { label: 'Generate', onClick: onAction } : undefined}
         />
     );
 }

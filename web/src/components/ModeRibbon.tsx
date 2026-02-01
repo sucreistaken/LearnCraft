@@ -10,28 +10,34 @@ export default function ModeRibbon({
 }) {
   const tabs: { id: ModeId; label: string }[] = [
     { id: "plan", label: "Plan" },
-    { id: "alignment", label: "Eşleştirme & Vurgular" },
+    { id: "alignment", label: "Alignment & Highlights" },
     { id: "deviation", label: "📊 Deviation Analysis" },
-    { id: "lecturer-note", label: "Hoca Notu" },
+    { id: "lecturer-note", label: "Lecturer Notes" },
     { id: "quiz", label: "Quiz" },
-    { id: "deep-dive", label: "Derinleşme (AI Chat)" },
-    { id: "mindmap", label: "🗺️ Zihin Haritası" },
+    { id: "deep-dive", label: "Deep Dive (AI Chat)" },
+    { id: "mindmap", label: "🗺️ Mind Map" },
     { id: "exam-sprint", label: "Sprint" },
     { id: "lo-study", label: "LO Study" },
-    { id: "history", label: "Derslerim" },
+    { id: "weakness", label: "Weakness" },
+    { id: "flashcards", label: "Flashcards" },
+    { id: "connections", label: "Connections" },
+    { id: "history", label: "My Lessons" },
     { id: "cheat-sheet", label: "Cheat Sheet" },
     { id: "notes", label: "📝 Notes" },
+    { id: "study-room", label: "Study Room" },
   ];
 
   return (
-    <div className="mode-ribbon">
+    <div className="mode-ribbon" role="tablist" aria-label="Content panels">
       <div className="tabs">
         {tabs.map((t, idx) => (
           <button
             key={t.id}
+            role="tab"
+            aria-selected={mode === t.id}
             onClick={() => setMode(t.id)}
             className={`tab ${mode === t.id ? "tab--active" : ""}`}
-            title={`Kısayol: ${idx + 1}`}
+            title={`Shortcut: ${idx + 1}`}
           >
             {t.label}
           </button>

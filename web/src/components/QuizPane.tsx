@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import toast from "react-hot-toast";
 import { API_BASE } from "../config";
 import { Plan } from "../types";
 import { useLessonStore } from "../stores/lessonStore";
+import { exportToPdf } from "../utils/pdfExport";
 
 const QUIZ_ANSWERS_KEY_PREFIX = 'lc.quiz.answers.';
 
@@ -19,6 +21,20 @@ export default function QuizPane({
   const [answers, setAnswers] = useState<Record<number, any>>({});
   const [loading, setLoading] = useState(false);
   const [loadingAns, setLoadingAns] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const quizContentRef = useRef<HTMLDivElement>(null);
+
+  const handleExportPdf = async () => {
+    if (!quizContentRef.current) return;
+    setPdfLoading(true);
+    try {
+      await exportToPdf(quizContentRef.current, "Quiz");
+    } catch (err) {
+      console.error("PDF export error:", err);
+    } finally {
+      setPdfLoading(false);
+    }
+  };
 
   // Load answers from localStorage when lesson changes
   useEffect(() => {
@@ -70,10 +86,10 @@ export default function QuizPane({
           localStorage.removeItem(QUIZ_ANSWERS_KEY_PREFIX + currentLessonId);
         }
       } else {
-        alert(j.error || "Quiz üretilemedi");
+        toast.error(j.error || "Quiz üretilemedi");
       }
     } catch (e: any) {
-      alert("Hata: " + e.message);
+      toast.error("Hata: " + e.message);
     } finally {
       setLoading(false);
     }
@@ -114,10 +130,10 @@ export default function QuizPane({
         j.answers.forEach((a: any, i: number) => { map[i] = a; });
         setAnswers(map);
       } else {
-        alert("Cevaplar alınamadı.");
+        toast.error("Cevaplar alınamadı.");
       }
     } catch (e: any) {
-      alert("Hata: " + e.message);
+      toast.error("Hata: " + e.message);
     } finally {
       setLoadingAns(false);
     }
@@ -153,9 +169,16 @@ export default function QuizPane({
             {loadingAns ? "Cevaplar Getiriliyor..." : "Cevapları Göster"}
           </button>
 
+          {/* PDF Export */}
+          {quiz.length > 0 && (
+            <button className="btn btn-secondary" onClick={handleExportPdf} disabled={pdfLoading}>
+              {pdfLoading ? "Exporting..." : "PDF Export"}
+            </button>
+          )}
+
           {/* Buton 3: Soruları Kopyala */}
           {quiz.length > 0 && (
-            <button className="btn btn-ghost" onClick={() => navigator.clipboard.writeText(quiz.join("\n"))}>
+            <button className="btn btn-ghost" onClick={() => { navigator.clipboard.writeText(quiz.join("\n")); toast.success("Kopyalandı!"); }}>
               Kopyala
             </button>
           )}
@@ -169,6 +192,7 @@ export default function QuizPane({
         )}
 
         {/* SORU LİSTESİ */}
+        <div ref={quizContentRef}>
         <div className="lc-section pad-top-8 mt-4">
           {quiz.length ? (
             <ol className="ol-reset">
@@ -178,7 +202,7 @@ export default function QuizPane({
 
                   {/* Cevap Kartı */}
                   {answers[i] ? (
-                    <div className="lc-section answer-card" style={{ background: "#f9f9fb", border: "1px solid #e5e5ea" }}>
+                    <div className="lc-section answer-card" style={{ background: "var(--input-bg)", border: "1px solid var(--border)" }}>
                       <div className="mb-2"><b>Kısa Cevap:</b> {answers[i].short_answer}</div>
                       <div className="mb-2 op-80">{answers[i].explanation}</div>
 
@@ -200,6 +224,7 @@ export default function QuizPane({
               Henüz soru yok. "Plandan Quiz Oluştur" butonuna tıklayın.
             </div>
           )}
+        </div>
         </div>
       </section>
     </div>

@@ -1,0 +1,134 @@
+/* =========================================
+   LearnCraft – Button Component
+   ========================================= */
+
+.lc-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-family: inherit;
+  font-weight: var(--font-semibold);
+  font-size: var(--text-base);
+  letter-spacing: -0.01em;
+  line-height: 1;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition:
+    background var(--duration-base) var(--ease-spring),
+    color var(--duration-base) var(--ease-spring),
+    border-color var(--duration-base) var(--ease-spring),
+    box-shadow var(--duration-base) var(--ease-spring),
+    transform var(--duration-fast) var(--ease-spring),
+    opacity var(--duration-base) var(--ease-spring);
+  white-space: nowrap;
+  user-select: none;
+  text-decoration: none;
+  outline: none;
+}
+
+.lc-button:focus-visible {
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
+/* --- Sizes --- */
+.lc-button--sm {
+  padding: var(--space-1-5) var(--space-3);
+  font-size: var(--text-sm);
+  border-radius: var(--radius-sm);
+  gap: var(--space-1-5);
+}
+
+.lc-button--md {
+  padding: var(--space-2-5) var(--space-4);
+  font-size: var(--text-base);
+}
+
+.lc-button--lg {
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--text-md);
+}
+
+/* --- Variants --- */
+.lc-button--primary {
+  background: var(--accent);
+  color: var(--bg);
+  box-shadow: var(--shadow-sm);
+}
+
+.lc-button--primary:hover:not(:disabled) {
+  box-shadow: var(--shadow-md);
+}
+
+.lc-button--secondary {
+  background: var(--card);
+  color: var(--text);
+  border-color: var(--border);
+  box-shadow: var(--shadow-xs);
+}
+
+.lc-button--secondary:hover:not(:disabled) {
+  background: var(--card-hover);
+  border-color: var(--muted);
+  box-shadow: var(--shadow-sm);
+}
+
+.lc-button--ghost {
+  background: transparent;
+  color: var(--muted);
+  box-shadow: none;
+}
+
+.lc-button--ghost:hover:not(:disabled) {
+  background: rgba(128, 128, 128, 0.08);
+  color: var(--text);
+}
+
+.lc-button--danger {
+  background: var(--danger);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.lc-button--danger:hover:not(:disabled) {
+  filter: brightness(1.08);
+  box-shadow: var(--shadow-md);
+}
+
+/* --- States --- */
+.lc-button:disabled,
+.lc-button--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* --- Full width --- */
+.lc-button--full {
+  width: 100%;
+}
+
+/* --- Loading --- */
+.lc-button__spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: lc-button-spin 0.6s linear infinite;
+}
+
+.lc-button--sm .lc-button__spinner {
+  width: 14px;
+  height: 14px;
+}
+
+.lc-button--lg .lc-button__spinner {
+  width: 18px;
+  height: 18px;
+}
+
+@keyframes lc-button-spin {
+  to { transform: rotate(360deg); }
+}

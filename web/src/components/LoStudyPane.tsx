@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { LoStudyModule } from "../types";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLessonStore } from "../stores/lessonStore";
+import { exportToPdf } from "../utils/pdfExport";
 
 type Props = {
   modules: LoStudyModule[];
@@ -19,6 +20,20 @@ export default function LoStudyPane({ modules }: Props) {
   const [completedIds, setCompletedIds] = useState<string[]>([]);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['core', 'remember']));
   const [quizRevealed, setQuizRevealed] = useState<{ [key: number]: boolean }>({});
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const loContentRef = useRef<HTMLDivElement>(null);
+
+  const handleExportPdf = async () => {
+    if (!loContentRef.current) return;
+    setPdfLoading(true);
+    try {
+      await exportToPdf(loContentRef.current, "LO_Study_Modules");
+    } catch (err) {
+      console.error("PDF export error:", err);
+    } finally {
+      setPdfLoading(false);
+    }
+  };
 
   // Load progress from localStorage
   useEffect(() => {
@@ -123,7 +138,7 @@ export default function LoStudyPane({ modules }: Props) {
   };
 
   return (
-    <div style={{
+    <div ref={loContentRef} style={{
       display: 'grid',
       gridTemplateColumns: '1fr 2fr',
       gap: 16,
@@ -170,6 +185,9 @@ export default function LoStudyPane({ modules }: Props) {
               <div style={{ fontSize: 11, opacity: 0.6 }}>⏱️ {completedTime}/{totalTime} min</div>
             </div>
           </div>
+          <button className="btn btn-secondary" onClick={handleExportPdf} disabled={pdfLoading} style={{ marginTop: 8, fontSize: 12, width: '100%' }}>
+            {pdfLoading ? "Exporting..." : "PDF Export"}
+          </button>
         </div>
 
         {/* LO List */}

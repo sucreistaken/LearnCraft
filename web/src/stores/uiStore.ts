@@ -41,6 +41,9 @@ interface UiState {
     cheatErr: string | null;
     devErr: string | null;
 
+    // Left panel
+    leftPanelCollapsed: boolean;
+
     // Actions
     setMode: (mode: ModeId) => void;
     setTheme: (theme: Theme) => void;
@@ -57,6 +60,7 @@ interface UiState {
     setLoModulesLoading: (loading: boolean) => void;
     setCheatErr: (err: string | null) => void;
     setDevErr: (err: string | null) => void;
+    toggleLeftPanel: () => void;
 }
 
 const getInitialMode = (): ModeId => {
@@ -98,6 +102,7 @@ export const useUiStore = create<UiState>()(
             loModulesLoading: false,
             cheatErr: null,
             devErr: null,
+            leftPanelCollapsed: false,
 
             // Actions
             setMode: (mode) => {
@@ -156,11 +161,13 @@ export const useUiStore = create<UiState>()(
             setLoModulesLoading: (loading) => set({ loModulesLoading: loading }),
             setCheatErr: (err) => set({ cheatErr: err }),
             setDevErr: (err) => set({ devErr: err }),
+            toggleLeftPanel: () => set((s) => ({ leftPanelCollapsed: !s.leftPanelCollapsed })),
         }),
         {
             name: 'learncraft-ui-storage',
             partialize: (state) => ({
                 theme: state.theme,
+                leftPanelCollapsed: state.leftPanelCollapsed,
             }),
         }
     )

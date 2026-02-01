@@ -74,7 +74,10 @@ export type Lesson = {
   // 🔹 Transcript–LO alignment (şimdilik any bırakabiliriz)
   loAlignment?: any;
   loModules?: LessonLoModules;
-  // ISO string
+
+  // 🗺️ Mindmap cache
+  mindmapCache?: { code: string; generatedAt: string };
+  mindmapModuleCache?: { [moduleIndex: string]: { code: string; generatedAt: string } };
 };
 
 type GlobalMemory = {

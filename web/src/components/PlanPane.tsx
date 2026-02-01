@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Plan, ModuleT ,LearningOutcome} from "../types";
+import { exportToPdf } from "../utils/pdfExport";
 
 /** Yardımcı fonksiyon: Dakikayı okunabilir formata çevirir */
 function prettyMinutes(min?: number) {
@@ -12,22 +13,39 @@ function prettyMinutes(min?: number) {
 
 /** Zorluk Seviyesi Ayarları */
 const diffConfig: Record<string, { label: string; style: React.CSSProperties }> = {
-  Beginner: { label: "Başlangıç Seviyesi", style: { backgroundColor: "#e6f4ea", color: "#137333", border: "1px solid #ceead6" } },
-  Intermediate: { label: "Orta Seviye", style: { backgroundColor: "#fef7e0", color: "#b06000", border: "1px solid #fce8b2" } },
-  Advanced: { label: "İleri Seviye", style: { backgroundColor: "#fce8e6", color: "#c5221f", border: "1px solid #fad2cf" } }
+  Beginner: { label: "Başlangıç Seviyesi", style: { backgroundColor: "var(--success-bg)", color: "var(--success)", border: "1px solid var(--success)" } },
+  Intermediate: { label: "Orta Seviye", style: { backgroundColor: "var(--warning-bg)", color: "var(--warning)", border: "1px solid var(--warning)" } },
+  Advanced: { label: "İleri Seviye", style: { backgroundColor: "var(--danger-bg)", color: "var(--danger)", border: "1px solid var(--danger)" } }
 };
 
 export default function PlanPane({ plan }: { plan: Plan }) {
   const diffKey = plan.difficulty || "Intermediate";
   const diff = diffConfig[diffKey] || diffConfig.Intermediate;
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const planRef = useRef<HTMLDivElement>(null);
+
+  const handleExportPdf = async () => {
+    if (!planRef.current) return;
+    setPdfLoading(true);
+    try {
+      await exportToPdf(planRef.current, plan.topic || "LessonPlan");
+    } catch (err) {
+      console.error("PDF export error:", err);
+    } finally {
+      setPdfLoading(false);
+    }
+  };
 
   return (
-    <div className="grid-gap-16">
+    <div className="grid-gap-16" ref={planRef}>
       <header className="lc-section pad-b-10">
         <div className="plan-header">
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap", marginBottom: "6px" }}>
               <div className="plan-title" style={{ margin: 0 }}>{plan.topic || "Öğrenme Planı"}</div>
+              <button className="btn btn-secondary" onClick={handleExportPdf} disabled={pdfLoading} style={{ fontSize: 12, padding: "4px 10px" }}>
+                {pdfLoading ? "..." : "PDF"}
+              </button>
               {plan.difficulty && (
                 <span style={{ ...diff.style, fontSize: "12px", fontWeight: "600", padding: "4px 10px", borderRadius: "99px" }}>
                   {diff.label}
@@ -67,8 +85,8 @@ export default function PlanPane({ plan }: { plan: Plan }) {
                 borderRadius: "999px",
                 fontSize: "11px",
                 fontWeight: 600,
-                backgroundColor: lo.covered ? "#e6f4ea" : "#fce8e6",
-                color: lo.covered ? "#137333" : "#c5221f",
+                backgroundColor: lo.covered ? "var(--success-bg)" : "var(--danger-bg)",
+                color: lo.covered ? "var(--success)" : "var(--danger)",
               }}
             >
               {lo.covered ? "Covered" : "Not fully covered"}
@@ -197,8 +215,8 @@ function ModuleAccordion({
                             borderRadius: "999px",
                             fontSize: "11px",
                             fontWeight: 600,
-                            backgroundColor: "#eef2ff",
-                            color: "#3730a3",
+                            backgroundColor: "var(--ring)",
+                            color: "var(--accent-2)",
                           }}
                         >
                           {code}

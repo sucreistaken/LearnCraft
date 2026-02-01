@@ -23,23 +23,23 @@ interface LessonChats {
 }
 
 const QUICK_ACTIONS = [
-  { label: "📚 Konuyu özetle", query: "Bu dersin ana konusunu kısaca özetle" },
-  { label: "❓ Önemli kavramlar", query: "Bu dersteki en önemli kavramları listele" },
-  { label: "📝 Sınav sorusu", query: "Bu konudan çıkabilecek bir sınav sorusu sor bana" },
-  { label: "🔗 Örnek ver", query: "Bu konu için gerçek hayattan bir örnek ver" },
+  { label: "📚 Summarize topic", query: "Briefly summarize the main topic of this lesson" },
+  { label: "❓ Key concepts", query: "List the most important concepts in this lesson" },
+  { label: "📝 Exam question", query: "Ask me an exam question about this topic" },
+  { label: "🔗 Give example", query: "Give me a real-world example for this topic" },
 ];
 
 const STORAGE_KEY_PREFIX = 'lc.deepdive.chats.';
 
 const getDefaultMessage = (): Message => ({
   role: 'model',
-  content: "Merhaba! 👋 Ben bu dersin AI asistanıyım.\n\nAnlamadığın konuları, detaylandırmak istediğin kavramları veya herhangi bir soruyu bana sorabilirsin.",
-  suggestions: ["Bu ders ne hakkında?", "En önemli kavramlar neler?", "Sınava nasıl hazırlanmalıyım?"]
+  content: "Hello! 👋 I'm the AI assistant for this lesson.\n\nYou can ask me about topics you don't understand, concepts you want explained, or any other questions.",
+  suggestions: ["What is this lesson about?", "What are the key concepts?", "How should I prepare for the exam?"]
 });
 
 const createNewSession = (name?: string): ChatSession => ({
   id: `chat-${Date.now()}`,
-  name: name || `Sohbet ${new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}`,
+  name: name || `Chat ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`,
   messages: [getDefaultMessage()],
   createdAt: Date.now()
 });
@@ -82,7 +82,7 @@ export default function DeepDivePane() {
     }
 
     // Create default session if none exists
-    const defaultSession = createNewSession('İlk Sohbet');
+    const defaultSession = createNewSession('First Chat');
     setSessions([defaultSession]);
     setActiveSessionId(defaultSession.id);
     setShowQuickActions(true);
@@ -130,7 +130,7 @@ export default function DeepDivePane() {
       const filtered = prev.filter(s => s.id !== sessionId);
       if (filtered.length === 0) {
         // If deleting last session, create a new one
-        const newSession = createNewSession('İlk Sohbet');
+        const newSession = createNewSession('First Chat');
         setActiveSessionId(newSession.id);
         setShowQuickActions(true);
         return [newSession];
@@ -191,36 +191,56 @@ export default function DeepDivePane() {
     } else {
       setSessions(prev => prev.map(s =>
         s.id === activeSessionId
-          ? { ...s, messages: [...s.messages, { role: 'model' as const, content: "⚠️ Üzgünüm, bir hata oluştu: " + (res.error || "Bilinmeyen hata") }] }
+          ? { ...s, messages: [...s.messages, { role: 'model' as const, content: "⚠️ Sorry, an error occurred: " + (res.error || "Unknown error") }] }
           : s
       ));
     }
+  };
+
+  const formatLine = (text: string, keyPrefix: string): React.ReactNode[] => {
+    const parts: React.ReactNode[] = [];
+    const regex = /(\*\*(.+?)\*\*|`(.+?)`)/g;
+    let lastIndex = 0;
+    let match;
+    let partIdx = 0;
+    while ((match = regex.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push(text.slice(lastIndex, match.index));
+      }
+      if (match[2]) {
+        parts.push(<strong key={`${keyPrefix}-b${partIdx++}`}>{match[2]}</strong>);
+      } else if (match[3]) {
+        parts.push(<code key={`${keyPrefix}-c${partIdx++}`} style={{ background: 'var(--hair)', padding: '2px 6px', borderRadius: 4, fontSize: 12 }}>{match[3]}</code>);
+      }
+      lastIndex = regex.lastIndex;
+    }
+    if (lastIndex < text.length) {
+      parts.push(text.slice(lastIndex));
+    }
+    return parts.length > 0 ? parts : [text];
   };
 
   const formatMessage = (content: string) => {
     return content
       .split('\n')
       .map((line, i) => {
-        // Bold
-        line = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-        // Code
-        line = line.replace(/`(.+?)`/g, '<code style="background:var(--hair);padding:2px 6px;border-radius:4px;font-size:12px;">$1</code>');
-        // Bullet points
         if (line.startsWith('• ') || line.startsWith('- ')) {
-          return <div key={i} style={{ paddingLeft: 16, marginBottom: 4 }} dangerouslySetInnerHTML={{ __html: '• ' + line.slice(2) }} />;
+          return <div key={i} style={{ paddingLeft: 16, marginBottom: 4 }}>{'• '}{formatLine(line.slice(2), `l${i}`)}</div>;
         }
-        // Hide suggestions separator and lines
-        if (line.trim() === '---' || line.includes('💡 **Önerilen Sorular:**') || /^\d+\.\s/.test(line.trim())) {
+        if (line.trim() === '---' || line.includes('Suggested Questions:') || /^\d+\.\s/.test(line.trim())) {
           return null;
         }
-        return <div key={i} dangerouslySetInnerHTML={{ __html: line || '&nbsp;' }} style={{ marginBottom: 4 }} />;
+        if (!line.trim()) {
+          return <div key={i} style={{ marginBottom: 4 }}>{'\u00A0'}</div>;
+        }
+        return <div key={i} style={{ marginBottom: 4 }}>{formatLine(line, `l${i}`)}</div>;
       })
       .filter(Boolean);
   };
 
   if (!currentLessonId) return (
     <div className="lc-section" style={{ textAlign: 'center', padding: 40, opacity: 0.6 }}>
-      📚 Lütfen önce bir ders seçin
+      📚 Please select a lesson first
     </div>
   );
 
@@ -278,7 +298,7 @@ export default function DeepDivePane() {
               }}
             >
               <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                💬 {activeSession?.name || 'Sohbet'}
+                💬 {activeSession?.name || 'Chat'}
                 {sessions.length > 1 && (
                   <span style={{
                     fontSize: 10,
@@ -341,7 +361,7 @@ export default function DeepDivePane() {
                       >
                         {session.name}
                         <span style={{ fontSize: 10, opacity: 0.5, marginLeft: 6 }}>
-                          ({session.messages.length - 1} mesaj)
+                          ({session.messages.length - 1} messages)
                         </span>
                       </div>
                       {sessions.length > 1 && (
@@ -358,7 +378,7 @@ export default function DeepDivePane() {
                           }}
                           onMouseOver={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.background = 'var(--danger-bg, #fee)'; }}
                           onMouseOut={(e) => { e.currentTarget.style.opacity = '0.5'; e.currentTarget.style.background = 'transparent'; }}
-                          title="Sohbeti sil"
+                          title="Delete chat"
                         >
                           ✕
                         </button>
@@ -384,7 +404,7 @@ export default function DeepDivePane() {
                     onMouseOver={(e) => e.currentTarget.style.background = 'var(--bg)'}
                     onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
                   >
-                    ➕ Yeni Sohbet
+                    ➕ New Chat
                   </div>
                 </motion.div>
               )}
@@ -394,7 +414,7 @@ export default function DeepDivePane() {
           {/* New chat quick button */}
           <button
             onClick={createNewChat}
-            title="Yeni sohbet başlat"
+            title="Start new chat"
             style={{
               background: 'var(--accent-2)',
               border: 'none',
@@ -413,14 +433,14 @@ export default function DeepDivePane() {
             onMouseOver={(e) => e.currentTarget.style.opacity = '0.85'}
             onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
           >
-            ➕ Yeni
+            ➕ New
           </button>
 
           {/* Clear current chat button */}
           {messages.length > 1 && (
             <button
               onClick={clearCurrentChat}
-              title="Bu sohbeti temizle"
+              title="Clear this chat"
               style={{
                 background: 'transparent',
                 border: '1px solid var(--border)',
@@ -509,8 +529,8 @@ export default function DeepDivePane() {
                         useNotesStore.getState().addNote(m.content, 'deep-dive', currentLessonId || undefined);
                         const btn = document.getElementById(`save-btn-${i}`);
                         if (btn) {
-                          btn.textContent = '✅ Kaydedildi!';
-                          setTimeout(() => { btn.textContent = '💾 Kaydet'; }, 2000);
+                          btn.textContent = '✅ Saved!';
+                          setTimeout(() => { btn.textContent = '💾 Save'; }, 2000);
                         }
                       }}
                       id={`save-btn-${i}`}
@@ -529,9 +549,9 @@ export default function DeepDivePane() {
                       }}
                       onMouseOver={(e) => { e.currentTarget.style.borderColor = 'var(--accent-2)'; e.currentTarget.style.color = 'var(--accent-2)'; }}
                       onMouseOut={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--muted)'; }}
-                      title="Notlara kaydet"
+                      title="Save to notes"
                     >
-                      💾 Kaydet
+                      💾 Save
                     </button>
                   </div>
                 )}
@@ -621,7 +641,7 @@ export default function DeepDivePane() {
             borderRadius: 23,
             padding: '0 20px'
           }}
-          placeholder="Bir soru sor..."
+          placeholder="Ask a question..."
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && send()}

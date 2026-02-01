@@ -1,0 +1,83 @@
+/* =========================================
+   LearnCraft – Tabs Component
+   ========================================= */
+
+.lc-tabs {
+  display: flex;
+  flex-direction: column;
+}
+
+.lc-tabs-list {
+  display: flex;
+  gap: var(--space-1);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.lc-tabs-list::-webkit-scrollbar {
+  display: none;
+}
+
+.lc-tabs-trigger {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  padding: var(--space-2) var(--space-3);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    color var(--duration-base) var(--ease-in-out),
+    border-color var(--duration-base) var(--ease-in-out);
+  outline: none;
+  margin-bottom: -1px;
+}
+
+.lc-tabs-trigger:hover {
+  color: var(--text);
+}
+
+.lc-tabs-trigger--active {
+  color: var(--text);
+  border-bottom-color: var(--accent-2);
+}
+
+.lc-tabs-trigger:focus-visible {
+  box-shadow: 0 0 0 2px var(--ring);
+  border-radius: var(--radius-xs) var(--radius-xs) 0 0;
+}
+
+.lc-tabs-content {
+  padding-top: var(--space-4);
+}
+
+/* --- Pill variant --- */
+.lc-tabs-list--pill {
+  border-bottom: none;
+  gap: var(--space-2);
+  padding: var(--space-1);
+  background: var(--input-bg);
+  border-radius: var(--radius-md);
+}
+
+.lc-tabs-list--pill .lc-tabs-trigger {
+  border-bottom: none;
+  border-radius: var(--radius-sm);
+  margin-bottom: 0;
+  padding: var(--space-1-5) var(--space-3);
+}
+
+.lc-tabs-list--pill .lc-tabs-trigger--active {
+  background: var(--card);
+  box-shadow: var(--shadow-xs);
+  color: var(--text);
+}

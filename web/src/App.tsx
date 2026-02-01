@@ -1,12 +1,13 @@
 // src/App.tsx - Refactored with Zustand, React Router, and Lazy Loading
-import React, { Suspense, lazy, useEffect, useMemo } from "react";
+import React, { Suspense, lazy, useEffect, useMemo, useState, useCallback } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import "./App.css";
+
 
 // Stores
 import { useLessonStore } from "./stores/lessonStore";
 import { useUiStore } from "./stores/uiStore";
+import { useRoomStore } from "./stores/roomStore";
 
 // Hooks
 import { useLesson } from "./hooks/useLesson";
@@ -18,6 +19,10 @@ import ThemeToggle from "./components/ui/ThemeToggle";
 import { MobileNav } from "./components/layout/MobileNav";
 import { Skeleton, CardSkeleton } from "./components/ui/Skeleton";
 import { NoPlanEmpty } from "./components/ui/EmptyState";
+import ShareButton from "./components/ui/ShareButton";
+import ShareModal from "./components/ui/ShareModal";
+import NicknamePrompt from "./components/ui/NicknamePrompt";
+import IdentityBadge from "./components/ui/IdentityBadge";
 
 // Lazy loaded panes
 const PlanPane = lazy(() => import("./components/PlanPane"));
@@ -32,6 +37,10 @@ const ExamSprintPane = lazy(() => import("./components/ExamSprintPane"));
 const DeviationPane = lazy(() => import("./components/DeviationPane"));
 const MindMapPane = lazy(() => import("./components/MindMapPane"));
 const NotesPane = lazy(() => import("./components/NotesPane"));
+const WeaknessPane = lazy(() => import("./components/WeaknessPane"));
+const FlashcardPane = lazy(() => import("./components/FlashcardPane"));
+const ConnectionsPane = lazy(() => import("./components/ConnectionsPane"));
+const StudyRoomPane = lazy(() => import("./components/StudyRoomPane"));
 
 // Loading fallback
 function PaneLoading() {
@@ -58,11 +67,43 @@ export default function App() {
   const lesson = useLesson();
   const transcription = useTranscription();
   const ui = useUiStore();
+  const leftPanelCollapsed = useUiStore((s) => s.leftPanelCollapsed);
+  const toggleLeftPanel = useUiStore((s) => s.toggleLeftPanel);
 
-  // Detect if on mobile
-  const isMobile = useMemo(() => {
-    if (typeof window === "undefined") return false;
-    return window.innerWidth < 768;
+  // Room store
+  const roomStore = useRoomStore();
+
+  // Share link detection
+  const [shareId, setShareId] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    const sp = new URLSearchParams(window.location.search);
+    return sp.get("share") || null;
+  });
+
+  // Room code detection from URL (?room=CODE)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const sp = new URLSearchParams(window.location.search);
+    const roomCode = sp.get("room");
+    if (roomCode && roomStore.identity) {
+      ui.setMode("study-room");
+      roomStore.joinRoomByCode(roomCode);
+      // Clean URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete("room");
+      window.history.replaceState({}, "", url.toString());
+    }
+  }, [roomStore.identity]);
+
+  // Detect if on mobile (reactive)
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth < 768 : false
+  );
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
   }, []);
 
   // Submit check
@@ -221,7 +262,11 @@ export default function App() {
             {ui.mode === "deep-dive" && <DeepDivePane />}
             {ui.mode === "mindmap" && <MindMapPane />}
             {ui.mode === "exam-sprint" && <ExamSprintPane />}
+            {ui.mode === "weakness" && <WeaknessPane />}
+            {ui.mode === "flashcards" && <FlashcardPane />}
+            {ui.mode === "connections" && <ConnectionsPane />}
             {ui.mode === "notes" && <NotesPane />}
+            {ui.mode === "study-room" && <StudyRoomPane />}
           </motion.div>
         </AnimatePresence>
       </Suspense>
@@ -237,8 +282,10 @@ export default function App() {
             <span className="brand-text">AIcelerate</span>
           </div>
           <div className="flex-1" />
+          <IdentityBadge />
+          <ShareButton />
           <ThemeToggle />
-          <div className="pill">v2.2 (Optimized)</div>
+          <div className="pill">v3.0</div>
         </div>
       </nav>
 
@@ -247,10 +294,25 @@ export default function App() {
           <h1 className="h1">Lesson Planner &amp; Analysis</h1>
         </header>
 
-        <div className="lc-shell">
-          {/* LEFT: Form */}
-          <div className="lc-sticky">
-            <form className="card" onSubmit={handleSubmit} aria-label="Lesson form">
+        <div className={`lc-shell${ui.mode === "study-room" ? " lc-shell--room" : leftPanelCollapsed ? " lc-shell--collapsed" : ""}`}>
+          {/* LEFT: Form or Collapsed Bar */}
+          {ui.mode !== "study-room" && (
+            leftPanelCollapsed ? (
+              <div className="lc-collapsed-bar">
+                <button className="lc-collapsed-bar__toggle" onClick={toggleLeftPanel} title="Expand panel">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M6 3l5 5-5 5V3z"/></svg>
+                </button>
+                <div className="lc-collapsed-bar__title" title={lesson.lessons.find(l => l.id === lesson.currentLessonId)?.title || "No lesson"}>
+                  {lesson.lessons.find(l => l.id === lesson.currentLessonId)?.title || "No lesson"}
+                </div>
+                <div className="lc-collapsed-bar__mode">{ui.mode}</div>
+              </div>
+            ) : (
+              <div className="lc-sticky">
+                <button className="lc-panel-collapse-btn" onClick={toggleLeftPanel} title="Collapse panel">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M10 3l-5 5 5 5V3z"/></svg>
+                </button>
+                <form className="card" onSubmit={handleSubmit} aria-label="Lesson form">
               <label className="label" htmlFor="lesson-select">Select Lesson</label>
 
               <select
@@ -472,7 +534,9 @@ export default function App() {
                 )}
               </div>
             </form>
-          </div>
+              </div>
+            )
+          )}
 
           {/* RIGHT: Panels */}
           <div className="lc-plan-pane">
@@ -493,6 +557,29 @@ export default function App() {
           >
             {transcription.stt.toast}
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Share Modal */}
+      <AnimatePresence>
+        {shareId && (
+          <ShareModal
+            shareId={shareId}
+            onClose={() => {
+              setShareId(null);
+              const url = new URL(window.location.href);
+              url.searchParams.delete("share");
+              window.history.replaceState({}, "", url.toString());
+            }}
+            onImport={(lessonId) => {
+              setShareId(null);
+              lesson.setCurrentLessonId(lessonId);
+              ui.setMode("plan");
+              const url = new URL(window.location.href);
+              url.searchParams.delete("share");
+              window.history.replaceState({}, "", url.toString());
+            }}
+          />
         )}
       </AnimatePresence>
 
@@ -554,6 +641,9 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Nickname Prompt - shown when entering study-room without identity */}
+      {ui.mode === "study-room" && <NicknamePrompt />}
     </div>
   );
 }

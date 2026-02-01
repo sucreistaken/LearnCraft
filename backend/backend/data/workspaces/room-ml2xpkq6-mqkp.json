@@ -1,0 +1,99 @@
+{
+  "deepDive": {
+    "messages": [
+      {
+        "id": "ddmsg-ml2xrfr5-0inb",
+        "role": "user",
+        "text": "hoca ne anlattı bu derste söyle",
+        "authorId": "u-ml2mhsxz-sg8g",
+        "authorNickname": "kadir",
+        "authorAvatar": "#db2777",
+        "timestamp": "2026-01-31T23:21:18.977Z",
+        "reactions": [],
+        "savedAsInsight": false
+      },
+      {
+        "id": "ddmsg-ml2xrorn-oasd",
+        "role": "assistant",
+        "text": "Bu derste hoca, kütle depolama sistemleri üzerine odaklandı ve özellikle Hard Disk Drive'ların (HDD'ler) ve Non-Volatile Memory (NVM) cihazlarının temel prensiplerini anlattı.\n\nÖnemli noktalar şunlardı:\n\n*   **HDD'lerin Süregelen Önemi:** SSD'lerin yükselişine rağmen, HDD'lerin özellikle veri merkezleri ve yapay zeka uygulamaları için hala kritik öneme sahip olduğunu vurguladı. Yüksek kapasiteli ve uygun maliyetli depolama senaryolarında HDD'lerin vazgeçilmez olduğunu belirtti.\n*   **HDD'nin Fiziksel Yapısı ve Performansı:**\n    *   HDD'lerin dönen plakalar (platters) ve okuma/yazma kafaları içeren bir kol tertibatından (arm assembly) oluştuğunu anlattı. Plakaların saniyede 60 ila 250 kez döndüğünü belirtti.\n    *   Okuma/yazma kafalarının plakalarla fiziksel temasta bulunmaması gerektiğini, aksi takdirde \"kafa çarpması\" (head crash) denilen ve diske zarar veren bir durumun ortaya çıktığını vurguladı.\n    *   HDD performansında **konumlama gecikmesinin (positional delay)**, özellikle **seek time** (kolun kafayı doğru iz üzerine getirme süresi) denilen kısmın, en baskın faktör olduğunu söyledi. Bu gecikme süresi, disk I/O performansının ana darboğazıdır.\n    *   Aktarım hızının (transfer rate) da diskin ve bilgisayarın hızlarına uygun olması gerektiğini, aksi takdirde tamponlama sorunları yaşanabileceğini ifade etti.\n*   **Toplam I/O Erişim Süresi Hesaplaması:** Seek time, dönüş gecikmesi (rotational latency), aktarım süresi ve denetleyici yükü (controller overhead) toplanarak toplam I/O erişim süresinin doğru bir şekilde hesaplanmasının çok önemli bir beceri olduğunu belirtti ve bu hesaplamaya örnek bir senaryo üzerinden değinileceğini gösterdi.\n*   **SSD'lere Giriş:** SSD'lerin hareketli parça içermemesi nedeniyle çok daha hızlı performans sunduğunu ancak sınırlı yazma döngüleri, yıpranma dengeleme (wear leveling) ve çöp toplama (garbage collection) gibi özel yönetim teknikleri gerektiren zorlukları olduğunu da kısaca bahsetti.\n*   **Gelecek Konular:** İlerleyen süreçte NVM, hata tespiti ve düzeltme, depolama aygıt yönetimi, takas alanı (swap space) yönetimi ve depolama arabirimleri gibi konulara da değineceğini belirtti.\n\n**Suggested:**\n1.  HDD'lerde \"seek time\" neden bu kadar kritik bir performans faktörüdür ve disk zamanlama algoritmaları bu durumu nasıl optimize etmeye çalışır?\n2.  Bir HDD'de gerçekleşen \"kafa çarpması\"nın sonuçları nelerdir ve modern işletim sistemleri veya donanımlar bu tür olayları önlemek için ne gibi mekanizmalar kullanır?\n3.  HDD'lerin veri merkezleri ve yapay zeka uygulamaları için neden SSD'lere göre hala tercih edildiği senaryoları detaylandırabilir misin?",
+        "authorId": "ai",
+        "authorNickname": "AI Assistant",
+        "authorAvatar": "#6366f1",
+        "timestamp": "2026-01-31T23:21:30.659Z",
+        "reactions": [
+          {
+            "userId": "u-ml2xd2jy-36rr",
+            "type": "helpful"
+          }
+        ],
+        "savedAsInsight": true
+      }
+    ],
+    "savedInsights": [
+      {
+        "id": "insight-ml2xs5t6-ynuk",
+        "text": "Bu derste hoca, kütle depolama sistemleri üzerine odaklandı ve özellikle Hard Disk Drive'ların (HDD'ler) ve Non-Volatile Memory (NVM) cihazlarının temel prensiplerini anlattı.\n\nÖnemli noktalar şunlardı:\n\n*   **HDD'lerin Süregelen Önemi:** SSD'lerin yükselişine rağmen, HDD'lerin özellikle veri merkezleri ve yapay zeka uygulamaları için hala kritik öneme sahip olduğunu vurguladı. Yüksek kapasiteli ve uygun maliyetli depolama senaryolarında HDD'lerin vazgeçilmez olduğunu belirtti.\n*   **HDD'nin Fiziksel Yapısı ve Performansı:**\n    *   HDD'lerin dönen plakalar (platters) ve okuma/yazma kafaları içeren bir kol tertibatından (arm assembly) oluştuğunu anlattı. Plakaların saniyede 60 ila 250 kez döndüğünü belirtti.\n    *   Okuma/yazma kafalarının plakalarla fiziksel temasta bulunmaması gerektiğini, aksi takdirde \"kafa çarpması\" (head crash) denilen ve diske zarar veren bir durumun ortaya çıktığını vurguladı.\n    *   HDD performansında **konumlama gecikmesinin (positional delay)**, özellikle **seek time** (kolun kafayı doğru iz üzerine getirme süresi) denilen kısmın, en baskın faktör olduğunu söyledi. Bu gecikme süresi, disk I/O performansının ana darboğazıdır.\n    *   Aktarım hızının (transfer rate) da diskin ve bilgisayarın hızlarına uygun olması gerektiğini, aksi takdirde tamponlama sorunları yaşanabileceğini ifade etti.\n*   **Toplam I/O Erişim Süresi Hesaplaması:** Seek time, dönüş gecikmesi (rotational latency), aktarım süresi ve denetleyici yükü (controller overhead) toplanarak toplam I/O erişim süresinin doğru bir şekilde hesaplanmasının çok önemli bir beceri olduğunu belirtti ve bu hesaplamaya örnek bir senaryo üzerinden değinileceğini gösterdi.\n*   **SSD'lere Giriş:** SSD'lerin hareketli parça içermemesi nedeniyle çok daha hızlı performans sunduğunu ancak sınırlı yazma döngüleri, yıpranma dengeleme (wear leveling) ve çöp toplama (garbage collection) gibi özel yönetim teknikleri gerektiren zorlukları olduğunu da kısaca bahsetti.\n*   **Gelecek Konular:** İlerleyen süreçte NVM, hata tespiti ve düzeltme, depolama aygıt yönetimi, takas alanı (swap space) yönetimi ve depolama arabirimleri gibi konulara da değineceğini belirtti.\n\n**Suggested:**\n1.  HDD'lerde \"seek time\" neden bu kadar kritik bir performans faktörüdür ve disk zamanlama algoritmaları bu durumu nasıl optimize etmeye çalışır?\n2.  Bir HDD'de gerçekleşen \"kafa çarpması\"nın sonuçları nelerdir ve modern işletim sistemleri veya donanımlar bu tür olayları önlemek için ne gibi mekanizmalar kullanır?\n3.  HDD'lerin veri merkezleri ve yapay zeka uygulamaları için neden SSD'lere göre hala tercih edildiği senaryoları detaylandırabilir misin?",
+        "sourceMessageId": "ddmsg-ml2xrorn-oasd",
+        "savedBy": "u-ml2xd2jy-36rr",
+        "savedByNickname": "kadir",
+        "tags": [],
+        "timestamp": "2026-01-31T23:21:52.746Z"
+      }
+    ]
+  },
+  "flashcards": [],
+  "mindMapAnnotations": [
+    {
+      "nodeLabel": "Keep data safe",
+      "type": "note",
+      "text": "bir önceki sene",
+      "authorId": "u-ml2xd2jy-36rr",
+      "authorNickname": "kadir",
+      "authorAvatar": "#059669",
+      "id": "ann-ml2xtkto-wcs0",
+      "timestamp": "2026-01-31T23:22:58.860Z",
+      "replies": []
+    },
+    {
+      "nodeLabel": "Keep data safe",
+      "type": "understood",
+      "text": "kadir understood this",
+      "authorId": "u-ml2xd2jy-36rr",
+      "authorNickname": "kadir",
+      "authorAvatar": "#059669",
+      "id": "ann-ml2xu1ex-gfvh",
+      "timestamp": "2026-01-31T23:23:20.361Z",
+      "replies": []
+    }
+  ],
+  "notes": [
+    {
+      "title": "Insight from Deep Dive",
+      "content": "Bu derste hoca, kütle depolama sistemleri üzerine odaklandı ve özellikle Hard Disk Drive'ların (HDD'ler) ve Non-Volatile Memory (NVM) cihazlarının temel prensiplerini anlattı.\n\nÖnemli noktalar şunlardı:\n\n*   **HDD'lerin Süregelen Önemi:** SSD'lerin yükselişine rağmen, HDD'lerin özellikle veri merkezleri ve yapay zeka uygulamaları için hala kritik öneme sahip olduğunu vurguladı. Yüksek kapasiteli ve uygun maliyetli depolama senaryolarında HDD'lerin vazgeçilmez olduğunu belirtti.\n*   **HDD'nin Fiziksel Yapısı ve Performansı:**\n    *   HDD'lerin dönen plakalar (platters) ve okuma/yazma kafaları içeren bir kol tertibatından (arm assembly) oluştuğunu anlattı. Plakaların saniyede 60 ila 250 kez döndüğünü belirtti.\n    *   Okuma/yazma kafalarının plakalarla fiziksel temasta bulunmaması gerektiğini, aksi takdirde \"kafa çarpması\" (head crash) denilen ve diske zarar veren bir durumun ortaya çıktığını vurguladı.\n    *   HDD performansında **konumlama gecikmesinin (positional delay)**, özellikle **seek time** (kolun kafayı doğru iz üzerine getirme süresi) denilen kısmın, en baskın faktör olduğunu söyledi. Bu gecikme süresi, disk I/O performansının ana darboğazıdır.\n    *   Aktarım hızının (transfer rate) da diskin ve bilgisayarın hızlarına uygun olması gerektiğini, aksi takdirde tamponlama sorunları yaşanabileceğini ifade etti.\n*   **Toplam I/O Erişim Süresi Hesaplaması:** Seek time, dönüş gecikmesi (rotational latency), aktarım süresi ve denetleyici yükü (controller overhead) toplanarak toplam I/O erişim süresinin doğru bir şekilde hesaplanmasının çok önemli bir beceri olduğunu belirtti ve bu hesaplamaya örnek bir senaryo üzerinden değinileceğini gösterdi.\n*   **SSD'lere Giriş:** SSD'lerin hareketli parça içermemesi nedeniyle çok daha hızlı performans sunduğunu ancak sınırlı yazma döngüleri, yıpranma dengeleme (wear leveling) ve çöp toplama (garbage collection) gibi özel yönetim teknikleri gerektiren zorlukları olduğunu da kısaca bahsetti.\n*   **Gelecek Konular:** İlerleyen süreçte NVM, hata tespiti ve düzeltme, depolama aygıt yönetimi, takas alanı (swap space) yönetimi ve depolama arabirimleri gibi konulara da değineceğini belirtti.\n\n**Suggested:**\n1.  HDD'lerde \"seek time\" neden bu kadar kritik bir performans faktörüdür ve disk zamanlama algoritmaları bu durumu nasıl optimize etmeye çalışır?\n2.  Bir HDD'de gerçekleşen \"kafa çarpması\"nın sonuçları nelerdir ve modern işletim sistemleri veya donanımlar bu tür olayları önlemek için ne gibi mekanizmalar kullanır?\n3.  HDD'lerin veri merkezleri ve yapay zeka uygulamaları için neden SSD'lere göre hala tercih edildiği senaryoları detaylandırabilir misin?",
+      "category": "tip",
+      "authorId": "u-ml2xd2jy-36rr",
+      "authorNickname": "kadir",
+      "authorAvatar": "#059669",
+      "source": "deep-dive",
+      "sourceId": "insight-ml2xs5t6-ynuk",
+      "id": "note-ml2xshks-m02e",
+      "createdAt": "2026-01-31T23:22:07.996Z",
+      "pinned": true,
+      "editedBy": "u-ml2xd2jy-36rr",
+      "editedByNickname": "kadir",
+      "editedAt": "2026-01-31T23:24:08.461Z"
+    },
+    {
+      "title": "sınanıkı",
+      "content": "enes opus sinan niki",
+      "category": "example",
+      "authorId": "u-ml2xd2jy-36rr",
+      "authorNickname": "kadir",
+      "authorAvatar": "#059669",
+      "source": "manual",
+      "id": "note-ml2xvewa-n7bc",
+      "createdAt": "2026-01-31T23:24:24.490Z",
+      "pinned": false
+    }
+  ]
+}

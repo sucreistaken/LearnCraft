@@ -1,0 +1,8 @@
+{
+  "settings": {
+    "studyDurationMin": 40,
+    "breakDurationMin": 10,
+    "intensiveMode": false
+  },
+  "sessions": []
+}

@@ -1,0 +1,1679 @@
+[
+  {
+    "shareId": "share-5qw3xkml3o4ye6",
+    "createdAt": "2026-02-01T11:39:39.678Z",
+    "expiresAt": "2026-02-08T11:39:39.678Z",
+    "createdBy": "anonymous",
+    "lessonId": "lec-1768462362982",
+    "bundle": {
+      "title": "ce 323 -1",
+      "plan": {
+        "topic": "Mass-Storage Systems",
+        "key_concepts": [
+          "Hard Disk Drives (HDDs)",
+          "Non-Volatile Memory (NVM)",
+          "Solid State Drives (SSDs)",
+          "Physical structure of storage devices",
+          "HDD performance metrics (seek time, rotational latency, transfer rate)",
+          "Total I/O time calculation",
+          "Disk I/O scheduling algorithms (FCFS, SCAN, C-SCAN, SSTF, Deadline)",
+          "Storage device interfaces (SATA, NVMe)",
+          "Error detection and correction (ECC, CRC)",
+          "Storage device management (formatting, partitioning, swap space)"
+        ],
+        "duration_weeks": 1,
+        "modules": [
+          {
+            "title": "Module 1: Hard Disk Drive Fundamentals & Performance",
+            "goal": "Understand the physical structure and performance characteristics of Hard Disk Drives (HDDs) and calculate I/O access times.",
+            "lessons": [
+              {
+                "title": "Lesson 1.1: HDD Physical Structure and Components",
+                "objective": "Describe the key physical components of a Hard Disk Drive (HDD), including platters, heads, arm assembly, tracks, cylinders, and sectors.",
+                "study_time_min": 25,
+                "activities": [
+                  {
+                    "type": "read",
+                    "prompt": "Review slides 4, 5, and 6 focusing on HDD components, their functions, and the concept of a 'cylinder'.",
+                    "expected_outcome": "Identify and explain the role of each physical component in an HDD."
+                  },
+                  {
+                    "type": "watch",
+                    "prompt": "Watch a short animation (e.g., 3-5 min YouTube video) demonstrating how HDD components (platter, arm, head) interact during read/write operations.",
+                    "expected_outcome": "Visualize the mechanical movement and data access process within an HDD."
+                  }
+                ],
+                "mini_quiz": [
+                  "What is a 'cylinder' in the context of an HDD?",
+                  "Explain why the read/write heads should not physically contact the platters.",
+                  "List three main physical components of an HDD."
+                ]
+              },
+              {
+                "title": "Lesson 1.2: HDD Performance Metrics and I/O Time Calculation",
+                "objective": "Define and differentiate between positional delay (seek time), rotational latency, and transfer time, and calculate total I/O access time for an HDD.",
+                "study_time_min": 45,
+                "activities": [
+                  {
+                    "type": "read",
+                    "prompt": "Study slides 4, 6, and 7 to understand the definitions of transfer rate, positioning time (seek time + rotational latency), and the formula for average I/O time.",
+                    "expected_outcome": "Clearly distinguish between the different time components contributing to HDD access."
+                  },
+                  {
+                    "type": "practice",
+                    "prompt": "Work through the example calculation for a 4KB block transfer provided on slide 7, then attempt to solve a similar problem with different parameters (e.g., 8KB block, 10,000 RPM disk, 6ms average seek time, 2Gb/sec transfer rate, 0.2ms controller overhead).",
+                    "expected_outcome": "Accurately calculate the total I/O time for an HDD operation, breaking down each component."
+                  }
+                ],
+                "mini_quiz": [
+                  "Which component of HDD access time (seek, rotational, transfer) is generally considered the most dominant?",
+                  "How is average rotational latency calculated based on RPM?",
+                  "Given a seek time of 8ms, an RPM of 5400, and a transfer time of 0.5ms for a 512-byte sector, what is the approximate average access time?"
+                ]
+              }
+            ]
+          },
+          {
+            "title": "Module 2: Non-Volatile Memory (NVM) and Storage Interfaces",
+            "goal": "Differentiate various mass-storage technologies, particularly SSDs, from HDDs, and identify common storage attachment interfaces.",
+            "lessons": [
+              {
+                "title": "Lesson 2.1: Solid State Drives (SSDs) and NVM Characteristics",
+                "objective": "Compare the characteristics of SSDs with HDDs, explaining the advantages and challenges of SSD technology, including concepts like wear leveling and garbage collection.",
+                "study_time_min": 35,
+                "activities": [
+                  {
+                    "type": "read",
+                    "prompt": "Review slides 9, 10, and 11 focusing on SSD characteristics, reliability, lifespan, page/block operations, and flash controller algorithms (FTL, garbage collection, wear leveling).",
+                    "expected_outcome": "Articulate the fundamental differences between HDDs and SSDs and understand the operational mechanisms unique to SSDs."
+                  },
+                  {
+                    "type": "watch",
+                    "prompt": "Find a short video (e.g., 5-7 min) illustrating how wear leveling and garbage collection optimize SSD performance and lifespan.",
+                    "expected_outcome": "Visualize the internal management processes within an SSD."
+                  }
+                ],
+                "mini_quiz": [
+                  "List two advantages and two disadvantages of SSDs compared to HDDs.",
+                  "Why is 'wear leveling' necessary for SSDs?",
+                  "What is 'write amplification' and how does it affect SSD performance?"
+                ]
+              },
+              {
+                "title": "Lesson 2.2: Other Mass Storage and Attachment",
+                "objective": "Identify various forms of non-volatile memory and understand how different storage devices attach to a host system.",
+                "study_time_min": 20,
+                "activities": [
+                  {
+                    "type": "read",
+                    "prompt": "Examine slides 12, 13, and 14 to learn about volatile memory used as mass storage (RAM drives), magnetic tape, and various I/O busses and controllers (SATA, NVMe, USB, SAS, FC).",
+                    "expected_outcome": "Recognize different storage types and their typical interfaces for host attachment."
+                  },
+                  {
+                    "type": "practice",
+                    "prompt": "Map specific storage device types (e.g., internal HDD, external SSD, enterprise NVM) to their most common or suitable attachment interfaces (e.g., SATA, USB, NVMe).",
+                    "expected_outcome": "Correctly associate storage devices with their appropriate connection technologies."
+                  }
+                ],
+                "mini_quiz": [
+                  "What is the primary difference between SATA and NVMe in terms of performance?",
+                  "Why is DRAM considered 'not technically secondary storage'?",
+                  "What is the role of a 'host-bus adapter' (HBA)?"
+                ]
+              }
+            ]
+          },
+          {
+            "title": "Module 3: Disk I/O Scheduling and Management",
+            "goal": "Analyze different disk scheduling algorithms and grasp fundamental concepts of storage device management and error handling.",
+            "lessons": [
+              {
+                "title": "Lesson 3.1: Disk I/O Scheduling Algorithms",
+                "objective": "Explain the principles and compare the performance characteristics of various disk I/O scheduling algorithms (FCFS, SCAN, C-SCAN), including an overview of modern schedulers.",
+                "study_time_min": 45,
+                "activities": [
+                  {
+                    "type": "read",
+                    "prompt": "Review slides 16 through 24, focusing on the motivation for disk scheduling, the description of FCFS, SCAN, C-SCAN, and the criteria for selecting an algorithm. Pay attention to the examples for calculating head movement.",
+                    "expected_outcome": "Understand how each algorithm processes I/O requests and its impact on performance metrics like seek time and wait time."
+                  },
+                  {
+                    "type": "practice",
+                    "prompt": "Given a starting head position and a queue of I/O requests (e.g., 98, 183, 37, 122, 14, 124, 65, 67 with head at 53), calculate the total head movement for FCFS, SCAN, and C-SCAN algorithms.",
+                    "expected_outcome": "Apply scheduling algorithms to solve practical problems and compare their efficiency."
+                  }
+                ],
+                "mini_quiz": [
+                  "Which disk scheduling algorithm is known as the 'elevator algorithm'?",
+                  "What is the main advantage of C-SCAN over SCAN?",
+                  "Briefly explain the purpose of the 'deadline scheduler' in Linux."
+                ]
+              },
+              {
+                "title": "Lesson 3.2: Error Handling and Storage Management",
+                "objective": "Distinguish between error detection and error correction codes, and describe the processes of low-level and logical disk formatting.",
+                "study_time_min": 20,
+                "activities": [
+                  {
+                    "type": "read",
+                    "prompt": "Consult slides 26 and 27 to understand error detection (parity, checksum, CRC) versus error correction (ECC), and the two main types of disk formatting (low-level/physical and logical).",
+                    "expected_outcome": "Define key terms related to data integrity and disk preparation for use by an operating system."
+                  },
+                  {
+                    "type": "quiz",
+                    "prompt": "Answer questions on the differences and purposes of error detection vs. correction, and physical vs. logical formatting.",
+                    "expected_outcome": "Demonstrate comprehension of data integrity and disk preparation concepts."
+                  }
+                ],
+                "mini_quiz": [
+                  "What is the primary difference in function between error detection and error correction codes?",
+                  "Explain the difference between 'low-level formatting' and 'logical formatting'.",
+                  "Give an example of an error detection method."
+                ]
+              }
+            ]
+          }
+        ],
+        "resources": [
+          "Operating System Concepts – 10th Edition Textbook, Chapter 11",
+          "Lecture Slides for Chapter 11: Mass-Storage Systems",
+          "Online videos demonstrating HDD/SSD mechanics and scheduling algorithms (e.g., YouTube)"
+        ],
+        "emphases": [
+          {
+            "statement": "Hard Disk Drives (HDDs) remain critically important, especially for data centers and AI, despite the rise of Solid State Drives (SSDs).",
+            "why": "This challenges the common perception that HDDs are obsolete, highlighting their continued relevance in high-capacity, cost-effective storage scenarios for large-scale data, which is highly relevant for understanding modern computing infrastructure and potential exam questions on future trends.",
+            "in_slides": true,
+            "evidence": "Teacher explicitly states the authors considered discarding the topic but data center usage and AI revived its importance. Slides list HDDs first as 'bulk of secondary storage'.",
+            "source": "both",
+            "from_transcript_quote": "the importance of hard disk is just going down for quite some time now because of the oscillic states. Yet we do have hard disk again gaining up more for data centers. So the actually the authors also were planning to just discard the whole thing because they considered out of date up until this data center usage, especially with AI growing drastically.",
+            "from_slide_quote": "Bulk of secondary storage for modern computers is hard disk drives (HDDs) and nonvolatile memory (NVM) devices",
+            "related_lo_ids": []
+          },
+          {
+            "statement": "The physical structure of a hard disk drive directly impacts its performance, particularly concerning seek time.",
+            "why": "Understanding the mechanical aspects (platters, heads, arm movement) is foundational to grasping why I/O performance is slower than CPU/RAM and why scheduling algorithms are necessary. This is a core concept for performance analysis.",
+            "in_slides": true,
+            "evidence": "Teacher stresses 'physical structure... is the essential topic' and how 'performance is heavily affected from this one'. Slides describe components and link them to positioning time.",
+            "source": "both",
+            "from_transcript_quote": "So physical structure of hard disk is the essential topic over here and we will discuss why performance is heavily affected from this one.",
+            "from_slide_quote": "Describe the physical structure of secondary storage devices and the effect of a device’s structure on its uses",
+            "related_lo_ids": []
+          },
+          {
+            "statement": "Disk heads must not physically contact the platters; contact results in a 'head crash' which damages the disk.",
+            "why": "This is a critical practical detail about HDD fragility and operational limits, explaining why physical shocks are detrimental and underscoring the precision engineering involved. It's often an important point for practical understanding and troubleshooting.",
+            "in_slides": true,
+            "evidence": "Teacher directly states the consequence of contact. Slides explicitly call out 'Head crash results from disk head making contact with the disk surface -- That’s bad'.",
+            "source": "both",
+            "from_transcript_quote": "The heads are not in physical contact with the platter. If it does that's a disk crush. That's why you should worry about just dropping your laptop or whatever because there is quite a chance that hard disk may be damaged.",
+            "from_slide_quote": "Head crash results from disk head making contact with the disk surface -- That’s bad",
+            "related_lo_ids": []
+          },
+          {
+            "statement": "Positional delay (seek time) is the dominating factor in determining the overall I/O time for Hard Disk Drives.",
+            "why": "This highlights the primary bottleneck in HDD performance and justifies the existence and importance of disk scheduling algorithms, which primarily aim to minimize seek time. This concept is fundamental for evaluating and optimizing disk performance.",
+            "in_slides": true,
+            "evidence": "Teacher repeatedly calls it the 'dominating one' and refers to its typical range (3 to 12 milliseconds). Slides state 'Positioning time... is time to move disk arm to desired cylinder (seek time)'.",
+            "source": "both",
+            "from_transcript_quote": "The positional delay we will talk about will be the one dominating this by your time... the seek time of position of delay is 3 to 12 milliseconds. The dominating one.",
+            "from_slide_quote": "Positioning time (random-access time) is time to move disk arm to desired cylinder (seek time)",
+            "related_lo_ids": []
+          },
+          {
+            "statement": "Accurately calculating total I/O access time by summing seek time, rotational latency, transfer time, and controller overhead is a crucial skill.",
+            "why": "The teacher dedicates significant time to walking through an example calculation, indicating its importance for quantitative understanding and likely exam scenarios. This practical application reinforces theoretical concepts.",
+            "in_slides": true,
+            "evidence": "The lecture walks through a detailed numerical example step-by-step. Slide 7 provides the full formula and a worked example, clearly stating 'Average I/O time = average access time + (amount to transfer / transfer rate) + controller overhead'.",
+            "source": "both",
+            "from_transcript_quote": "So let us work on an example to do the computation for these components... So I need to sum up that one that one that one...",
+            "from_slide_quote": "Average I/O time = average access time + (amount to transfer / transfer rate) + controller overhead. For example to transfer a 4KB block on a 7200 RPM disk...",
+            "related_lo_ids": []
+          },
+          {
+            "statement": "Solid State Drives (SSDs) offer much faster performance due to no moving parts but have challenges like limited write cycles and require special management techniques such as wear leveling and garbage collection.",
+            "why": "Understanding the fundamental differences between HDDs and SSDs, beyond just 'faster,' is critical. The specific challenges and the OS/controller mechanisms to overcome them (wear leveling, garbage collection) are key to understanding their design and limitations, which are likely exam topics.",
+            "in_slides": true,
+            "evidence": "Teacher contrasts SSD with HDD. Slides dedicate multiple points to SSD advantages ('much faster') and challenges ('shorter life span', 'no overwrite', 'erased a limited number of times') and management ('wear leveling', 'garbage collection').",
+            "source": "both",
+            "from_transcript_quote": "But hard disk is still used in laptops... But they are more used in high capacity of storage. So we cannot really just ignore what's happening over there. Of course we will then discuss SSD and tell you the differences between the two because the IO nature drastically changes with SSD.",
+            "from_slide_quote": "No moving parts, so no seek time or rotational latency... Maybe have shorter life span – need careful management... Each cell has lifespan, so wear leveling needed to write equally to all cells",
+            "related_lo_ids": []
+          }
+        ],
+        "seed_quiz": [
+          "Calculate the total average I/O time for transferring a 16KB block from an HDD with an average seek time of 7ms, a rotational speed of 10,000 RPM, a transfer rate of 1.5 Gb/sec, and a controller overhead of 0.15ms. Show your work.",
+          "Explain the 'cylinder' concept in HDDs and why it is used in data storage sequencing.",
+          "Compare and contrast the operational principles and key performance characteristics of HDDs versus SSDs, highlighting at least three major differences.",
+          "Describe the purpose of 'wear leveling' and 'garbage collection' in Solid State Drives (SSDs).",
+          "Given a disk with cylinders numbered 0-199 and a current head position at 100, trace the head movements and calculate the total head movement for the following requests: 50, 180, 20, 130, 80, 160 using the SCAN algorithm (moving towards 199 first)."
+        ],
+        "alignment": {
+          "summary_chatty": "The lecture and slides generally align very well, covering the same core topics for mass storage systems. The lecture often introduces a concept, and the slides provide a more structured definition and supporting details. For instance, the teacher's emphasis on HDDs for data centers is supported by the slides, and the detailed breakdown of HDD performance calculations is explicitly walked through in the lecture, complementing the formula and example on a slide. The visuals in the slides (like the HDD mechanism or SSD board) enrich the verbal explanations. However, the lecture sometimes provides a deeper 'why' or historical context (e.g., why hard disks are still relevant or the 'why' behind cylinders), while the slides are more direct definitions. Overall, students benefit from a clear reinforcement of concepts across both mediums, especially with the practical calculation example being a high-emphasis point.",
+          "average_duration_min": 5.25,
+          "items": [
+            {
+              "topic": "Relevance of Hard Disk Drives (HDDs)",
+              "concepts": [
+                "HDD importance",
+                "Data centers",
+                "AI growth",
+                "SSD vs HDD"
+              ],
+              "in_both": true,
+              "emphasis_level": "high",
+              "lecture_quotes": [
+                "the importance of hard disk is just going down for quite some time now because of the oscillic states. Yet we do have hard disk again gaining up more for data centers.",
+                "data center usage, especially with AI growing drastically."
+              ],
+              "slide_refs": [
+                "Bulk of secondary storage for modern computers is hard disk drives (HDDs)",
+                "Chapter 11: Mass-Storage Systems (HDD focus)"
+              ],
+              "duration_min": 2.5,
+              "confidence": 0.95
+            },
+            {
+              "topic": "HDD Physical Structure",
+              "concepts": [
+                "Platters",
+                "Arm assembly",
+                "Heads",
+                "Rotation",
+                "Head crash"
+              ],
+              "in_both": true,
+              "emphasis_level": "high",
+              "lecture_quotes": [
+                "physical structure of hard disk is the essential topic over here",
+                "The heads are not in physical contact with the platter. If it does that's a disk crush."
+              ],
+              "slide_refs": [
+                "Describe the physical structure of secondary storage devices",
+                "Moving-head Disk Mechanism (Slide 5 visual)",
+                "Head crash results from disk head making contact with the disk surface -- That’s bad"
+              ],
+              "duration_min": 3.5,
+              "confidence": 0.98
+            },
+            {
+              "topic": "HDD Performance Parameters (Delays)",
+              "concepts": [
+                "Positional delay (Seek time)",
+                "Rotational delay (Latency)",
+                "Transfer time",
+                "Dominating factor"
+              ],
+              "in_both": true,
+              "emphasis_level": "high",
+              "lecture_quotes": [
+                "The positional delay we will talk about will be the one dominating this by your time.",
+                "The seek time of position of delay is 3 to 12 milliseconds. The dominating one."
+              ],
+              "slide_refs": [
+                "Explain the performance characteristics of mass-storage devices",
+                "Positioning time (random-access time) is time to move disk arm to desired cylinder (seek time) and time for desired sector to rotate under the disk head (rotational latency)",
+                "Seek time from 3ms to 12ms"
+              ],
+              "duration_min": 5,
+              "confidence": 0.95
+            },
+            {
+              "topic": "Total I/O Time Calculation Example",
+              "concepts": [
+                "4KB block",
+                "7200 RPM",
+                "5ms seek time",
+                "1Gb/sec transfer",
+                "0.1ms overhead",
+                "Formula application"
+              ],
+              "in_both": true,
+              "emphasis_level": "high",
+              "lecture_quotes": [
+                "So let us work on an example to do the computation for these components.",
+                "I need to sum up that one that one that one..."
+              ],
+              "slide_refs": [
+                "Average I/O time = average access time + (amount to transfer / transfer rate) + controller overhead",
+                "For example to transfer a 4KB block on a 7200 RPM disk...",
+                "Average I/O time for 4KB block = 9.27ms + .031ms = 9.301ms"
+              ],
+              "duration_min": 7,
+              "confidence": 0.99
+            },
+            {
+              "topic": "Nonvolatile Memory Devices (SSDs)",
+              "concepts": [
+                "SSDs",
+                "No moving parts",
+                "Faster",
+                "Lifespan",
+                "Page/block operations",
+                "Wear leveling",
+                "Garbage collection"
+              ],
+              "in_both": true,
+              "emphasis_level": "medium",
+              "lecture_quotes": [
+                "we will then discuss SSD and tell you the differences between the two because the IO nature drastically changes with SSD.",
+                "non-volatile memory as a whole. The solid state disk is among them."
+              ],
+              "slide_refs": [
+                "Nonvolatile Memory Devices",
+                "No moving parts, so no seek time or rotational latency",
+                "Maybe have shorter life span – need careful management",
+                "wear leveling needed to write equally to all cells"
+              ],
+              "duration_min": 4,
+              "confidence": 0.9
+            },
+            {
+              "topic": "Disk I/O Scheduling Algorithms",
+              "concepts": [
+                "IO scheduling",
+                "FCFS",
+                "SCAN",
+                "C-SCAN",
+                "Minimize seek time"
+              ],
+              "in_both": true,
+              "emphasis_level": "medium",
+              "lecture_quotes": [
+                "And that will lead to the scheduling algorithms. In other words whose IO request goes next.",
+                "Again scheduling. This is now IO scheduling."
+              ],
+              "slide_refs": [
+                "HDD Scheduling",
+                "Evaluate I/O scheduling algorithms",
+                "FCFS, SCAN, C-SCAN (with diagrams)"
+              ],
+              "duration_min": 5,
+              "confidence": 0.9
+            }
+          ]
+        }
+      },
+      "cheatSheet": null,
+      "quiz": [],
+      "loModules": null,
+      "emphases": [
+        {
+          "statement": "Hard Disk Drives (HDDs) remain critically important, especially for data centers and AI, despite the rise of Solid State Drives (SSDs).",
+          "why": "This challenges the common perception that HDDs are obsolete, highlighting their continued relevance in high-capacity, cost-effective storage scenarios for large-scale data, which is highly relevant for understanding modern computing infrastructure and potential exam questions on future trends.",
+          "in_slides": true,
+          "evidence": "Teacher explicitly states the authors considered discarding the topic but data center usage and AI revived its importance. Slides list HDDs first as 'bulk of secondary storage'.",
+          "source": "both",
+          "from_transcript_quote": "the importance of hard disk is just going down for quite some time now because of the oscillic states. Yet we do have hard disk again gaining up more for data centers. So the actually the authors also were planning to just discard the whole thing because they considered out of date up until this data center usage, especially with AI growing drastically.",
+          "from_slide_quote": "Bulk of secondary storage for modern computers is hard disk drives (HDDs) and nonvolatile memory (NVM) devices",
+          "related_lo_ids": []
+        },
+        {
+          "statement": "The physical structure of a hard disk drive directly impacts its performance, particularly concerning seek time.",
+          "why": "Understanding the mechanical aspects (platters, heads, arm movement) is foundational to grasping why I/O performance is slower than CPU/RAM and why scheduling algorithms are necessary. This is a core concept for performance analysis.",
+          "in_slides": true,
+          "evidence": "Teacher stresses 'physical structure... is the essential topic' and how 'performance is heavily affected from this one'. Slides describe components and link them to positioning time.",
+          "source": "both",
+          "from_transcript_quote": "So physical structure of hard disk is the essential topic over here and we will discuss why performance is heavily affected from this one.",
+          "from_slide_quote": "Describe the physical structure of secondary storage devices and the effect of a device’s structure on its uses",
+          "related_lo_ids": []
+        },
+        {
+          "statement": "Disk heads must not physically contact the platters; contact results in a 'head crash' which damages the disk.",
+          "why": "This is a critical practical detail about HDD fragility and operational limits, explaining why physical shocks are detrimental and underscoring the precision engineering involved. It's often an important point for practical understanding and troubleshooting.",
+          "in_slides": true,
+          "evidence": "Teacher directly states the consequence of contact. Slides explicitly call out 'Head crash results from disk head making contact with the disk surface -- That’s bad'.",
+          "source": "both",
+          "from_transcript_quote": "The heads are not in physical contact with the platter. If it does that's a disk crush. That's why you should worry about just dropping your laptop or whatever because there is quite a chance that hard disk may be damaged.",
+          "from_slide_quote": "Head crash results from disk head making contact with the disk surface -- That’s bad",
+          "related_lo_ids": []
+        },
+        {
+          "statement": "Positional delay (seek time) is the dominating factor in determining the overall I/O time for Hard Disk Drives.",
+          "why": "This highlights the primary bottleneck in HDD performance and justifies the existence and importance of disk scheduling algorithms, which primarily aim to minimize seek time. This concept is fundamental for evaluating and optimizing disk performance.",
+          "in_slides": true,
+          "evidence": "Teacher repeatedly calls it the 'dominating one' and refers to its typical range (3 to 12 milliseconds). Slides state 'Positioning time... is time to move disk arm to desired cylinder (seek time)'.",
+          "source": "both",
+          "from_transcript_quote": "The positional delay we will talk about will be the one dominating this by your time... the seek time of position of delay is 3 to 12 milliseconds. The dominating one.",
+          "from_slide_quote": "Positioning time (random-access time) is time to move disk arm to desired cylinder (seek time)",
+          "related_lo_ids": []
+        },
+        {
+          "statement": "Accurately calculating total I/O access time by summing seek time, rotational latency, transfer time, and controller overhead is a crucial skill.",
+          "why": "The teacher dedicates significant time to walking through an example calculation, indicating its importance for quantitative understanding and likely exam scenarios. This practical application reinforces theoretical concepts.",
+          "in_slides": true,
+          "evidence": "The lecture walks through a detailed numerical example step-by-step. Slide 7 provides the full formula and a worked example, clearly stating 'Average I/O time = average access time + (amount to transfer / transfer rate) + controller overhead'.",
+          "source": "both",
+          "from_transcript_quote": "So let us work on an example to do the computation for these components... So I need to sum up that one that one that one...",
+          "from_slide_quote": "Average I/O time = average access time + (amount to transfer / transfer rate) + controller overhead. For example to transfer a 4KB block on a 7200 RPM disk...",
+          "related_lo_ids": []
+        },
+        {
+          "statement": "Solid State Drives (SSDs) offer much faster performance due to no moving parts but have challenges like limited write cycles and require special management techniques such as wear leveling and garbage collection.",
+          "why": "Understanding the fundamental differences between HDDs and SSDs, beyond just 'faster,' is critical. The specific challenges and the OS/controller mechanisms to overcome them (wear leveling, garbage collection) are key to understanding their design and limitations, which are likely exam topics.",
+          "in_slides": true,
+          "evidence": "Teacher contrasts SSD with HDD. Slides dedicate multiple points to SSD advantages ('much faster') and challenges ('shorter life span', 'no overwrite', 'erased a limited number of times') and management ('wear leveling', 'garbage collection').",
+          "source": "both",
+          "from_transcript_quote": "But hard disk is still used in laptops... But they are more used in high capacity of storage. So we cannot really just ignore what's happening over there. Of course we will then discuss SSD and tell you the differences between the two because the IO nature drastically changes with SSD.",
+          "from_slide_quote": "No moving parts, so no seek time or rotational latency... Maybe have shorter life span – need careful management... Each cell has lifespan, so wear leveling needed to write equally to all cells",
+          "related_lo_ids": []
+        }
+      ],
+      "notes": [],
+      "weakTopics": [
+        {
+          "topicName": "Module 1: Hard Disk Drive Fundamentals & Performance",
+          "moduleIndex": 0,
+          "totalQuestions": 5,
+          "correctAnswers": 2,
+          "ratio": 0.4,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T23:18:17.110Z",
+          "trend": "declining"
+        },
+        {
+          "topicName": "Lesson 1.1: HDD Physical Structure and Components",
+          "moduleIndex": 1,
+          "totalQuestions": 5,
+          "correctAnswers": 3,
+          "ratio": 0.6,
+          "isWeak": false,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T23:18:17.110Z",
+          "trend": "improving"
+        },
+        {
+          "topicName": "Lesson 1.2: HDD Performance Metrics and I/O Time Calculation",
+          "moduleIndex": 2,
+          "totalQuestions": 5,
+          "correctAnswers": 1,
+          "ratio": 0.2,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T23:18:17.110Z",
+          "trend": "declining"
+        },
+        {
+          "topicName": "Module 2: Non-Volatile Memory (NVM) and Storage Interfaces",
+          "moduleIndex": 3,
+          "totalQuestions": 5,
+          "correctAnswers": 2,
+          "ratio": 0.4,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T23:18:17.110Z",
+          "trend": "declining"
+        },
+        {
+          "topicName": "Lesson 2.1: Solid State Drives (SSDs) and NVM Characteristics",
+          "moduleIndex": 4,
+          "totalQuestions": 5,
+          "correctAnswers": 2,
+          "ratio": 0.4,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T23:18:17.110Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "Lesson 2.2: Other Mass Storage and Attachment",
+          "moduleIndex": 5,
+          "totalQuestions": 5,
+          "correctAnswers": 2,
+          "ratio": 0.4,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T23:18:17.110Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "Module 3: Disk I/O Scheduling and Management",
+          "moduleIndex": 6,
+          "totalQuestions": 5,
+          "correctAnswers": 3,
+          "ratio": 0.6,
+          "isWeak": false,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T23:18:17.110Z",
+          "trend": "improving"
+        },
+        {
+          "topicName": "Lesson 3.1: Disk I/O Scheduling Algorithms",
+          "moduleIndex": 7,
+          "totalQuestions": 5,
+          "correctAnswers": 3,
+          "ratio": 0.6,
+          "isWeak": false,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T23:18:17.110Z",
+          "trend": "improving"
+        },
+        {
+          "topicName": "Lesson 3.2: Error Handling and Storage Management",
+          "moduleIndex": 8,
+          "totalQuestions": 5,
+          "correctAnswers": 2,
+          "ratio": 0.4,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T23:18:17.110Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "Hard Disk Drives (HDDs) remain critically important, especia...",
+          "moduleIndex": 9,
+          "totalQuestions": 5,
+          "correctAnswers": 2,
+          "ratio": 0.4,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T23:18:17.110Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "The physical structure of a hard disk drive directly impacts...",
+          "moduleIndex": 10,
+          "totalQuestions": 5,
+          "correctAnswers": 1,
+          "ratio": 0.2,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T23:18:17.110Z",
+          "trend": "declining"
+        },
+        {
+          "topicName": "Disk heads must not physically contact the platters; contact...",
+          "moduleIndex": 11,
+          "totalQuestions": 5,
+          "correctAnswers": 2,
+          "ratio": 0.4,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T23:18:17.110Z",
+          "trend": "improving"
+        },
+        {
+          "topicName": "Positional delay (seek time) is the dominating factor in det...",
+          "moduleIndex": 12,
+          "totalQuestions": 5,
+          "correctAnswers": 2,
+          "ratio": 0.4,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T23:18:17.110Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "Accurately calculating total I/O access time by summing seek...",
+          "moduleIndex": 13,
+          "totalQuestions": 5,
+          "correctAnswers": 3,
+          "ratio": 0.6,
+          "isWeak": false,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T23:18:17.110Z",
+          "trend": "improving"
+        },
+        {
+          "topicName": "Solid State Drives (SSDs) offer much faster performance due ...",
+          "moduleIndex": 14,
+          "totalQuestions": 5,
+          "correctAnswers": 1,
+          "ratio": 0.2,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T23:18:17.110Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "Hard Disk Drives (HDDs)",
+          "moduleIndex": 15,
+          "totalQuestions": 5,
+          "correctAnswers": 3,
+          "ratio": 0.6,
+          "isWeak": false,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T23:18:17.110Z",
+          "trend": "improving"
+        },
+        {
+          "topicName": "Non-Volatile Memory (NVM)",
+          "moduleIndex": 16,
+          "totalQuestions": 5,
+          "correctAnswers": 3,
+          "ratio": 0.6,
+          "isWeak": false,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T23:18:17.110Z",
+          "trend": "improving"
+        },
+        {
+          "topicName": "Solid State Drives (SSDs)",
+          "moduleIndex": 17,
+          "totalQuestions": 5,
+          "correctAnswers": 3,
+          "ratio": 0.6,
+          "isWeak": false,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T23:18:17.110Z",
+          "trend": "improving"
+        },
+        {
+          "topicName": "Physical structure of storage devices",
+          "moduleIndex": 18,
+          "totalQuestions": 5,
+          "correctAnswers": 1,
+          "ratio": 0.2,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T23:18:17.110Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "HDD performance metrics (seek time, rotational latency, transfer rate)",
+          "moduleIndex": 19,
+          "totalQuestions": 5,
+          "correctAnswers": 2,
+          "ratio": 0.4,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T23:18:17.110Z",
+          "trend": "improving"
+        },
+        {
+          "topicName": "Total I/O time calculation",
+          "moduleIndex": 20,
+          "totalQuestions": 5,
+          "correctAnswers": 2,
+          "ratio": 0.4,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T23:18:17.110Z",
+          "trend": "declining"
+        },
+        {
+          "topicName": "Disk I/O scheduling algorithms (FCFS, SCAN, C-SCAN, SSTF, Deadline)",
+          "moduleIndex": 21,
+          "totalQuestions": 5,
+          "correctAnswers": 3,
+          "ratio": 0.6,
+          "isWeak": false,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T23:18:17.110Z",
+          "trend": "improving"
+        },
+        {
+          "topicName": "Storage device interfaces (SATA, NVMe)",
+          "moduleIndex": 22,
+          "totalQuestions": 5,
+          "correctAnswers": 1,
+          "ratio": 0.2,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T23:18:17.110Z",
+          "trend": "declining"
+        },
+        {
+          "topicName": "Error detection and correction (ECC, CRC)",
+          "moduleIndex": 23,
+          "totalQuestions": 5,
+          "correctAnswers": 2,
+          "ratio": 0.4,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T23:18:17.110Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "Storage device management (formatting, partitioning, swap space)",
+          "moduleIndex": 24,
+          "totalQuestions": 5,
+          "correctAnswers": 3,
+          "ratio": 0.6,
+          "isWeak": false,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T23:18:17.110Z",
+          "trend": "stable"
+        }
+      ]
+    },
+    "comments": [],
+    "accessCount": 0
+  },
+  {
+    "shareId": "share-9svj0mml2ghk9h",
+    "createdAt": "2026-01-31T15:17:44.789Z",
+    "expiresAt": "2026-02-07T15:17:44.789Z",
+    "createdBy": "anonymous",
+    "lessonId": "lec-1764808314795",
+    "bundle": {
+      "title": "Lecture 07.12.2025",
+      "plan": {
+        "topic": "Declarative UI for Mobile Application Development",
+        "key_concepts": [
+          "Imperative Programming",
+          "Declarative Programming",
+          "Mobile UI Frameworks (Flutter, React Native)",
+          "UI as a Tree Structure",
+          "Unidirectional Data Flow",
+          "State Management"
+        ],
+        "duration_weeks": 1,
+        "modules": [
+          {
+            "title": "Module 1: Foundations of Declarative UI",
+            "goal": "Understand the core concepts of declarative programming and its application to user interfaces.",
+            "lessons": [
+              {
+                "title": "Lesson 1.1: Introduction to Declarative Programming",
+                "objective": "Differentiate between imperative and declarative programming paradigms and identify frameworks that utilize them.",
+                "study_time_min": 45,
+                "activities": [
+                  {
+                    "type": "read",
+                    "prompt": "Review slide content on 'Declarative Programming' and the initial 'Imperative vs. Declarative' comparison tables.",
+                    "expected_outcome": "Identify the definitions and key distinctions between the two paradigms."
+                  },
+                  {
+                    "type": "watch",
+                    "prompt": "Watch the first 10 minutes of the lecture explaining the high-level difference and examples (Flutter, React Native, Jetpack Compose, Swift UI).",
+                    "expected_outcome": "Recognize popular frameworks that use declarative UI and understand the conceptual shift."
+                  },
+                  {
+                    "type": "quiz",
+                    "prompt": "Complete the mini-quiz for this lesson.",
+                    "expected_outcome": "Assess understanding of basic definitions and examples of declarative frameworks."
+                  }
+                ],
+                "mini_quiz": [
+                  "Which programming paradigm involves explicitly instructing the computer step-by-step?",
+                  "Name two mobile UI frameworks that primarily use a declarative programming style.",
+                  "Is HTML considered an imperative or declarative language, and why?"
+                ]
+              },
+              {
+                "title": "Lesson 1.2: Deep Dive into Imperative vs. Declarative UI",
+                "objective": "Analyze the fundamental differences in control, responsibility, and approach between imperative and declarative UI development, including practical examples.",
+                "study_time_min": 60,
+                "activities": [
+                  {
+                    "type": "read",
+                    "prompt": "Study the detailed 'Imperative vs. Declarative' slides, focusing on the bullet points comparing control, responsibility, and computer intelligence.",
+                    "expected_outcome": "Identify the roles of the programmer and computer in each paradigm and their implications."
+                  },
+                  {
+                    "type": "watch",
+                    "prompt": "Review the lecture explanation comparing 'Computer program vs. electronic circuit' and the detailed code examples of imperative and declarative UI for updating a text field.",
+                    "expected_outcome": "Understand the analogies and practical code differences between modifying existing UI vs. recreating it."
+                  },
+                  {
+                    "type": "practice",
+                    "prompt": "Sketch a simple UI component (e.g., a button changing text) and write pseudo-code for both imperative and declarative approaches to demonstrate the interaction.",
+                    "expected_outcome": "Apply the learned concepts to a basic UI scenario and visualize the code structure."
+                  }
+                ],
+                "mini_quiz": [
+                  "In an imperative UI approach, who typically has full control and responsibility: the programmer or the computer?",
+                  "Explain how an electronic circuit serves as an analogy for declarative programming.",
+                  "What is a key difference in how UI elements are managed (modified vs. recreated) in imperative versus declarative paradigms?"
+                ]
+              },
+              {
+                "title": "Lesson 1.3: The Tree Structure of User Interfaces",
+                "objective": "Explain why UIs are conceptualized as tree structures and how this concept influences the design choice for declarative frameworks.",
+                "study_time_min": 30,
+                "activities": [
+                  {
+                    "type": "read",
+                    "prompt": "Examine the slide titled 'UI is a tree'.",
+                    "expected_outcome": "Visualize how nested UI components form a hierarchical tree structure."
+                  },
+                  {
+                    "type": "watch",
+                    "prompt": "Listen to the lecture segment discussing UI as a tree structure and the challenges humans face with tree traversal and maintenance.",
+                    "expected_outcome": "Understand the inherent difficulties of managing UI trees imperatively and how declarative frameworks aim to simplify this."
+                  },
+                  {
+                    "type": "quiz",
+                    "prompt": "Complete the mini-quiz for this lesson.",
+                    "expected_outcome": "Assess understanding of the UI tree concept and its relevance to declarative programming."
+                  }
+                ],
+                "mini_quiz": [
+                  "Describe how a typical mobile application's UI can be viewed as a tree structure.",
+                  "According to the lecture, what common programming difficulty is mitigated by adopting a declarative approach to UI trees?"
+                ]
+              }
+            ]
+          },
+          {
+            "title": "Module 2: Declarative UI in Modern Mobile Frameworks",
+            "goal": "Understand how modern mobile frameworks implement declarative UI and its practical implications for development.",
+            "lessons": [
+              {
+                "title": "Lesson 2.1: Frameworks' Declarative Implementation",
+                "objective": "Describe how frameworks like Flutter and React Native achieve declarative UI despite using procedural languages, and identify their core UI building blocks.",
+                "study_time_min": 45,
+                "activities": [
+                  {
+                    "type": "read",
+                    "prompt": "Read slides on 'How are React Native and Flutter Declarative?' and 'UI Code (React Native/Flutter)'.",
+                    "expected_outcome": "Identify the specific syntax and concepts (e.g., JSX, Widget constructors) that enable declarative UI in these frameworks."
+                  },
+                  {
+                    "type": "watch",
+                    "prompt": "Review the lecture segment explaining that the *framework* enforces declarative style even with procedural languages, and the specific UI code structures.",
+                    "expected_outcome": "Grasp how procedural languages are adapted to a declarative UI paradigm by the framework."
+                  },
+                  {
+                    "type": "practice",
+                    "prompt": "Research a simple Flutter Widget or React Native Component and identify how it declares its UI elements without directly modifying them.",
+                    "expected_outcome": "Connect theoretical concepts to practical code examples in a chosen framework."
+                  }
+                ],
+                "mini_quiz": [
+                  "Why are Dart (Flutter) and JavaScript (React Native) considered procedural languages, yet their UI development is declarative?",
+                  "What are the primary UI building blocks in Flutter and React Native, respectively?",
+                  "Give an example of code you would NOT typically see in a declarative UI framework like Flutter or React Native."
+                ]
+              },
+              {
+                "title": "Lesson 2.2: UI Recreation and Optimization",
+                "objective": "Explain the concept of recreating the entire UI tree on state changes and understand why this seemingly inefficient approach is performant.",
+                "study_time_min": 40,
+                "activities": [
+                  {
+                    "type": "read",
+                    "prompt": "Review the slides asking 'How can you keep recreating the UI?'.",
+                    "expected_outcome": "Understand the central question regarding the efficiency of declarative UI frameworks."
+                  },
+                  {
+                    "type": "watch",
+                    "prompt": "Pay close attention to the lecture explanation about the 'light description' of UI elements and the framework's role in finding differences. Note the explicit advice on optimization.",
+                    "expected_outcome": "Grasp the underlying mechanism that makes UI recreation efficient and learn critical best practices regarding optimization."
+                  },
+                  {
+                    "type": "quiz",
+                    "prompt": "Complete the mini-quiz for this lesson.",
+                    "expected_outcome": "Assess understanding of declarative UI rendering mechanisms and optimization guidelines."
+                  }
+                ],
+                "mini_quiz": [
+                  "Why is repeatedly recreating UI elements in declarative frameworks not necessarily inefficient?",
+                  "What is the key advice given regarding optimizing UI element creation in declarative frameworks?"
+                ]
+              }
+            ]
+          },
+          {
+            "title": "Module 3: Data Management in Declarative UIs",
+            "goal": "Learn how data flows and is managed within declarative UI architectures, including basic and advanced strategies.",
+            "lessons": [
+              {
+                "title": "Lesson 3.1: Unidirectional Data Flow",
+                "objective": "Understand the principles of unidirectional data flow, distinguishing between props/constructor arguments and state, and how components communicate changes.",
+                "study_time_min": 50,
+                "activities": [
+                  {
+                    "type": "read",
+                    "prompt": "Study the 'How does data flow?' slides, specifically the bullet points on unidirectional flow, props, state, and events.",
+                    "expected_outcome": "Identify the core components of unidirectional data flow (props, state, events) and their roles."
+                  },
+                  {
+                    "type": "watch",
+                    "prompt": "Listen to the lecture's explanation of data flow and the difference between fixed data (props) and changing data (state), and how events propagate.",
+                    "expected_outcome": "Understand how data is passed down and events are communicated up the component tree."
+                  },
+                  {
+                    "type": "practice",
+                    "prompt": "Analyze the 'FilterableProductTable' example structure (if available via provided links) and identify potential data flow paths for user interactions (e.g., search input, product selection).",
+                    "expected_outcome": "Apply unidirectional data flow concepts to a practical, hierarchical UI example."
+                  }
+                ],
+                "mini_quiz": [
+                  "What are 'props' or 'constructor arguments' used for in unidirectional data flow?",
+                  "How does 'state' differ from 'props' in a declarative UI component?",
+                  "How do lower-level components typically communicate changes to higher-level components in a unidirectional data flow?"
+                ]
+              },
+              {
+                "title": "Lesson 3.2: Advanced State Management",
+                "objective": "Recognize the need for advanced state management solutions in complex applications and understand the recommended approach to learning them.",
+                "study_time_min": 30,
+                "activities": [
+                  {
+                    "type": "read",
+                    "prompt": "Review the slide 'Other approaches' regarding state management solutions like Redux, MobX, and Provider.",
+                    "expected_outcome": "Identify different advanced state management libraries and understand their purpose."
+                  },
+                  {
+                    "type": "watch",
+                    "prompt": "Listen to the lecture's caution about when to adopt state management libraries.",
+                    "expected_outcome": "Learn the recommended progression for integrating advanced state management into a project."
+                  },
+                  {
+                    "type": "quiz",
+                    "prompt": "Complete the mini-quiz for this lesson.",
+                    "expected_outcome": "Assess understanding of when and how to approach advanced state management in declarative UIs."
+                  }
+                ],
+                "mini_quiz": [
+                  "When should a developer consider adopting an advanced state management solution?",
+                  "What is the recommended initial approach before delving into complex state management libraries?"
+                ]
+              }
+            ]
+          }
+        ],
+        "resources": [
+          "https://www.youtube.com/watch?v=Mt7KnvnNGfk",
+          "https://reactjs.org/docs/thinking-in-react.html",
+          "https://livebook.manning.com/book/react-in-action/chapter-3/112",
+          "https://www.slideshare.net/pheadra4/react-46872849?from_action=save",
+          "https://tkssharma.gitbook.io/react-training/day-01/react-js-3-principles/one-way-data-flow"
+        ],
+        "emphases": [
+          {
+            "statement": "The live lecture is the primary and most important source of information for this course, more so than recordings.",
+            "why": "This instruction emphasizes the importance of active engagement and attendance, which directly contributes to better understanding and exam performance, as recordings might be incomplete or secondary sources.",
+            "in_slides": false,
+            "evidence": "The teacher explicitly states that main sources require being present and listening, implying that recordings are supplementary.",
+            "source": "lecture",
+            "from_transcript_quote": "Main sources you need to be here and listening to the lecture.",
+            "from_slide_quote": null,
+            "related_lo_ids": [
+              "1",
+              "2",
+              "3"
+            ]
+          },
+          {
+            "statement": "Flutter's developer experience, specifically hot reload with state preservation and direct UI-to-code navigation, is extremely valuable for productivity and unmatched.",
+            "why": "These features drastically reduce the development feedback loop and simplify debugging complex UI states, making development faster and more enjoyable. Understanding these 'luxuries' highlights practical advantages of the framework.",
+            "in_slides": false,
+            "evidence": "The teacher dedicates a significant portion of the introduction to elaborate on these 'luxuries,' providing a detailed e-commerce app scenario and calling them 'immensely valuable' and 'unmatched.'",
+            "source": "lecture",
+            "from_transcript_quote": "So this is immensely valuable and it reduces the loop that I talked about... But we are living in a luxurious world with Flutter. I told you that developer experience is unmatched pretty much.",
+            "from_slide_quote": null,
+            "related_lo_ids": [
+              "2"
+            ]
+          },
+          {
+            "statement": "Declarative UI programming fundamentally shifts control and responsibility from the programmer (who gives explicit orders) to the 'smart' computer/framework (which executes based on descriptions).",
+            "why": "This is the core philosophical difference. Grasping this paradigm shift is crucial for understanding why certain programming patterns (like UI recreation) are adopted and how declarative frameworks simplify UI development. This distinction is fundamental for conceptual understanding and exam questions.",
+            "in_slides": true,
+            "evidence": "Extensive explanation through analogies (computer program vs. electronic circuit) and explicit comparison tables on slides detailing control, responsibility, and perceived computer intelligence in both paradigms.",
+            "source": "both",
+            "from_transcript_quote": "In declarative world, your program has limited control, but has limited responsibility also, right?... And the computer is somewhat smart. You give it these instructions, and then it does some things that you don't want to do, such as treat traverses.",
+            "from_slide_quote": "Imperative: Programmer has full control. Programmer has full responsibility. The computer is dumb. Declarative: Programmer has limited control. Programmer has limited responsibility. The computer is smart.",
+            "related_lo_ids": [
+              "1",
+              "2"
+            ]
+          },
+          {
+            "statement": "In declarative UI, developers should consistently recreate UI elements rather than attempting manual optimization or caching, as the framework is intelligently designed to handle this efficiently.",
+            "why": "This is a counter-intuitive yet critical principle for effective declarative UI development. Misunderstanding this leads to incorrect optimization attempts, performance issues, and breaking the declarative model. This directly impacts practical development best practices and is highly relevant for exam scenarios.",
+            "in_slides": true,
+            "evidence": "Direct, strong injunctions are given: 'DO NOT TRY TO OPTIMIZE ANYTHING ABOUT IT!!! DO NOT CACHE UI ELEMENTS, ETC. KEEP RECREATING THEM.' The slides also explain the framework's internal diffing mechanism.",
+            "source": "both",
+            "from_transcript_quote": "DO NOT TRY TO OPTIMIZE ANYTHING ABOUT IT!!! DO NOT CACHE UI ELEMENTS, ETC. KEEP RECREATING THEM.",
+            "from_slide_quote": "NO! People smarter than us have implemented it carefully. ... The framework finds the difference between two versions of the tree and modifies the UI elements whose description actually changed.",
+            "related_lo_ids": [
+              "2"
+            ]
+          },
+          {
+            "statement": "Advanced state management solutions (e.g., Redux, MobX, Provider) should only be adopted after mastering basic state management (`setState`) and experiencing a genuine need for them in complex applications.",
+            "why": "This practical advice prevents premature over-engineering, ensures a solid understanding of fundamental data flow, and avoids introducing unnecessary complexity into simpler projects. It’s crucial for making informed architectural decisions in real-world development.",
+            "in_slides": true,
+            "evidence": "Explicit 'WARNING' on the slides is supported by extended verbal explanation, emphasizing trying basic methods first before escalating to complex libraries.",
+            "source": "both",
+            "from_transcript_quote": "WARNING: Learn the basics well before starting these approaches! Try it with setState first. Write a couple of apps with it first. After you really feel the need, start learning about a state management approach.",
+            "from_slide_quote": "WARNING: Learn the basics well before starting these approaches! Try it with setState first. Write a couple of apps with it first. After you really feel the need, start learning about a state management approach.",
+            "related_lo_ids": [
+              "2"
+            ]
+          },
+          {
+            "statement": "The primary problems declarative UI aims to solve are the 'source of information' issue (data synchronization chaos) and the inherent difficulty humans have maintaining complex UI tree structures.",
+            "why": "Understanding the problems that declarative UI was invented to solve provides the fundamental motivation for its existence and helps students appreciate the benefits of this paradigm. This foundational understanding is important for analytical questions.",
+            "in_slides": true,
+            "evidence": "The lecturer introduces 'A problem in UI software is source of information' and elaborates on the 'spaghetti code' it creates. This is directly linked to the complexity of managing UI trees, which is also explicitly stated as a difficulty for humans.",
+            "source": "both",
+            "from_transcript_quote": "So a problem in UI software is source of information... So this declarative UI is invented to get around this issue completely. And also user interfaces are usually like trees, okay?... As a human being, it's difficult for you to deal with trees, traverse trees, maintain trees, right?",
+            "from_slide_quote": "A problem: source of information",
+            "related_lo_ids": [
+              "1",
+              "2"
+            ]
+          }
+        ],
+        "seed_quiz": [
+          "Compare and contrast imperative and declarative programming paradigms, providing examples of each in the context of UI development.",
+          "Explain the concept of UI as a tree structure. Why do declarative UI frameworks choose to recreate the entire UI tree on state changes, and why is this not inefficient?",
+          "Describe unidirectional data flow in declarative UIs. How are 'props' (or constructor arguments) and 'state' used, and how do components communicate events upwards?",
+          "What are the key advantages of using a declarative UI framework like Flutter or React Native for mobile application development?",
+          "When should a developer consider adopting an advanced state management solution (e.g., Redux, MobX) in a declarative UI project, according to the lecture's advice?"
+        ],
+        "alignment": {
+          "summary_chatty": "This lecture provides a comprehensive introduction to Declarative UI, setting the stage for practical mobile app development. The instructor skillfully interweaves theoretical concepts with practical implications, often emphasizing the 'why' behind the declarative paradigm. While the slides outline key definitions and comparisons, the lecture elaborates with relatable analogies, real-world development scenarios, and crucial advice on best practices, particularly regarding Flutter's developer experience and UI recreation. There's strong alignment on core concepts like Imperative vs. Declarative, UI as a tree, and data flow, ensuring students get a robust understanding from both visual aids and verbal explanations. The emphasis on developer productivity and specific warnings for state management truly enhances the learning experience beyond just textbook definitions.",
+          "average_duration_min": 32,
+          "items": [
+            {
+              "topic": "Imperative vs. Declarative Programming",
+              "concepts": [
+                "definitions",
+                "explicit instructions vs. description",
+                "full control vs. limited control",
+                "dumb computer vs. smart computer",
+                "sequential vs. circuit-like",
+                "Java/C++ vs. HTML/SQL"
+              ],
+              "in_both": true,
+              "emphasis_level": "high",
+              "lecture_quotes": [
+                "The kind of program that most of you are usually called imperative program, imperative means to give orders, do this, do that, completely stupid, you tell it to do whatever, every time, okay?",
+                "In declarative, you describe how it should be, okay? Here's how I would like, how I would like it to be like."
+              ],
+              "slide_refs": [
+                "Imperative vs. Declarative (multiple slides)",
+                "A computer program vs. an electronic circuit",
+                "Is it just the language?"
+              ],
+              "duration_min": 8,
+              "confidence": 1
+            },
+            {
+              "topic": "UI as a Tree Structure",
+              "concepts": [
+                "parent-child relationships",
+                "nested components",
+                "difficulty of human traversal/maintenance",
+                "declarative solution"
+              ],
+              "in_both": true,
+              "emphasis_level": "medium",
+              "lecture_quotes": [
+                "So this is a tree, what do you mean this is a tree? This larger area contains a smaller area, which contains a smaller area, which contains a smaller area, okay? That's how it's a tree.",
+                "As a human being, it's difficult for you to deal with trees, traverse trees, maintain trees, right?"
+              ],
+              "slide_refs": [
+                "UI is a tree"
+              ],
+              "duration_min": 5,
+              "confidence": 1
+            },
+            {
+              "topic": "Flutter and React Native's Declarative Approach",
+              "concepts": [
+                "procedural languages (Dart, JS) used declaratively",
+                "framework enforces style",
+                "UI elements recreated not modified",
+                "JSX",
+                "Widget constructors"
+              ],
+              "in_both": true,
+              "emphasis_level": "medium",
+              "lecture_quotes": [
+                "Although the language is suitable for imperative code, the framework forces declarative code. You create and tie UI elements together. You do not modify or manage existing UI elements."
+              ],
+              "slide_refs": [
+                "How are React Native and Flutter Declarative?",
+                "Declarative code from React Native and Flutter (repeated slide)",
+                "UI Code"
+              ],
+              "duration_min": 7,
+              "confidence": 1
+            },
+            {
+              "topic": "Efficiency of UI Recreation",
+              "concepts": [
+                "recreating UI is not inefficient",
+                "light description of elements",
+                "framework diffing mechanism",
+                "no manual optimization"
+              ],
+              "in_both": true,
+              "emphasis_level": "high",
+              "lecture_quotes": [
+                "NO! People smarter than us have implemented it carefully. What you are creating is not the real UI element. It’s just a light description of them... The framework finds the difference between two versions of the tree and modifies the UI elements whose description actually changed.",
+                "DO NOT TRY TO OPTIMIZE ANYTHING ABOUT IT!!! DO NOT CACHE UI ELEMENTS, ETC. KEEP RECREATING THEM."
+              ],
+              "slide_refs": [
+                "How can you keep recreating the UI? (repeated slide)"
+              ],
+              "duration_min": 5,
+              "confidence": 1
+            },
+            {
+              "topic": "Unidirectional Data Flow",
+              "concepts": [
+                "top-to-bottom flow",
+                "props/constructor arguments (fixed data)",
+                "state (changing data, triggers rebuild)",
+                "bottom-to-top (events)"
+              ],
+              "in_both": true,
+              "emphasis_level": "medium",
+              "lecture_quotes": [
+                "Unidirectional data flow. Top to bottom. Props/constructor arguments (fixed)... State (changing)... Bottom to top. Events."
+              ],
+              "slide_refs": [
+                "How does data flow? (multiple slides with definitions)"
+              ],
+              "duration_min": 5,
+              "confidence": 1
+            },
+            {
+              "topic": "Advanced State Management Solutions",
+              "concepts": [
+                "cumbersome data passing",
+                "Redux, MobX, Provider",
+                "learn basics first (setState)",
+                "adopt only when truly needed"
+              ],
+              "in_both": true,
+              "emphasis_level": "high",
+              "lecture_quotes": [
+                "WARNING: Learn the basics well before starting these approaches! Try it with setState first. Write a couple of apps with it first. After you really feel the need, start learning about a state management approach."
+              ],
+              "slide_refs": [
+                "Other approaches"
+              ],
+              "duration_min": 4,
+              "confidence": 1
+            },
+            {
+              "topic": "Flutter Developer Experience (Hot Reload & UI-to-Code Navigation)",
+              "concepts": [
+                "two 'luxuries'",
+                "immediate feedback loop",
+                "state preservation during hot reload",
+                "direct navigation from UI element to its code",
+                "unmatched DX"
+              ],
+              "in_both": false,
+              "emphasis_level": "high",
+              "lecture_quotes": [
+                "Another luxury was I edited some code, saved it and immediately like less than a second usually later I saw it, I saw my running app change to reflect that. And it was preserving the current state. So that's really valuable...",
+                "I told you that developer experience is unmatched pretty much."
+              ],
+              "slide_refs": [],
+              "duration_min": 6,
+              "confidence": 0.9
+            }
+          ]
+        }
+      },
+      "cheatSheet": null,
+      "quiz": [],
+      "loModules": [
+        {
+          "loId": "LO1",
+          "loTitle": "will be able to analyse the requirements of mobile applications",
+          "oneLineGist": "This LO was not covered in the specific lecture content provided. The lecture focused on UI design and development paradigms, not general mobile application requirements analysis.",
+          "coreIdeas": [],
+          "mustRemember": [],
+          "intuitiveExplanation": "",
+          "examples": [],
+          "typicalQuestions": [],
+          "commonTraps": [],
+          "miniQuiz": [],
+          "recommended_study_time_min": 0
+        },
+        {
+          "loId": "LO2",
+          "loTitle": "will be able to design user interfaces and interactions for mobile applications",
+          "oneLineGist": "Learn the core principles of declarative UI design for mobile apps, contrasting it with imperative approaches and understanding data flow and state management.",
+          "coreIdeas": [
+            "**Imperative vs. Declarative Programming**: Imperative gives detailed step-by-step instructions (e.g., Java, C++), while Declarative describes the desired outcome (e.g., HTML, SQL) and the system figures out how to achieve it.",
+            "**UI as a Tree Structure**: User interfaces are inherently hierarchical. While creating a UI tree is easy, modifying and maintaining it imperatively is complex and error-prone.",
+            "**Declarative UI Frameworks (Flutter, React Native)**: These frameworks (despite using procedural languages like Dart/JavaScript) force a declarative style. Instead of modifying existing UI elements, you describe and re-create the UI elements based on the current state.",
+            "**Efficiency of UI Re-creation**: Declarative frameworks efficiently re-create UI descriptions (light data structures) and then intelligently compare these descriptions to only update the actual UI elements that have changed, making it performant.",
+            "**Unidirectional Data Flow (Top-to-Bottom)**: Data flows from parent components to child components via two main mechanisms:",
+            "    - **Props/Constructor Arguments**: Fixed data passed down when a component is created, used for configuring static aspects.",
+            "    - **State**: Temporary, changing data internal to a component that triggers a rebuild of its subtree when updated.",
+            "**Bottom-to-Top Communication (Events)**: Lower-level components communicate changes or user interactions back up to parent components using events or callbacks.",
+            "**State Management Solutions**: For complex applications, direct prop-drilling can be cumbersome. Libraries like Redux, MobX, or Provider offer centralized state management solutions to simplify data sharing across distant components."
+          ],
+          "mustRemember": [
+            "**Declarative UI focuses on 'what' (description), not 'how' (explicit steps).**",
+            "**In declarative UIs, you re-create UI descriptions, not modify existing elements directly.**",
+            "**'Props' are for fixed, parent-to-child data; 'State' is for changing, internal component data.**",
+            "**Declarative frameworks optimize UI updates; do NOT try to manually optimize by caching elements.**",
+            "**Unidirectional data flow ensures predictable UI behavior and easier debugging.**"
+          ],
+          "intuitiveExplanation": "Imagine you're ordering a custom cake. Imperative is like giving the baker step-by-step instructions: 'First, mix flour and eggs, then bake for 30 minutes, then apply frosting.' You're in full control but also fully responsible. Declarative is like giving the baker a picture and saying, 'I want a cake that looks exactly like this, with 'Happy Birthday' written on it.' You describe the end result, and the smart baker (the framework) figures out the most efficient way to make it, even if you change your mind about the writing later. For UIs, this means you just tell the system what you want to see, and it redraws or updates the necessary parts efficiently, rather than you trying to find and tweak individual UI components.",
+          "examples": [
+            {
+              "label": "Imperative UI Code",
+              "description": "To change text in an imperative system: `TextField t = new TextField(); t.text = \"one\"; ... b.addClickHandler(() { t.text = \"two\"; });` (Directly modifying an existing UI object's property)."
+            },
+            {
+              "label": "Declarative UI Code",
+              "description": "To change text in a declarative system: `String currentValue = \"one\"; buildUi() { new Panel( new Text(currentValue), ... Button(onClick: () { currentValue = \"two\"; rebuildUi(); }) ); }` (Updating a variable and then triggering a re-render of the UI description)."
+            },
+            {
+              "label": "UI Planning/Decomposition",
+              "description": "Breaking down a complex UI like a 'FilterableProductTable' into smaller, reusable components: 'SearchBar', 'ProductTable', 'ProductCategoryRow', 'ProductRow'. Each component describes its own part of the UI based on its props and state."
+            }
+          ],
+          "typicalQuestions": [
+            "Explain the fundamental difference between imperative and declarative programming paradigms, specifically in the context of UI development for mobile applications.",
+            "Describe how modern mobile UI frameworks like Flutter or React Native achieve declarative UI, even when using procedural languages like Dart or JavaScript.",
+            "How is data flow typically managed in a declarative UI? Differentiate between 'props' (or constructor arguments) and 'state' as sources of UI data.",
+            "You are tasked with designing a component that displays a user's profile picture and name. When would you use 'props' and when might you use 'state' for this component's data?",
+            "Why is it generally advised to 'not optimize' UI re-creation in declarative frameworks, and what mechanism makes this possible?"
+          ],
+          "commonTraps": [
+            "**Confusing UI element instances with their descriptions**: Thinking you're modifying a 'real' UI element directly in declarative code, rather than creating a new description.",
+            "**Trying to cache UI elements**: Attempting to reuse UI objects directly, which goes against the declarative philosophy and the framework's optimization strategy.",
+            "**Misunderstanding 'State' vs. 'Props'**: Using state for data that should be passed as props, or vice-versa, leading to inefficient updates or incorrect data flow.",
+            "**Assuming declarative re-creation is always slow**: Not trusting the framework's underlying optimization (virtual DOM/widget tree diffing) and attempting premature manual optimizations.",
+            "**Ignoring unidirectional data flow**: Trying to modify parent component data directly from a child component without using events/callbacks, leading to unpredictable behavior."
+          ],
+          "miniQuiz": [
+            {
+              "question": "What is the primary characteristic of imperative programming?",
+              "answer": "Giving explicit, detailed, step-by-step instructions on 'how' to achieve a result.",
+              "why": "This defines the core of imperative programming as discussed in the lecture."
+            },
+            {
+              "question": "In declarative UI, do you modify existing UI elements or re-create their descriptions?",
+              "answer": "You re-create their descriptions (lightweight data structures).",
+              "why": "This is a fundamental concept of how declarative UI frameworks manage updates and state changes."
+            },
+            {
+              "question": "What triggers a 'rebuild of subtree' in a declarative UI when data changes?",
+              "answer": "A change in the component's 'state'.",
+              "why": "State is the mechanism for internal, changing data that causes a component and its children to re-render."
+            },
+            {
+              "question": "If a UI element's description needs to change, why is it not inefficient to recreate the entire description?",
+              "answer": "The framework creates lightweight descriptions, finds the differences (diffing algorithm), and only updates the actual UI elements that truly changed, making it efficient.",
+              "why": "This explains the optimization mechanism discussed by the lecturer, countering the common misconception of inefficiency."
+            }
+          ],
+          "recommended_study_time_min": 75
+        },
+        {
+          "loId": "LO3",
+          "loTitle": "will be able to develop secure mobile applications that can actively use databases",
+          "oneLineGist": "This LO was not covered in the specific lecture content provided. The lecture focused on UI programming paradigms, not security or database integration.",
+          "coreIdeas": [],
+          "mustRemember": [],
+          "intuitiveExplanation": "",
+          "examples": [],
+          "typicalQuestions": [],
+          "commonTraps": [],
+          "miniQuiz": [],
+          "recommended_study_time_min": 0
+        }
+      ],
+      "emphases": [
+        {
+          "statement": "The live lecture is the primary and most important source of information for this course, more so than recordings.",
+          "why": "This instruction emphasizes the importance of active engagement and attendance, which directly contributes to better understanding and exam performance, as recordings might be incomplete or secondary sources.",
+          "in_slides": false,
+          "evidence": "The teacher explicitly states that main sources require being present and listening, implying that recordings are supplementary.",
+          "source": "lecture",
+          "from_transcript_quote": "Main sources you need to be here and listening to the lecture.",
+          "from_slide_quote": null,
+          "related_lo_ids": [
+            "1",
+            "2",
+            "3"
+          ]
+        },
+        {
+          "statement": "Flutter's developer experience, specifically hot reload with state preservation and direct UI-to-code navigation, is extremely valuable for productivity and unmatched.",
+          "why": "These features drastically reduce the development feedback loop and simplify debugging complex UI states, making development faster and more enjoyable. Understanding these 'luxuries' highlights practical advantages of the framework.",
+          "in_slides": false,
+          "evidence": "The teacher dedicates a significant portion of the introduction to elaborate on these 'luxuries,' providing a detailed e-commerce app scenario and calling them 'immensely valuable' and 'unmatched.'",
+          "source": "lecture",
+          "from_transcript_quote": "So this is immensely valuable and it reduces the loop that I talked about... But we are living in a luxurious world with Flutter. I told you that developer experience is unmatched pretty much.",
+          "from_slide_quote": null,
+          "related_lo_ids": [
+            "2"
+          ]
+        },
+        {
+          "statement": "Declarative UI programming fundamentally shifts control and responsibility from the programmer (who gives explicit orders) to the 'smart' computer/framework (which executes based on descriptions).",
+          "why": "This is the core philosophical difference. Grasping this paradigm shift is crucial for understanding why certain programming patterns (like UI recreation) are adopted and how declarative frameworks simplify UI development. This distinction is fundamental for conceptual understanding and exam questions.",
+          "in_slides": true,
+          "evidence": "Extensive explanation through analogies (computer program vs. electronic circuit) and explicit comparison tables on slides detailing control, responsibility, and perceived computer intelligence in both paradigms.",
+          "source": "both",
+          "from_transcript_quote": "In declarative world, your program has limited control, but has limited responsibility also, right?... And the computer is somewhat smart. You give it these instructions, and then it does some things that you don't want to do, such as treat traverses.",
+          "from_slide_quote": "Imperative: Programmer has full control. Programmer has full responsibility. The computer is dumb. Declarative: Programmer has limited control. Programmer has limited responsibility. The computer is smart.",
+          "related_lo_ids": [
+            "1",
+            "2"
+          ]
+        },
+        {
+          "statement": "In declarative UI, developers should consistently recreate UI elements rather than attempting manual optimization or caching, as the framework is intelligently designed to handle this efficiently.",
+          "why": "This is a counter-intuitive yet critical principle for effective declarative UI development. Misunderstanding this leads to incorrect optimization attempts, performance issues, and breaking the declarative model. This directly impacts practical development best practices and is highly relevant for exam scenarios.",
+          "in_slides": true,
+          "evidence": "Direct, strong injunctions are given: 'DO NOT TRY TO OPTIMIZE ANYTHING ABOUT IT!!! DO NOT CACHE UI ELEMENTS, ETC. KEEP RECREATING THEM.' The slides also explain the framework's internal diffing mechanism.",
+          "source": "both",
+          "from_transcript_quote": "DO NOT TRY TO OPTIMIZE ANYTHING ABOUT IT!!! DO NOT CACHE UI ELEMENTS, ETC. KEEP RECREATING THEM.",
+          "from_slide_quote": "NO! People smarter than us have implemented it carefully. ... The framework finds the difference between two versions of the tree and modifies the UI elements whose description actually changed.",
+          "related_lo_ids": [
+            "2"
+          ]
+        },
+        {
+          "statement": "Advanced state management solutions (e.g., Redux, MobX, Provider) should only be adopted after mastering basic state management (`setState`) and experiencing a genuine need for them in complex applications.",
+          "why": "This practical advice prevents premature over-engineering, ensures a solid understanding of fundamental data flow, and avoids introducing unnecessary complexity into simpler projects. It’s crucial for making informed architectural decisions in real-world development.",
+          "in_slides": true,
+          "evidence": "Explicit 'WARNING' on the slides is supported by extended verbal explanation, emphasizing trying basic methods first before escalating to complex libraries.",
+          "source": "both",
+          "from_transcript_quote": "WARNING: Learn the basics well before starting these approaches! Try it with setState first. Write a couple of apps with it first. After you really feel the need, start learning about a state management approach.",
+          "from_slide_quote": "WARNING: Learn the basics well before starting these approaches! Try it with setState first. Write a couple of apps with it first. After you really feel the need, start learning about a state management approach.",
+          "related_lo_ids": [
+            "2"
+          ]
+        },
+        {
+          "statement": "The primary problems declarative UI aims to solve are the 'source of information' issue (data synchronization chaos) and the inherent difficulty humans have maintaining complex UI tree structures.",
+          "why": "Understanding the problems that declarative UI was invented to solve provides the fundamental motivation for its existence and helps students appreciate the benefits of this paradigm. This foundational understanding is important for analytical questions.",
+          "in_slides": true,
+          "evidence": "The lecturer introduces 'A problem in UI software is source of information' and elaborates on the 'spaghetti code' it creates. This is directly linked to the complexity of managing UI trees, which is also explicitly stated as a difficulty for humans.",
+          "source": "both",
+          "from_transcript_quote": "So a problem in UI software is source of information... So this declarative UI is invented to get around this issue completely. And also user interfaces are usually like trees, okay?... As a human being, it's difficult for you to deal with trees, traverse trees, maintain trees, right?",
+          "from_slide_quote": "A problem: source of information",
+          "related_lo_ids": [
+            "1",
+            "2"
+          ]
+        }
+      ],
+      "notes": [],
+      "weakTopics": [
+        {
+          "topicName": "Module 1: Foundations of Declarative UI",
+          "moduleIndex": 0,
+          "totalQuestions": 5,
+          "correctAnswers": 2,
+          "ratio": 0.4,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T14:24:30.575Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "Lesson 1.1: Introduction to Declarative Programming",
+          "moduleIndex": 1,
+          "totalQuestions": 5,
+          "correctAnswers": 2,
+          "ratio": 0.4,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T14:24:30.575Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "Lesson 1.2: Deep Dive into Imperative vs. Declarative UI",
+          "moduleIndex": 2,
+          "totalQuestions": 5,
+          "correctAnswers": 1,
+          "ratio": 0.2,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T14:24:30.575Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "Lesson 1.3: The Tree Structure of User Interfaces",
+          "moduleIndex": 3,
+          "totalQuestions": 5,
+          "correctAnswers": 1,
+          "ratio": 0.2,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T14:24:30.575Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "Module 2: Declarative UI in Modern Mobile Frameworks",
+          "moduleIndex": 4,
+          "totalQuestions": 5,
+          "correctAnswers": 3,
+          "ratio": 0.6,
+          "isWeak": false,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T14:24:30.575Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "Lesson 2.1: Frameworks' Declarative Implementation",
+          "moduleIndex": 5,
+          "totalQuestions": 5,
+          "correctAnswers": 2,
+          "ratio": 0.4,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T14:24:30.575Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "Lesson 2.2: UI Recreation and Optimization",
+          "moduleIndex": 6,
+          "totalQuestions": 5,
+          "correctAnswers": 2,
+          "ratio": 0.4,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T14:24:30.575Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "Module 3: Data Management in Declarative UIs",
+          "moduleIndex": 7,
+          "totalQuestions": 5,
+          "correctAnswers": 2,
+          "ratio": 0.4,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T14:24:30.575Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "Lesson 3.1: Unidirectional Data Flow",
+          "moduleIndex": 8,
+          "totalQuestions": 5,
+          "correctAnswers": 2,
+          "ratio": 0.4,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T14:24:30.575Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "Lesson 3.2: Advanced State Management",
+          "moduleIndex": 9,
+          "totalQuestions": 5,
+          "correctAnswers": 1,
+          "ratio": 0.2,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T14:24:30.575Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "The live lecture is the primary and most important source of...",
+          "moduleIndex": 10,
+          "totalQuestions": 5,
+          "correctAnswers": 2,
+          "ratio": 0.4,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T14:24:30.575Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "Flutter's developer experience, specifically hot reload with...",
+          "moduleIndex": 11,
+          "totalQuestions": 5,
+          "correctAnswers": 1,
+          "ratio": 0.2,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T14:24:30.575Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "Declarative UI programming fundamentally shifts control and ...",
+          "moduleIndex": 12,
+          "totalQuestions": 5,
+          "correctAnswers": 2,
+          "ratio": 0.4,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T14:24:30.575Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "In declarative UI, developers should consistently recreate U...",
+          "moduleIndex": 13,
+          "totalQuestions": 5,
+          "correctAnswers": 1,
+          "ratio": 0.2,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T14:24:30.575Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "Advanced state management solutions (e.g., Redux, MobX, Prov...",
+          "moduleIndex": 14,
+          "totalQuestions": 5,
+          "correctAnswers": 2,
+          "ratio": 0.4,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T14:24:30.575Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "The primary problems declarative UI aims to solve are the 's...",
+          "moduleIndex": 15,
+          "totalQuestions": 5,
+          "correctAnswers": 1,
+          "ratio": 0.2,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T14:24:30.575Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "Imperative Programming",
+          "moduleIndex": 16,
+          "totalQuestions": 5,
+          "correctAnswers": 3,
+          "ratio": 0.6,
+          "isWeak": false,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T14:24:30.575Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "Declarative Programming",
+          "moduleIndex": 17,
+          "totalQuestions": 5,
+          "correctAnswers": 2,
+          "ratio": 0.4,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T14:24:30.575Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "Mobile UI Frameworks (Flutter, React Native)",
+          "moduleIndex": 18,
+          "totalQuestions": 5,
+          "correctAnswers": 2,
+          "ratio": 0.4,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T14:24:30.575Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "UI as a Tree Structure",
+          "moduleIndex": 19,
+          "totalQuestions": 5,
+          "correctAnswers": 1,
+          "ratio": 0.2,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T14:24:30.575Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "Unidirectional Data Flow",
+          "moduleIndex": 20,
+          "totalQuestions": 5,
+          "correctAnswers": 1,
+          "ratio": 0.2,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T14:24:30.575Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "State Management",
+          "moduleIndex": 21,
+          "totalQuestions": 5,
+          "correctAnswers": 2,
+          "ratio": 0.4,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T14:24:30.575Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "will be able to analyse the requirements of mobile applications",
+          "moduleIndex": 22,
+          "loId": "LO1",
+          "totalQuestions": 5,
+          "correctAnswers": 2,
+          "ratio": 0.4,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T14:24:30.575Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "will be able to design user interfaces and interactions for mobile applications",
+          "moduleIndex": 23,
+          "loId": "LO2",
+          "totalQuestions": 5,
+          "correctAnswers": 2,
+          "ratio": 0.4,
+          "isWeak": true,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T14:24:30.575Z",
+          "trend": "stable"
+        },
+        {
+          "topicName": "will be able to develop secure mobile applications that can actively use databases",
+          "moduleIndex": 24,
+          "loId": "LO3",
+          "totalQuestions": 5,
+          "correctAnswers": 3,
+          "ratio": 0.6,
+          "isWeak": false,
+          "sources": [],
+          "lastAttemptDate": "2026-01-31T14:24:30.575Z",
+          "trend": "stable"
+        }
+      ]
+    },
+    "comments": [],
+    "accessCount": 3
+  }
+]

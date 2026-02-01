@@ -1,9 +1,10 @@
 // src/components/LessonsHistoryPane.tsx
 
 import React, { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { API_BASE } from "../config";
-import { ModeId } from "../types";
-import { lessonsApi } from "../services/api";
+import { ModeId, SharedBundle } from "../types";
+import { lessonsApi, sharesApi } from "../services/api";
 
 // Tarih formatlayıcı (Örn: "2 Ara 2025, 14:30")
 const formatDate = (d?: string) => {
@@ -27,6 +28,14 @@ export default function LessonsHistoryPane({ setMode, setQuiz, onSelectLesson, c
   const [loading, setLoading] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [shares, setShares] = useState<SharedBundle[]>([]);
+
+  // Load shares
+  useEffect(() => {
+    sharesApi.list().then((res) => {
+      if (res.ok && res.shares) setShares(res.shares);
+    }).catch(() => {});
+  }, []);
 
   // Dersleri yükle
   const loadLessons = () => {
@@ -60,7 +69,7 @@ export default function LessonsHistoryPane({ setMode, setQuiz, onSelectLesson, c
         onLessonDeleted?.();
       }
     } else {
-      alert(result.error || "Silme işlemi başarısız oldu.");
+      toast.error(result.error || "Silme işlemi başarısız oldu.");
     }
   };
 
@@ -161,6 +170,52 @@ export default function LessonsHistoryPane({ setMode, setQuiz, onSelectLesson, c
         })}
       </div>
 
+      {/* Shared Lessons Section */}
+      {shares.length > 0 && (
+        <div style={{ marginTop: 24 }}>
+          <div className="shared-section-title">
+            Shared Lessons ({shares.length})
+          </div>
+          <div className="grid-gap-10">
+            {shares.map((share) => (
+              <div key={share.shareId} className="shared-lesson-card">
+                <div className="shared-lesson-header">
+                  <span className="shared-lesson-title">{share.bundle.title}</span>
+                  <span className="status-badge status-badge--info">
+                    {share.accessCount} views
+                  </span>
+                </div>
+                <div className="shared-lesson-meta">
+                  <span>{formatDate(share.createdAt)}</span>
+                  <span>Expires: {formatDate(share.expiresAt)}</span>
+                </div>
+                <div className="shared-lesson-actions">
+                  <button
+                    className="btn-small"
+                    onClick={() => {
+                      const url = `${window.location.origin}?share=${share.shareId}`;
+                      navigator.clipboard.writeText(url).then(() => toast.success("Link copied!"));
+                    }}
+                  >
+                    Copy Link
+                  </button>
+                  <button
+                    className="fc-delete-btn"
+                    onClick={async () => {
+                      await sharesApi.delete(share.shareId);
+                      setShares((s) => s.filter((sh) => sh.shareId !== share.shareId));
+                      toast.success("Share deleted");
+                    }}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Delete Confirmation Modal */}
       {deleteTarget && (
         <div
@@ -177,7 +232,7 @@ export default function LessonsHistoryPane({ setMode, setQuiz, onSelectLesson, c
         >
           <div
             style={{
-              background: 'var(--card-bg, white)',
+              background: 'var(--card)',
               padding: 24,
               borderRadius: 16,
               maxWidth: 400,
@@ -201,7 +256,7 @@ export default function LessonsHistoryPane({ setMode, setQuiz, onSelectLesson, c
               </button>
               <button
                 className="btn"
-                style={{ background: '#ef4444', color: 'white' }}
+                style={{ background: 'var(--danger)', color: 'white' }}
                 onClick={handleDelete}
                 disabled={deleting}
               >
