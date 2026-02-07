@@ -166,52 +166,28 @@
   ],
   "recentEmphases": [
     {
-      "statement": "Solid State Drives (SSDs) offer much faster performance due to no moving parts but have challenges like limited write cycles and require special management techniques such as wear leveling and garbage collection.",
-      "why": "Understanding the fundamental differences between HDDs and SSDs, beyond just 'faster,' is critical. The specific challenges and the OS/controller mechanisms to overcome them (wear leveling, garbage collection) are key to understanding their design and limitations, which are likely exam topics."
+      "statement": "Error detection and correction is fundamental to storage.",
+      "why": "Errors can occur. Need to know how to catch and fix them."
     },
     {
-      "statement": "Accurately calculating total I/O access time by summing seek time, rotational latency, transfer time, and controller overhead is a crucial skill.",
-      "why": "The teacher dedicates significant time to walking through an example calculation, indicating its importance for quantitative understanding and likely exam scenarios. This practical application reinforces theoretical concepts."
+      "statement": "Access time consists of positional delay, rotational delay, transfer delay, and controller overhead.",
+      "why": "Breaking down access time into these components allows for a better understanding of each contributing factor."
     },
     {
-      "statement": "Positional delay (seek time) is the dominating factor in determining the overall I/O time for Hard Disk Drives.",
-      "why": "This highlights the primary bottleneck in HDD performance and justifies the existence and importance of disk scheduling algorithms, which primarily aim to minimize seek time. This concept is fundamental for evaluating and optimizing disk performance."
+      "statement": "The concept of cylinders is introduced to minimize the movement of the arm assembly.",
+      "why": "By filling a cylinder before moving to another, we can reduce the number of positional delays."
     },
     {
-      "statement": "Disk heads must not physically contact the platters; contact results in a 'head crash' which damages the disk.",
-      "why": "This is a critical practical detail about HDD fragility and operational limits, explaining why physical shocks are detrimental and underscoring the precision engineering involved. It's often an important point for practical understanding and troubleshooting."
+      "statement": "Positional delay, or seek time, is the dominant factor affecting hard disk performance.",
+      "why": "Understanding and minimizing seek time is critical for optimizing I/O operations."
     },
     {
-      "statement": "The physical structure of a hard disk drive directly impacts its performance, particularly concerning seek time.",
-      "why": "Understanding the mechanical aspects (platters, heads, arm movement) is foundational to grasping why I/O performance is slower than CPU/RAM and why scheduling algorithms are necessary. This is a core concept for performance analysis."
+      "statement": "Transfer rate is an important parameter because the speed of reading bits by the head has to match the speed of the transfer rate.",
+      "why": "Mismatch leads to buffering delays, impacting performance."
     },
     {
-      "statement": "Hard Disk Drives (HDDs) remain critically important, especially for data centers and AI, despite the rise of Solid State Drives (SSDs).",
-      "why": "This challenges the common perception that HDDs are obsolete, highlighting their continued relevance in high-capacity, cost-effective storage scenarios for large-scale data, which is highly relevant for understanding modern computing infrastructure and potential exam questions on future trends."
-    },
-    {
-      "statement": "Solid State Drives (SSDs) offer much faster performance due to no moving parts but have challenges like limited write cycles and require special management techniques such as wear leveling and garbage collection.",
-      "why": "Understanding the fundamental differences between HDDs and SSDs, beyond just 'faster,' is critical. The specific challenges and the OS/controller mechanisms to overcome them (wear leveling, garbage collection) are key to understanding their design and limitations, which are likely exam topics."
-    },
-    {
-      "statement": "Accurately calculating total I/O access time by summing seek time, rotational latency, transfer time, and controller overhead is a crucial skill.",
-      "why": "The teacher dedicates significant time to walking through an example calculation, indicating its importance for quantitative understanding and likely exam scenarios. This practical application reinforces theoretical concepts."
-    },
-    {
-      "statement": "Positional delay (seek time) is the dominating factor in determining the overall I/O time for Hard Disk Drives.",
-      "why": "This highlights the primary bottleneck in HDD performance and justifies the existence and importance of disk scheduling algorithms, which primarily aim to minimize seek time. This concept is fundamental for evaluating and optimizing disk performance."
-    },
-    {
-      "statement": "Disk heads must not physically contact the platters; contact results in a 'head crash' which damages the disk.",
-      "why": "This is a critical practical detail about HDD fragility and operational limits, explaining why physical shocks are detrimental and underscoring the precision engineering involved. It's often an important point for practical understanding and troubleshooting."
-    },
-    {
-      "statement": "The physical structure of a hard disk drive directly impacts its performance, particularly concerning seek time.",
-      "why": "Understanding the mechanical aspects (platters, heads, arm movement) is foundational to grasping why I/O performance is slower than CPU/RAM and why scheduling algorithms are necessary. This is a core concept for performance analysis."
-    },
-    {
-      "statement": "Hard Disk Drives (HDDs) remain critically important, especially for data centers and AI, despite the rise of Solid State Drives (SSDs).",
-      "why": "This challenges the common perception that HDDs are obsolete, highlighting their continued relevance in high-capacity, cost-effective storage scenarios for large-scale data, which is highly relevant for understanding modern computing infrastructure and potential exam questions on future trends."
+      "statement": "Hard disks are still relevant due to their use in data centers, especially with the growth of AI.",
+      "why": "Despite the increasing popularity of SSDs, understanding HDDs is essential for understanding the landscape of storage solutions and their applications in large-scale environments."
     },
     {
       "statement": "Solid State Drives (SSDs) offer much faster performance due to no moving parts but have challenges like limited write cycles and require special management techniques such as wear leveling and garbage collection.",
@@ -238,559 +214,399 @@
       "why": "This challenges the common perception that HDDs are obsolete, highlighting their continued relevance in high-capacity, cost-effective storage scenarios for large-scale data, which is highly relevant for understanding modern computing infrastructure and potential exam questions on future trends."
     },
     {
-      "statement": "The primary problems declarative UI aims to solve are the 'source of information' issue (data synchronization chaos) and the inherent difficulty humans have maintaining complex UI tree structures.",
-      "why": "Understanding the problems that declarative UI was invented to solve provides the fundamental motivation for its existence and helps students appreciate the benefits of this paradigm. This foundational understanding is important for analytical questions."
+      "statement": "Error detection and correction is fundamental to storage.",
+      "why": "Errors can occur. Need to know how to catch and fix them."
     },
     {
-      "statement": "Advanced state management solutions (e.g., Redux, MobX, Provider) should only be adopted after mastering basic state management (`setState`) and experiencing a genuine need for them in complex applications.",
-      "why": "This practical advice prevents premature over-engineering, ensures a solid understanding of fundamental data flow, and avoids introducing unnecessary complexity into simpler projects. It’s crucial for making informed architectural decisions in real-world development."
+      "statement": "Access time consists of positional delay, rotational delay, transfer delay, and controller overhead.",
+      "why": "Breaking down access time into these components allows for a better understanding of each contributing factor."
+    },
+    {
+      "statement": "The concept of cylinders is introduced to minimize the movement of the arm assembly.",
+      "why": "By filling a cylinder before moving to another, we can reduce the number of positional delays."
+    },
+    {
+      "statement": "Positional delay, or seek time, is the dominant factor affecting hard disk performance.",
+      "why": "Understanding and minimizing seek time is critical for optimizing I/O operations."
+    },
+    {
+      "statement": "Transfer rate is an important parameter because the speed of reading bits by the head has to match the speed of the transfer rate.",
+      "why": "Mismatch leads to buffering delays, impacting performance."
+    },
+    {
+      "statement": "Hard disks are still relevant due to their use in data centers, especially with the growth of AI.",
+      "why": "Despite the increasing popularity of SSDs, understanding HDDs is essential for understanding the landscape of storage solutions and their applications in large-scale environments."
+    },
+    {
+      "statement": "Solid State Drives (SSDs) offer much faster performance due to no moving parts but have challenges like limited write cycles and require special management techniques such as wear leveling and garbage collection.",
+      "why": "Understanding the fundamental differences between HDDs and SSDs, beyond just 'faster,' is critical. The specific challenges and the OS/controller mechanisms to overcome them (wear leveling, garbage collection) are key to understanding their design and limitations, which are likely exam topics."
+    },
+    {
+      "statement": "Accurately calculating total I/O access time by summing seek time, rotational latency, transfer time, and controller overhead is a crucial skill.",
+      "why": "The teacher dedicates significant time to walking through an example calculation, indicating its importance for quantitative understanding and likely exam scenarios. This practical application reinforces theoretical concepts."
     }
   ],
-  "lastUpdated": "2026-01-31T23:28:59.088Z",
+  "lastUpdated": "2026-02-02T20:04:30.517Z",
   "connections": [
     {
       "concept": "imperative programming",
       "lessonIds": [
-        "lec-1764808314795"
+        "lec-1764808314795",
+        "lec-1769872680800"
       ],
       "lessonTitles": [
-        "Lecture 07.12.2025"
+        "Lecture 07.12.2025",
+        "[Imported] Lecture 07.12.2025"
       ],
-      "strength": 0.65,
+      "strength": 0.53,
       "relatedConcepts": [
         "declarative programming",
         "mobile ui frameworks (flutter, react native)",
         "ui as a tree structure",
         "unidirectional data flow",
         "state management"
-      ]
+      ],
+      "aiInsight": "Imperative programming describes *how* a program should change state, forming a fundamental contrast with the declarative approaches taught in these lectures. This distinction helps students understand the evolution and advantages of modern UI frameworks and choose the right development paradigm."
     },
     {
       "concept": "declarative programming",
       "lessonIds": [
-        "lec-1764808314795"
+        "lec-1764808314795",
+        "lec-1769872680800"
       ],
       "lessonTitles": [
-        "Lecture 07.12.2025"
+        "Lecture 07.12.2025",
+        "[Imported] Lecture 07.12.2025"
       ],
-      "strength": 0.65,
+      "strength": 0.53,
       "relatedConcepts": [
         "imperative programming",
         "mobile ui frameworks (flutter, react native)",
         "ui as a tree structure",
         "unidirectional data flow",
         "state management"
-      ]
+      ],
+      "aiInsight": "Declarative programming, a central theme of these lectures, defines *what* the UI should look like based on state, rather than *how* to update it. Grasping this paradigm is essential for effectively using modern mobile UI frameworks and building more predictable applications."
     },
     {
       "concept": "mobile ui frameworks (flutter, react native)",
       "lessonIds": [
-        "lec-1764808314795"
+        "lec-1764808314795",
+        "lec-1769872680800"
       ],
       "lessonTitles": [
-        "Lecture 07.12.2025"
+        "Lecture 07.12.2025",
+        "[Imported] Lecture 07.12.2025"
       ],
-      "strength": 0.65,
+      "strength": 0.53,
       "relatedConcepts": [
         "imperative programming",
         "declarative programming",
         "ui as a tree structure",
         "unidirectional data flow",
         "state management"
-      ]
+      ],
+      "aiInsight": "Mobile UI frameworks like Flutter and React Native are practical applications of the declarative programming principles and UI-as-a-tree concepts explored in these lessons. Understanding them provides students with concrete tools to build performant and maintainable cross-platform mobile applications."
     },
     {
       "concept": "ui as a tree structure",
       "lessonIds": [
-        "lec-1764808314795"
+        "lec-1764808314795",
+        "lec-1769872680800"
       ],
       "lessonTitles": [
-        "Lecture 07.12.2025"
+        "Lecture 07.12.2025",
+        "[Imported] Lecture 07.12.2025"
       ],
-      "strength": 0.65,
+      "strength": 0.53,
       "relatedConcepts": [
         "imperative programming",
         "declarative programming",
         "mobile ui frameworks (flutter, react native)",
         "unidirectional data flow",
         "state management"
-      ]
+      ],
+      "aiInsight": "Viewing the UI as a tree structure is fundamental to how declarative frameworks manage and render components efficiently. This conceptual model helps students understand the performance benefits and hierarchical composition of UIs in frameworks like Flutter."
     },
     {
       "concept": "unidirectional data flow",
       "lessonIds": [
-        "lec-1764808314795"
+        "lec-1764808314795",
+        "lec-1769872680800"
       ],
       "lessonTitles": [
-        "Lecture 07.12.2025"
+        "Lecture 07.12.2025",
+        "[Imported] Lecture 07.12.2025"
       ],
-      "strength": 0.65,
+      "strength": 0.53,
       "relatedConcepts": [
         "imperative programming",
         "declarative programming",
         "mobile ui frameworks (flutter, react native)",
         "ui as a tree structure",
         "state management"
-      ]
+      ],
+      "aiInsight": "Unidirectional data flow is a key principle often adopted by declarative UI frameworks to manage complex application states predictably and simplify debugging. Understanding this pattern helps students build robust and scalable applications where data changes are easy to track and control."
     },
     {
       "concept": "state management",
       "lessonIds": [
-        "lec-1764808314795"
+        "lec-1764808314795",
+        "lec-1769872680800"
       ],
       "lessonTitles": [
-        "Lecture 07.12.2025"
+        "Lecture 07.12.2025",
+        "[Imported] Lecture 07.12.2025"
       ],
-      "strength": 0.65,
+      "strength": 0.53,
       "relatedConcepts": [
         "imperative programming",
         "declarative programming",
         "mobile ui frameworks (flutter, react native)",
         "ui as a tree structure",
         "unidirectional data flow"
-      ]
+      ],
+      "aiInsight": "State management is a critical challenge in application development, and these lectures likely explore how declarative UI frameworks provide structured solutions compared to imperative approaches. Mastering state management is crucial for building complex, maintainable applications where UI updates accurately reflect underlying data."
     },
     {
       "concept": "hard disk drives (hdds)",
       "lessonIds": [
-        "lec-1768448481012"
+        "lec-1768448481012",
+        "lec-1768462362982"
       ],
       "lessonTitles": [
-        "ce 323"
+        "ce 323",
+        "ce 323 -1"
       ],
-      "strength": 0.65,
+      "strength": 0.53,
       "relatedConcepts": [
         "solid state drives (ssds)",
         "non-volatile memory (nvm)",
         "disk scheduling",
         "error detection and correction",
         "storage management"
-      ]
+      ],
+      "aiInsight": "Hard Disk Drives (HDDs) represent a foundational storage technology, forming a crucial historical and performance comparison point for Solid State Drives in CE 323. Understanding their mechanical operations and limitations is essential for appreciating the advancements in modern non-volatile memory and optimizing disk scheduling."
     },
     {
       "concept": "solid state drives (ssds)",
       "lessonIds": [
-        "lec-1768448481012"
+        "lec-1768448481012",
+        "lec-1768462362982"
       ],
       "lessonTitles": [
-        "ce 323"
+        "ce 323",
+        "ce 323 -1"
       ],
-      "strength": 0.65,
+      "strength": 0.53,
       "relatedConcepts": [
         "hard disk drives (hdds)",
         "non-volatile memory (nvm)",
         "disk scheduling",
         "error detection and correction",
         "storage management"
-      ]
+      ],
+      "aiInsight": "Solid State Drives (SSDs) exemplify the evolution of non-volatile memory, providing a modern contrast to HDDs discussed in CE 323. Comprehending their performance benefits and underlying flash technology is critical for understanding current system architecture and optimizing storage solutions."
     },
     {
       "concept": "non-volatile memory (nvm)",
       "lessonIds": [
-        "lec-1768448481012"
+        "lec-1768448481012",
+        "lec-1768462362982"
       ],
       "lessonTitles": [
-        "ce 323"
+        "ce 323",
+        "ce 323 -1"
       ],
-      "strength": 0.65,
+      "strength": 0.53,
       "relatedConcepts": [
         "hard disk drives (hdds)",
         "solid state drives (ssds)",
         "disk scheduling",
         "error detection and correction",
         "storage management"
-      ]
-    },
-    {
-      "concept": "disk scheduling",
-      "lessonIds": [
-        "lec-1768448481012"
       ],
-      "lessonTitles": [
-        "ce 323"
-      ],
-      "strength": 0.65,
-      "relatedConcepts": [
-        "hard disk drives (hdds)",
-        "solid state drives (ssds)",
-        "non-volatile memory (nvm)",
-        "error detection and correction",
-        "storage management"
-      ]
-    },
-    {
-      "concept": "error detection and correction",
-      "lessonIds": [
-        "lec-1768448481012"
-      ],
-      "lessonTitles": [
-        "ce 323"
-      ],
-      "strength": 0.65,
-      "relatedConcepts": [
-        "hard disk drives (hdds)",
-        "solid state drives (ssds)",
-        "non-volatile memory (nvm)",
-        "disk scheduling",
-        "storage management"
-      ]
-    },
-    {
-      "concept": "storage management",
-      "lessonIds": [
-        "lec-1768448481012"
-      ],
-      "lessonTitles": [
-        "ce 323"
-      ],
-      "strength": 0.65,
-      "relatedConcepts": [
-        "hard disk drives (hdds)",
-        "solid state drives (ssds)",
-        "non-volatile memory (nvm)",
-        "disk scheduling",
-        "error detection and correction"
-      ]
-    },
-    {
-      "concept": "access time",
-      "lessonIds": [
-        "lec-1768448481012"
-      ],
-      "lessonTitles": [
-        "ce 323"
-      ],
-      "strength": 0.65,
-      "relatedConcepts": [
-        "hard disk drives (hdds)",
-        "solid state drives (ssds)",
-        "non-volatile memory (nvm)",
-        "disk scheduling",
-        "error detection and correction"
-      ]
-    },
-    {
-      "concept": "raid structure",
-      "lessonIds": [
-        "lec-1768448481012"
-      ],
-      "lessonTitles": [
-        "ce 323"
-      ],
-      "strength": 0.65,
-      "relatedConcepts": [
-        "hard disk drives (hdds)",
-        "solid state drives (ssds)",
-        "non-volatile memory (nvm)",
-        "disk scheduling",
-        "error detection and correction"
-      ]
+      "aiInsight": "Non-Volatile Memory (NVM) is the overarching concept encompassing both HDDs and SSDs, highlighting memory types that retain data without power, a core topic in CE 323. This fundamental understanding is crucial for students to differentiate and evaluate various persistent storage technologies and their roles in computing systems."
     },
     {
       "concept": "the live lecture is the",
       "lessonIds": [
-        "lec-1764808314795"
+        "lec-1764808314795",
+        "lec-1769872680800"
       ],
       "lessonTitles": [
-        "Lecture 07.12.2025"
+        "Lecture 07.12.2025",
+        "[Imported] Lecture 07.12.2025"
       ],
-      "strength": 0.4,
+      "strength": 0.33,
       "relatedConcepts": [
         "imperative programming",
         "declarative programming",
         "mobile ui frameworks (flutter, react native)",
         "ui as a tree structure",
         "unidirectional data flow"
-      ]
+      ],
+      "aiInsight": "This fragment likely emphasizes the live lecture as the primary source for understanding the practical implementation of concepts like imperative vs. declarative programming in mobile UI frameworks. It highlights the direct application of theoretical knowledge to real-world coding examples."
     },
     {
       "concept": "flutter's developer experience, specifically hot",
       "lessonIds": [
-        "lec-1764808314795"
+        "lec-1764808314795",
+        "lec-1769872680800"
       ],
       "lessonTitles": [
-        "Lecture 07.12.2025"
+        "Lecture 07.12.2025",
+        "[Imported] Lecture 07.12.2025"
       ],
-      "strength": 0.4,
+      "strength": 0.33,
       "relatedConcepts": [
         "imperative programming",
         "declarative programming",
         "mobile ui frameworks (flutter, react native)",
         "ui as a tree structure",
         "unidirectional data flow"
-      ]
+      ],
+      "aiInsight": "This concept highlights Flutter's unique developer experience, specifically its 'hot reload' feature, which significantly enhances the rapid iteration cycle in declarative UI development. Understanding this feature demonstrates how framework design directly impacts developer productivity and the efficiency of building mobile applications."
     },
     {
       "concept": "declarative ui programming fundamentally shifts",
       "lessonIds": [
-        "lec-1764808314795"
+        "lec-1764808314795",
+        "lec-1769872680800"
       ],
       "lessonTitles": [
-        "Lecture 07.12.2025"
+        "Lecture 07.12.2025",
+        "[Imported] Lecture 07.12.2025"
       ],
-      "strength": 0.4,
+      "strength": 0.33,
       "relatedConcepts": [
         "imperative programming",
         "declarative programming",
         "mobile ui frameworks (flutter, react native)",
         "ui as a tree structure",
         "unidirectional data flow"
-      ]
+      ],
+      "aiInsight": "This phrase points to how declarative UI programming fundamentally shifts the development paradigm from *how* to change the UI to simply describing *what* it should be. Recognizing this shift is critical for students to fully grasp the philosophical and practical differences when transitioning to modern mobile frameworks."
     },
     {
       "concept": "in declarative ui, developers should",
       "lessonIds": [
-        "lec-1764808314795"
+        "lec-1764808314795",
+        "lec-1769872680800"
       ],
       "lessonTitles": [
-        "Lecture 07.12.2025"
+        "Lecture 07.12.2025",
+        "[Imported] Lecture 07.12.2025"
       ],
-      "strength": 0.4,
+      "strength": 0.33,
       "relatedConcepts": [
         "imperative programming",
         "declarative programming",
         "mobile ui frameworks (flutter, react native)",
         "ui as a tree structure",
         "unidirectional data flow"
-      ]
+      ],
+      "aiInsight": "This concept emphasizes best practices for developers when working with declarative UI, focusing on how they should approach state management and UI composition. Adhering to these principles is essential for creating robust, maintainable, and predictable applications within mobile UI frameworks."
     },
     {
       "concept": "advanced state management solutions (e.g.,",
       "lessonIds": [
-        "lec-1764808314795"
+        "lec-1764808314795",
+        "lec-1769872680800"
       ],
       "lessonTitles": [
-        "Lecture 07.12.2025"
+        "Lecture 07.12.2025",
+        "[Imported] Lecture 07.12.2025"
       ],
-      "strength": 0.4,
+      "strength": 0.33,
       "relatedConcepts": [
         "imperative programming",
         "declarative programming",
         "mobile ui frameworks (flutter, react native)",
         "ui as a tree structure",
         "unidirectional data flow"
-      ]
+      ],
+      "aiInsight": "This concept points to the necessity and types of advanced state management solutions within declarative UI frameworks, moving beyond basic approaches. Understanding these advanced patterns is crucial for students to effectively manage complex application states and build scalable mobile applications."
     },
     {
       "concept": "the primary problems declarative ui",
       "lessonIds": [
-        "lec-1764808314795"
+        "lec-1764808314795",
+        "lec-1769872680800"
       ],
       "lessonTitles": [
-        "Lecture 07.12.2025"
+        "Lecture 07.12.2025",
+        "[Imported] Lecture 07.12.2025"
       ],
-      "strength": 0.4,
+      "strength": 0.33,
       "relatedConcepts": [
         "imperative programming",
         "declarative programming",
         "mobile ui frameworks (flutter, react native)",
         "ui as a tree structure",
         "unidirectional data flow"
-      ]
+      ],
+      "aiInsight": "This concept addresses the primary problems that declarative UI aims to solve, such as simplifying UI updates and reducing boilerplate code compared to imperative approaches. Recognizing these pain points helps students appreciate the design motivations and benefits of adopting modern mobile UI frameworks."
     },
     {
       "concept": "module 1: foundations of declarative ui",
       "lessonIds": [
-        "lec-1764808314795"
+        "lec-1764808314795",
+        "lec-1769872680800"
       ],
       "lessonTitles": [
-        "Lecture 07.12.2025"
+        "Lecture 07.12.2025",
+        "[Imported] Lecture 07.12.2025"
       ],
-      "strength": 0.4,
+      "strength": 0.33,
       "relatedConcepts": [
         "imperative programming",
         "declarative programming",
         "mobile ui frameworks (flutter, react native)",
         "ui as a tree structure",
         "unidirectional data flow"
-      ]
+      ],
+      "aiInsight": "This module introduces the foundational principles of declarative UI, providing the necessary theoretical groundwork for understanding concepts like UI as a tree and contrasting it with imperative programming. It's crucial for establishing a strong conceptual base before diving into practical frameworks."
     },
     {
       "concept": "module 2: declarative ui in modern mobile frameworks",
       "lessonIds": [
-        "lec-1764808314795"
+        "lec-1764808314795",
+        "lec-1769872680800"
       ],
       "lessonTitles": [
-        "Lecture 07.12.2025"
+        "Lecture 07.12.2025",
+        "[Imported] Lecture 07.12.2025"
       ],
-      "strength": 0.4,
+      "strength": 0.33,
       "relatedConcepts": [
         "imperative programming",
         "declarative programming",
         "mobile ui frameworks (flutter, react native)",
         "ui as a tree structure",
         "unidirectional data flow"
-      ]
+      ],
+      "aiInsight": "This module bridges the theoretical understanding of declarative UI to its practical application in modern mobile frameworks like Flutter and React Native. It's essential for students to see how the abstract concepts translate into real-world development tools and practices."
     },
     {
       "concept": "module 3: data management in declarative uis",
       "lessonIds": [
-        "lec-1764808314795"
+        "lec-1764808314795",
+        "lec-1769872680800"
       ],
       "lessonTitles": [
-        "Lecture 07.12.2025"
+        "Lecture 07.12.2025",
+        "[Imported] Lecture 07.12.2025"
       ],
-      "strength": 0.4,
+      "strength": 0.33,
       "relatedConcepts": [
         "imperative programming",
         "declarative programming",
         "mobile ui frameworks (flutter, react native)",
         "ui as a tree structure",
         "unidirectional data flow"
-      ]
-    },
-    {
-      "concept": "hard disks are still relevant",
-      "lessonIds": [
-        "lec-1768448481012"
       ],
-      "lessonTitles": [
-        "ce 323"
-      ],
-      "strength": 0.4,
-      "relatedConcepts": [
-        "hard disk drives (hdds)",
-        "solid state drives (ssds)",
-        "non-volatile memory (nvm)",
-        "disk scheduling",
-        "error detection and correction"
-      ]
-    },
-    {
-      "concept": "transfer rate is an important",
-      "lessonIds": [
-        "lec-1768448481012"
-      ],
-      "lessonTitles": [
-        "ce 323"
-      ],
-      "strength": 0.4,
-      "relatedConcepts": [
-        "hard disk drives (hdds)",
-        "solid state drives (ssds)",
-        "non-volatile memory (nvm)",
-        "disk scheduling",
-        "error detection and correction"
-      ]
-    },
-    {
-      "concept": "positional delay, or seek time,",
-      "lessonIds": [
-        "lec-1768448481012"
-      ],
-      "lessonTitles": [
-        "ce 323"
-      ],
-      "strength": 0.4,
-      "relatedConcepts": [
-        "hard disk drives (hdds)",
-        "solid state drives (ssds)",
-        "non-volatile memory (nvm)",
-        "disk scheduling",
-        "error detection and correction"
-      ]
-    },
-    {
-      "concept": "the concept of cylinders is",
-      "lessonIds": [
-        "lec-1768448481012"
-      ],
-      "lessonTitles": [
-        "ce 323"
-      ],
-      "strength": 0.4,
-      "relatedConcepts": [
-        "hard disk drives (hdds)",
-        "solid state drives (ssds)",
-        "non-volatile memory (nvm)",
-        "disk scheduling",
-        "error detection and correction"
-      ]
-    },
-    {
-      "concept": "access time consists of positional",
-      "lessonIds": [
-        "lec-1768448481012"
-      ],
-      "lessonTitles": [
-        "ce 323"
-      ],
-      "strength": 0.4,
-      "relatedConcepts": [
-        "hard disk drives (hdds)",
-        "solid state drives (ssds)",
-        "non-volatile memory (nvm)",
-        "disk scheduling",
-        "error detection and correction"
-      ]
-    },
-    {
-      "concept": "error detection and correction is",
-      "lessonIds": [
-        "lec-1768448481012"
-      ],
-      "lessonTitles": [
-        "ce 323"
-      ],
-      "strength": 0.4,
-      "relatedConcepts": [
-        "hard disk drives (hdds)",
-        "solid state drives (ssds)",
-        "non-volatile memory (nvm)",
-        "disk scheduling",
-        "error detection and correction"
-      ]
-    },
-    {
-      "concept": "hdd fundamentals and performance",
-      "lessonIds": [
-        "lec-1768448481012"
-      ],
-      "lessonTitles": [
-        "ce 323"
-      ],
-      "strength": 0.4,
-      "relatedConcepts": [
-        "hard disk drives (hdds)",
-        "solid state drives (ssds)",
-        "non-volatile memory (nvm)",
-        "disk scheduling",
-        "error detection and correction"
-      ]
-    },
-    {
-      "concept": "solid state drives and memory management",
-      "lessonIds": [
-        "lec-1768448481012"
-      ],
-      "lessonTitles": [
-        "ce 323"
-      ],
-      "strength": 0.4,
-      "relatedConcepts": [
-        "hard disk drives (hdds)",
-        "solid state drives (ssds)",
-        "non-volatile memory (nvm)",
-        "disk scheduling",
-        "error detection and correction"
-      ]
-    },
-    {
-      "concept": "disk scheduling and storage management",
-      "lessonIds": [
-        "lec-1768448481012"
-      ],
-      "lessonTitles": [
-        "ce 323"
-      ],
-      "strength": 0.4,
-      "relatedConcepts": [
-        "hard disk drives (hdds)",
-        "solid state drives (ssds)",
-        "non-volatile memory (nvm)",
-        "disk scheduling",
-        "error detection and correction"
-      ]
+      "aiInsight": "This module connects the principles of declarative UI with critical data management strategies, including unidirectional data flow and state management. Understanding these advanced techniques is vital for students to build complex, scalable, and maintainable applications using declarative frameworks."
     }
   ]
 }

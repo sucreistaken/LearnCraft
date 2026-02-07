@@ -797,7 +797,7 @@
       "percent": 0
     },
     "createdAt": "2026-01-15T03:41:21.012Z",
-    "updatedAt": "2026-01-15T07:40:31.495Z",
+    "updatedAt": "2026-02-02T20:04:30.510Z",
     "plan": {
       "topic": "Mass Storage Systems",
       "key_concepts": [
@@ -2157,7 +2157,8 @@
           "reason": "Related concept (topic=0.41, slide=0.34)"
         }
       ]
-    }
+    },
+    "courseId": "course-1770062663446"
   },
   {
     "id": "lec-1768462362982",
@@ -2246,7 +2247,7 @@
       "percent": 0
     },
     "createdAt": "2026-01-15T07:32:42.982Z",
-    "updatedAt": "2026-01-31T23:28:59.073Z",
+    "updatedAt": "2026-02-02T20:04:28.804Z",
     "plan": {
       "topic": "Mass-Storage Systems",
       "key_concepts": [
@@ -3264,7 +3265,12 @@
           "reason": "Related concept (topic=0.41, slide=0.35)"
         }
       ]
-    }
+    },
+    "mindmapCache": {
+      "code": "mindmap\n  root((📚 Mass Storage))\n    ❓ What\n      Define HDDs NVM\n      Persistent Data\n      Store Retrieve\n      Critical for AI\n    🎯 Why\n      Retain Data\n      Scalable Storage\n      Data Centers\n      AI Demands\n    ⚡ How\n      Understand HDD\n      Seek Time Factor\n      Calc I O Time\n      Prevent Head Crash\n    💡 Practice\n      Label HDD Parts\n      Estimate I O Time\n      Compare HDD SSD\n      Identify NVM Uses\n    📝 Remember\n      Seek time dominates\n      Head crash critical\n      Physical impacts\n      HDDs still vital",
+      "generatedAt": "2026-02-01T13:47:32.711Z"
+    },
+    "courseId": "course-1770062663446"
   },
   {
     "id": "lec-1769872680800",
@@ -3835,5 +3841,22 @@
     },
     "createdAt": "2026-01-31T20:33:58.634Z",
     "updatedAt": "2026-01-31T20:36:54.747Z"
+  },
+  {
+    "id": "lec-1769983010440",
+    "title": "kkk",
+    "date": "2026-02-01T21:56:50.440Z",
+    "transcript": "",
+    "slideText": "",
+    "highlights": [],
+    "professorEmphases": [],
+    "quiz": [],
+    "quizPacks": [],
+    "progress": {
+      "lastMode": "alignment",
+      "percent": 0
+    },
+    "createdAt": "2026-02-01T21:56:50.440Z",
+    "updatedAt": "2026-02-01T21:57:55.266Z"
   }
 ]

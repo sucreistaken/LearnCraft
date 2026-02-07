@@ -15,8 +15,11 @@ export type ConceptConnection = {
 const DATA_DIR = path.join(process.cwd(), "backend", "data");
 const MEMORY_PATH = path.join(DATA_DIR, "memory.json");
 
+const stripCodeFences = (s: string) =>
+  s.replace(/```json/gi, "").replace(/```/g, "").trim();
+
 // Build connections by scanning all lessons
-export function buildConnections(): ConceptConnection[] {
+export async function buildConnections(model?: any): Promise<ConceptConnection[]> {
   const lessons = listLessons();
   const memory = getMemory();
 
@@ -141,6 +144,44 @@ export function buildConnections(): ConceptConnection[] {
 
   // Sort by strength descending
   connections.sort((a, b) => b.strength - a.strength);
+
+  // Generate AI insights for top 20 connections
+  if (model && connections.length > 0) {
+    const top = connections.slice(0, 20);
+    const batch = top.map((c) => ({
+      concept: c.concept,
+      lessons: c.lessonTitles,
+      related: c.relatedConcepts.slice(0, 3),
+    }));
+
+    try {
+      const prompt = `You are an educational AI. For each concept below, write a concise 1-2 sentence insight explaining WHY this concept bridges the listed lessons and why that connection matters for the student.
+
+Return a JSON array of objects: [{"concept": "...", "insight": "..."}]
+
+Concepts:
+${JSON.stringify(batch, null, 2)}`;
+
+      const result = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
+      const raw = result.response.text();
+      const parsed = JSON.parse(stripCodeFences(raw));
+
+      if (Array.isArray(parsed)) {
+        const insightMap = new Map<string, string>();
+        for (const item of parsed) {
+          if (item.concept && item.insight) {
+            insightMap.set(item.concept.toLowerCase().trim(), item.insight);
+          }
+        }
+        for (const conn of connections) {
+          const insight = insightMap.get(conn.concept.toLowerCase().trim());
+          if (insight) conn.aiInsight = insight;
+        }
+      }
+    } catch (err) {
+      console.warn("AI insights generation failed (connections still saved):", err);
+    }
+  }
 
   // Save to memory.json
   const memData = readJSON<any>(MEMORY_PATH) || {};

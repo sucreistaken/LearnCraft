@@ -9,6 +9,8 @@ import {
   incrementMemberContribution,
   StudyUser,
 } from "./controllers/roomController";
+import { getUnreadCount } from "./controllers/notificationController";
+
 import {
   loadWorkspace,
   addDeepDiveMessage,
@@ -440,6 +442,13 @@ export function setupSocketHandler(io: SocketServer) {
       if (pinned !== null) {
         io.to(roomId).emit("notes:pinned", { noteId: data.noteId, pinned });
       }
+    });
+
+    // ========== NOTIFICATIONS ==========
+
+    socket.on("notification:request-count", () => {
+      const count = getUnreadCount();
+      socket.emit("notification:badge-update", { count });
     });
 
     // ========== DISCONNECT ==========

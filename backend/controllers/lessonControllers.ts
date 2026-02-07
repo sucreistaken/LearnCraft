@@ -68,6 +68,7 @@ export type Lesson = {
   // Zaman damgaları:
   createdAt?: string;      // ISO string
   updatedAt?: string;
+  courseId?: string;             // linked course ID
   courseCode?: string;          // "MATH 153" gibi
   learningOutcomes?: string[];  // IEU'den çekilen resmi LO listesi
 

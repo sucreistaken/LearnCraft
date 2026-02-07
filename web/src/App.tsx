@@ -8,10 +8,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useLessonStore } from "./stores/lessonStore";
 import { useUiStore } from "./stores/uiStore";
 import { useRoomStore } from "./stores/roomStore";
+import { useCourseStore } from "./stores/courseStore";
 
 // Hooks
 import { useLesson } from "./hooks/useLesson";
 import { useTranscription } from "./hooks/useTranscription";
+import { notificationApi } from "./services/api";
 
 // Components (eagerly loaded)
 import ModeRibbon from "./components/ModeRibbon";
@@ -23,6 +25,8 @@ import ShareButton from "./components/ui/ShareButton";
 import ShareModal from "./components/ui/ShareModal";
 import NicknamePrompt from "./components/ui/NicknamePrompt";
 import IdentityBadge from "./components/ui/IdentityBadge";
+import NotificationBell from "./components/ui/NotificationBell";
+import SchedulerWidget from "./components/SchedulerWidget";
 
 // Lazy loaded panes
 const PlanPane = lazy(() => import("./components/PlanPane"));
@@ -41,6 +45,7 @@ const WeaknessPane = lazy(() => import("./components/WeaknessPane"));
 const FlashcardPane = lazy(() => import("./components/FlashcardPane"));
 const ConnectionsPane = lazy(() => import("./components/ConnectionsPane"));
 const StudyRoomPane = lazy(() => import("./components/StudyRoomPane"));
+const CourseDashboard = lazy(() => import("./components/CourseDashboard"));
 
 // Loading fallback
 function PaneLoading() {
@@ -72,6 +77,10 @@ export default function App() {
 
   // Room store
   const roomStore = useRoomStore();
+
+  // Course store
+  const courseStore = useCourseStore();
+  const currentCourse = courseStore.courses.find((c) => c.id === courseStore.currentCourseId) || null;
 
   // Share link detection
   const [shareId, setShareId] = useState<string | null>(() => {
@@ -112,9 +121,11 @@ export default function App() {
     [ui.isLoading, lesson.lectureText, lesson.slidesText]
   );
 
-  // Fetch lessons on mount
+  // Fetch lessons and courses on mount, trigger notification check
   useEffect(() => {
     lesson.fetchLessons();
+    courseStore.fetchCourses();
+    notificationApi.check().catch(() => {});
   }, []);
 
   // Load current lesson when ID changes
@@ -267,6 +278,7 @@ export default function App() {
             {ui.mode === "connections" && <ConnectionsPane />}
             {ui.mode === "notes" && <NotesPane />}
             {ui.mode === "study-room" && <StudyRoomPane />}
+            {ui.mode === "course-dashboard" && <CourseDashboard />}
           </motion.div>
         </AnimatePresence>
       </Suspense>
@@ -280,18 +292,34 @@ export default function App() {
         <div className="nav-inner">
           <div className="brand">
             <span className="brand-text">AIcelerate</span>
+            <div className="pill">v3.0</div>
           </div>
           <div className="flex-1" />
-          <IdentityBadge />
-          <ShareButton />
-          <ThemeToggle />
-          <div className="pill">v3.0</div>
+          <div className="nav-divider" />
+          <div className="nav-actions">
+            <NotificationBell />
+            <IdentityBadge />
+            <ShareButton />
+            <ThemeToggle />
+          </div>
         </div>
       </nav>
 
       <div className="lc-container">
         <header className="hero">
-          <h1 className="h1">Lesson Planner &amp; Analysis</h1>
+          <h1 className="h1">
+            {lesson.lessons.find(l => l.id === lesson.currentLessonId)?.title || "AIcelerate"}
+          </h1>
+          <div className="hero-breadcrumb">
+            {currentCourse && (
+              <>
+                <span className="hero-breadcrumb__sep">/</span>
+                <span style={{ color: "var(--accent-2)" }}>{currentCourse.code}</span>
+              </>
+            )}
+            <span className="hero-breadcrumb__sep">/</span>
+            <span>{ui.mode.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())}</span>
+          </div>
         </header>
 
         <div className={`lc-shell${ui.mode === "study-room" ? " lc-shell--room" : leftPanelCollapsed ? " lc-shell--collapsed" : ""}`}>
@@ -313,40 +341,83 @@ export default function App() {
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M10 3l-5 5 5 5V3z"/></svg>
                 </button>
                 <form className="card" onSubmit={handleSubmit} aria-label="Lesson form">
-              <label className="label" htmlFor="lesson-select">Select Lesson</label>
+              {/* Course Selector */}
+              <div className="form-section">
+                <div className="form-section__title">Course</div>
+                <label className="label" htmlFor="course-select">Select Course</label>
+                <select
+                  id="course-select"
+                  className="lc-select mb-2"
+                  value={courseStore.currentCourseId || ""}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    courseStore.selectCourse(val || null);
+                  }}
+                >
+                  <option value="">-- All Lessons --</option>
+                  {courseStore.courses.map((c) => (
+                    <option key={c.id} value={c.id}>{c.code} - {c.name}</option>
+                  ))}
+                </select>
+                {currentCourse && (
+                  <div className="muted small mb-2">
+                    {currentCourse.lessonIds.length} lesson{currentCourse.lessonIds.length !== 1 ? "s" : ""}
+                    {currentCourse.settings?.examDate ? ` | Exam: ${currentCourse.settings.examDate}` : ""}
+                  </div>
+                )}
+              </div>
 
-              <select
-                id="lesson-select"
-                className="lc-select mb-4"
-                value={lesson.currentLessonId ?? (ui.draftTitle ? "__draft__" : "")}
-                onChange={(e) => {
-                  const val = e.target.value;
+              <div className="form-section">
+                <div className="form-section__title">Lesson</div>
+                <label className="label" htmlFor="lesson-select">Select Lesson</label>
 
-                  if (val === "__new__") {
-                    lesson.clearCurrentLesson();
-                    ui.setDraftTitle("");
-                    ui.setShowNewLessonModal(true);
-                    return;
-                  }
+                <select
+                  id="lesson-select"
+                  className="lc-select mb-4"
+                  value={lesson.currentLessonId ?? (ui.draftTitle ? "__draft__" : "")}
+                  onChange={(e) => {
+                    const val = e.target.value;
 
-                  if (val === "__draft__") return;
+                    if (val === "__new__") {
+                      lesson.clearCurrentLesson();
+                      ui.setDraftTitle("");
+                      ui.setShowNewLessonModal(true);
+                      return;
+                    }
 
-                  lesson.setCurrentLessonId(val === "" ? null : val);
-                  if (val) localStorage.setItem("lc.lastLessonId", val);
-                  else localStorage.removeItem("lc.lastLessonId");
-                }}
-                aria-describedby="lesson-help"
-              >
-                <option value="" className="muted">-- Select --</option>
-                <option value="__new__" className="fw-700">➕ Create New Lesson</option>
-                {ui.draftTitle && <option value="__draft__">📝 Draft: {ui.draftTitle}</option>}
-                {lesson.lessons.map((l) => (
-                  <option key={l.id} value={l.id}>{l.title}</option>
-                ))}
-              </select>
+                    if (val === "__draft__") return;
+
+                    lesson.setCurrentLessonId(val === "" ? null : val);
+                    if (val) localStorage.setItem("lc.lastLessonId", val);
+                    else localStorage.removeItem("lc.lastLessonId");
+                  }}
+                  aria-describedby="lesson-help"
+                >
+                  <option value="" className="muted">-- Select --</option>
+                  <option value="__new__" className="fw-700">+ Create New Lesson</option>
+                  {ui.draftTitle && <option value="__draft__">Draft: {ui.draftTitle}</option>}
+                  {(currentCourse
+                    ? lesson.lessons.filter((l) => currentCourse.lessonIds.includes(l.id))
+                    : lesson.lessons
+                  ).map((l) => (
+                    <option key={l.id} value={l.id}>{l.title}</option>
+                  ))}
+                  {currentCourse && lesson.lessons.filter((l) => !currentCourse.lessonIds.includes(l.id)).length > 0 && (
+                    <optgroup label="Other Lessons">
+                      {lesson.lessons
+                        .filter((l) => !currentCourse.lessonIds.includes(l.id))
+                        .map((l) => (
+                          <option key={l.id} value={l.id}>{l.title}</option>
+                        ))}
+                    </optgroup>
+                  )}
+                </select>
+              </div>
 
               {/* Course Code & LO */}
-              <label className="label mt-2" htmlFor="course-code">Course Code (IEU Syllabus)</label>
+              <div className="form-section">
+                <div className="form-section__title">Course Info</div>
+                <label className="label mt-2" htmlFor="course-code">Course Code (IEU Syllabus)</label>
               <div className="flex-between mb-2" style={{ gap: 8 }}>
                 <input
                   id="course-code"
@@ -406,7 +477,11 @@ export default function App() {
                 </div>
               )}
 
+              </div>
+
               {/* PDF Upload */}
+              <div className="form-section">
+                <div className="form-section__title">Slides</div>
               <div className="flex-between mb-2">
                 <label className="label m-0">Slide</label>
                 <div className="file-upload-wrapper">
@@ -460,7 +535,11 @@ export default function App() {
                 aria-label="Slide content"
               />
 
-              <label className="label mt-4">Speech to Text (Transcript)</label>
+              </div>
+
+              <div className="form-section">
+                <div className="form-section__title">Transcript</div>
+              <label className="label">Speech to Text</label>
 
               <div className="stt-row">
                 <div className="stt-left">
@@ -515,17 +594,17 @@ export default function App() {
                 aria-label="Transcript"
               />
 
+              </div>
+
               <div className="actions mt-4">
-                <motion.button
+                <button
                   type="submit"
                   disabled={!canSubmit}
                   className={canSubmit ? "btn" : "btn btn--disabled"}
-                  whileHover={canSubmit ? { scale: 1.02 } : {}}
-                  whileTap={canSubmit ? { scale: 0.98 } : {}}
                   aria-busy={ui.isLoading}
                 >
                   {ui.isLoading ? "Analyzing..." : "Plan & Analyze"}
-                </motion.button>
+                </button>
 
                 {lesson.error && (
                   <div className="error mt-2 text-red-500 text-sm" role="alert">
@@ -541,6 +620,9 @@ export default function App() {
           {/* RIGHT: Panels */}
           <div className="lc-plan-pane">
             <ModeRibbon mode={ui.mode} setMode={ui.setMode} />
+            {(ui.mode === "plan" || ui.mode === "exam-sprint" || ui.mode === "course-dashboard") && (
+              <SchedulerWidget />
+            )}
             {renderPane()}
           </div>
         </div>
@@ -628,14 +710,12 @@ export default function App() {
                 >
                   Cancel
                 </button>
-                <motion.button
+                <button
                   className="btn btn-primary"
                   onClick={handleCreateLesson}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
                 >
                   Create
-                </motion.button>
+                </button>
               </div>
             </motion.div>
           </motion.div>

@@ -94,6 +94,41 @@ import {
   saveWorkspace,
 } from "./controllers/workspaceController";
 
+import {
+  listCourses,
+  getCourse,
+  createCourse,
+  updateCourse,
+  deleteCourse,
+  addLessonToCourse,
+  removeLessonFromCourse,
+  getCourseLessons,
+  getCourseForLesson,
+  rebuildKnowledgeIndex,
+  getCourseProgress,
+  exportCourseData,
+} from "./controllers/courseController";
+
+import {
+  assembleCourseContext,
+  assembleCourseWideContext,
+} from "./controllers/contextAssembler";
+
+import {
+  getNextSession,
+  getDailyPlan,
+  getWeeklyOverview,
+  completeTask as completeSchedulerTask,
+  getStreak,
+} from "./controllers/schedulerController";
+
+import {
+  listNotifications,
+  dismissNotification,
+  getUnreadCount,
+  checkAndGenerateNotifications,
+} from "./controllers/notificationController";
+
 import { setupSocketHandler } from "./socketHandler";
 
 declare const fetch: any;
@@ -272,13 +307,13 @@ ${SLD}
 app.post("/api/lessons/:id/cheat-sheet", async (req, res) => {
   try {
     const lessonId = req.params.id;
-    const { language = 'tr' } = req.body as { language?: 'tr' | 'en' };
+    const { language = 'tr', courseWide = false } = req.body as { language?: 'tr' | 'en'; courseWide?: boolean };
     const lesson = getLesson(lessonId);
     if (!lesson) return res.status(404).json({ ok: false, error: "Lesson not found" });
 
     // Cache: return cached cheat sheet if same language (bypass with ?force=true)
     const forceRegen = req.query.force === 'true';
-    if (!forceRegen && lesson.cheatSheet?.sections?.length && (lesson.cheatSheet as any).language === language) {
+    if (!forceRegen && !courseWide && lesson.cheatSheet?.sections?.length && (lesson.cheatSheet as any).language === language) {
       return res.json({ ok: true, lessonId, cheatSheet: lesson.cheatSheet, cached: true });
     }
 
@@ -293,11 +328,19 @@ app.post("/api/lessons/:id/cheat-sheet", async (req, res) => {
       });
     }
 
-    // Use condensed context when plan is available (reduces ~18K → ~6K)
+    // Build context: course-aware or single lesson
+    const courseCtx = assembleCourseContext(lessonId, "cheat-sheet");
     const { lecContext, sldContext } = buildCondensedContext(lesson);
+
+    // Enrich context with course data for cheat sheet
+    let enrichedLecContext = lecContext;
+    if (courseCtx.crossLessonBlock) {
+      enrichedLecContext += `\n\n--- Related Lessons ---\n${courseCtx.crossLessonBlock}`;
+    }
+
     const prompt = buildCheatSheetPrompt({
-      title,
-      transcript: lecContext,
+      title: courseCtx.courseName ? `${courseCtx.courseName} - ${title}` : title,
+      transcript: enrichedLecContext,
       slideText: sldContext,
       learningOutcomes: lesson.learningOutcomes || [],
       emphases: lesson.plan?.emphases || lesson.professorEmphases || [],
@@ -1247,6 +1290,12 @@ ${SLD}
       learningOutcomes,
     });
 
+    // Rebuild knowledge index if lesson belongs to a course
+    const lessonCourse = getCourseForLesson(saved.id);
+    if (lessonCourse) {
+      rebuildKnowledgeIndex(lessonCourse.id);
+    }
+
     return res.json({ ok: true, plan, lessonId: saved.id });
   } catch (e: any) {
     console.error("[/api/plan-from-text ERROR]", e?.message || e);
@@ -1340,14 +1389,24 @@ app.post("/api/lessons/:id/lo-align", async (req, res) => {
  */
 app.post("/api/quiz-from-plan", async (req, res) => {
   try {
-    const { plan } = req.body as { plan?: any };
+    const { plan, lessonId: quizLessonId, courseId: quizCourseId } = req.body as { plan?: any; lessonId?: string; courseId?: string };
     if (!plan) {
       return res.status(400).json({ ok: false, error: "plan is required" });
+    }
+
+    // Add cross-lesson context if course is available
+    let crossLessonHint = "";
+    if (quizLessonId) {
+      const ctx = assembleCourseContext(quizLessonId, "quiz");
+      if (ctx.crossLessonBlock) {
+        crossLessonHint = `\n\nRELATED LESSONS (include 1-2 cross-lesson questions linking concepts):\n${ctx.crossLessonBlock}`;
+      }
     }
 
     const prompt = `
 Generate 10 short quiz questions based on the plan below.
 Return only the question sentences, one per line.
+${crossLessonHint ? crossLessonHint : ""}
 
 PLAN:
 ${JSON.stringify(plan).slice(0, 8000)}
@@ -1883,7 +1942,8 @@ app.post("/api/lessons/:id/chat", async (req, res) => {
     const modules = plan?.modules || [];
     const emphases = lesson.professorEmphases || plan?.emphases || [];
 
-    // Always respond in English (per user preference)
+    // Build course-aware context
+    const courseCtx = assembleCourseContext(lessonId, "chat", { userQuery: message });
 
     // Build rich context with all available lesson data
     const deviationData = (lesson as any).deviation;
@@ -1911,11 +1971,12 @@ app.post("/api/lessons/:id/chat", async (req, res) => {
       ? `\n=== RECENT CONVERSATION ===\n${recentHistory.map((h: any) => `${h.role === 'user' ? 'Student' : 'Tutor'}: ${(h.content || '').slice(0, 200)}...`).join('\n')}\n`
       : '';
 
-    // Build comprehensive context
+    // Build comprehensive context, enriched with course data
     const context = `
+${courseCtx.courseBlock ? `=== COURSE OVERVIEW ===\n${courseCtx.courseBlock}\n` : ''}
 === LESSON INFORMATION ===
 Title: ${lesson.title || "Untitled Lesson"}
-Course: ${(lesson as any).courseCode || 'N/A'}
+Course: ${courseCtx.courseName || (lesson as any).courseCode || 'N/A'}
 
 === KEY TOPICS (Modules) ===
 ${modules.slice(0, 6).map((m: any, i: number) => `${i + 1}. ${m.title || m.name || 'Topic'}: ${m.goal || ''}`).join('\n') || 'Not available'}
@@ -1933,6 +1994,8 @@ ${(lesson.transcript || "").slice(0, 8000)}
 
 === SLIDE CONTENT EXCERPT ===
 ${(lesson.slideText || "").slice(0, 5000)}
+${courseCtx.crossLessonBlock ? `\n=== RELATED LESSONS FROM THIS COURSE ===\n${courseCtx.crossLessonBlock}\n` : ''}
+${courseCtx.progressBlock ? `\n=== STUDENT PROGRESS ===\n${courseCtx.progressBlock}\n` : ''}
 ${historyContext}`;
 
     const chat = model.startChat({
@@ -1960,12 +2023,14 @@ Suggested questions should also be in English.`;
 4. **ACCURACY**: If information is not in the lesson context, say so honestly. Do not make up information.
 
 === YOUR ROLE ===
-You are an EXPERT AI TUTOR for this specific university lesson. You have access to:
+You are an EXPERT AI TUTOR for this specific university lesson.${courseCtx.courseId ? ` You have full knowledge of the entire course (${courseCtx.courseName}) and can make connections across all lessons.` : ''} You have access to:
 - The lecture transcript (what the professor said)
 - The slide content
 - Professor emphases (what they stressed as important)
 - Learning outcomes
 - Common pitfalls students face
+${courseCtx.courseId ? '- Other lessons in the same course (for cross-references)' : ''}
+${courseCtx.progressBlock ? '- Student progress data (weak/strong topics)' : ''}
 
 === YOUR CAPABILITIES ===
 ✓ Explain concepts from this lesson deeply
@@ -1975,6 +2040,7 @@ You are an EXPERT AI TUTOR for this specific university lesson. You have access 
 ✓ Compare and contrast concepts
 ✓ Give real-world examples
 ✓ Identify what's most important for exams
+${courseCtx.courseId ? '✓ Connect concepts across different weeks/lessons in the course\n✓ Explain how this topic builds on or leads to other course topics' : ''}
 
 === YOUR PERSONALITY ===
 - Helpful and patient 🎓
@@ -2052,6 +2118,9 @@ app.post("/api/lessons/:id/mindmap", async (req, res) => {
     // Get transcript and slides excerpts
     const transcript = (lesson.transcript || "").substring(0, 2000);
     const slides = (lesson.slideText || "").substring(0, 1500);
+
+    // Course-aware context for cross-lesson nodes
+    const mindmapCourseCtx = assembleCourseContext(lessonId, "mindmap");
 
     // Build content summary for AI
     const moduleNames = modules.slice(0, 4).map((m: any) => m.title || m.name || "Module");
@@ -2158,6 +2227,7 @@ mindmap
       Use good names
       Always test it
 
+${mindmapCourseCtx.crossLessonBlock ? `=== CONNECTIONS TO OTHER LESSONS ===\n${mindmapCourseCtx.crossLessonBlock}\nIf relevant, include a "🔗 Connections" branch linking to concepts from other weeks.\n` : ''}
 === YOUR TASK ===
 Create a STUDY GUIDE mindmap for "${title}".
 Make it helpful for exam preparation.
@@ -2736,13 +2806,69 @@ app.get("/api/connections", (_req, res) => {
   }
 });
 
-app.post("/api/connections/build", (_req, res) => {
+app.post("/api/connections/build", async (_req, res) => {
   try {
-    const connections = buildConnections();
+    const connections = await buildConnections(model);
     res.json({ ok: true, connections });
   } catch (err: any) {
     console.error("POST /api/connections/build error:", err);
     res.status(500).json({ ok: false, error: err.message || "Failed to build connections" });
+  }
+});
+
+app.post("/api/connections/deep-dive", async (req, res) => {
+  try {
+    const { concept, lessonTitles, relatedConcepts } = req.body as {
+      concept: string;
+      lessonTitles: string[];
+      relatedConcepts: string[];
+    };
+    if (!concept) {
+      return res.status(400).json({ ok: false, error: "concept is required" });
+    }
+
+    // Gather lesson context for referenced lessons
+    const allLessons = listLessons();
+    const relevantLessons = allLessons.filter((l) =>
+      lessonTitles.some((t) => l.title === t)
+    );
+
+    const lessonContext = relevantLessons
+      .map((l) => {
+        const keyConcepts = l.plan?.key_concepts?.join(", ") || "N/A";
+        const emphases = (l.plan?.emphases || l.professorEmphases || [])
+          .map((e: any) => e.statement)
+          .filter(Boolean)
+          .slice(0, 5)
+          .join("; ");
+        return `Lesson "${l.title}": Key concepts: ${keyConcepts}. Emphases: ${emphases || "N/A"}.`;
+      })
+      .join("\n");
+
+    const prompt = `You are an expert educational AI tutor. Provide a detailed 3-5 paragraph analysis of how the concept "${concept}" evolves and connects across multiple lessons.
+
+Context about the lessons:
+${lessonContext}
+
+Related concepts: ${relatedConcepts.join(", ") || "none"}
+
+Your analysis should:
+1. Explain what this concept means and why it is fundamental
+2. Describe how it appears differently in each lesson and how the understanding deepens
+3. Show connections to the related concepts listed
+4. Provide practical study advice for mastering this cross-lesson concept
+
+Write in a clear, educational tone. Use paragraphs, not bullet points.`;
+
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+    });
+    const analysis = result.response.text();
+
+    res.json({ ok: true, analysis });
+  } catch (err: any) {
+    console.error("POST /api/connections/deep-dive error:", err);
+    res.status(500).json({ ok: false, error: err.message || "Failed to generate deep dive" });
   }
 });
 
@@ -3008,12 +3134,308 @@ Provide a clear, concise explanation. Respond in the same language as the questi
   }
 });
 
+// ---- Course API ----
+app.get("/api/courses", (_req, res) => {
+  res.json({ ok: true, courses: listCourses() });
+});
+
+app.get("/api/courses/:id", (req, res) => {
+  const course = getCourse(req.params.id);
+  if (!course) return res.status(404).json({ ok: false, error: "Course not found" });
+  res.json({ ok: true, course });
+});
+
+app.post("/api/courses", (req, res) => {
+  const { code, name, description, learningOutcomes, settings } = req.body;
+  if (!code || !name) return res.status(400).json({ ok: false, error: "code and name required" });
+  const course = createCourse({ code, name, description, learningOutcomes, settings });
+  res.json({ ok: true, course });
+});
+
+app.patch("/api/courses/:id", (req, res) => {
+  const course = updateCourse(req.params.id, req.body);
+  if (!course) return res.status(404).json({ ok: false, error: "Course not found" });
+  res.json({ ok: true, course });
+});
+
+app.delete("/api/courses/:id", (req, res) => {
+  const ok = deleteCourse(req.params.id);
+  if (!ok) return res.status(404).json({ ok: false, error: "Course not found" });
+  res.json({ ok: true });
+});
+
+app.post("/api/courses/:id/lessons/:lessonId", (req, res) => {
+  const course = addLessonToCourse(req.params.id, req.params.lessonId);
+  if (!course) return res.status(404).json({ ok: false, error: "Course not found" });
+  // Also set courseId on the lesson
+  upsertLesson({ id: req.params.lessonId, courseId: req.params.id } as any);
+  // Rebuild knowledge index in background
+  rebuildKnowledgeIndex(req.params.id);
+  res.json({ ok: true, course });
+});
+
+app.delete("/api/courses/:id/lessons/:lessonId", (req, res) => {
+  const course = removeLessonFromCourse(req.params.id, req.params.lessonId);
+  if (!course) return res.status(404).json({ ok: false, error: "Course not found" });
+  // Clear courseId from lesson
+  upsertLesson({ id: req.params.lessonId, courseId: undefined } as any);
+  rebuildKnowledgeIndex(req.params.id);
+  res.json({ ok: true, course });
+});
+
+app.get("/api/courses/:id/lessons", (req, res) => {
+  const lessons = getCourseLessons(req.params.id);
+  res.json({ ok: true, lessons });
+});
+
+app.post("/api/courses/:id/rebuild-index", (req, res) => {
+  const index = rebuildKnowledgeIndex(req.params.id);
+  if (!index) return res.status(404).json({ ok: false, error: "Course not found" });
+  res.json({ ok: true, knowledgeIndex: index });
+});
+
+app.get("/api/courses/:id/knowledge-index", (req, res) => {
+  const course = getCourse(req.params.id);
+  if (!course) return res.status(404).json({ ok: false, error: "Course not found" });
+  res.json({ ok: true, knowledgeIndex: course.knowledgeIndex || null });
+});
+
+// Course-level AI chat (not tied to a specific lesson)
+app.post("/api/courses/:id/chat", async (req, res) => {
+  try {
+    const courseId = req.params.id;
+    const { message, history } = req.body;
+    const course = getCourse(courseId);
+    if (!course) return res.status(404).json({ ok: false, error: "Course not found" });
+
+    const courseCtx = assembleCourseWideContext(courseId);
+
+    const chat = model.startChat({
+      history: history?.map((h: any) => ({
+        role: h.role === 'user' ? 'user' : 'model',
+        parts: [{ text: h.content }]
+      })) || [],
+      generationConfig: { maxOutputTokens: 2500 },
+    });
+
+    const prompt = `
+=== CRITICAL RULES ===
+1. INSTRUCTION FOLLOWING: Do exactly what the user asks.
+2. LANGUAGE: Always respond in English.
+3. CONTEXT-BASED: Base answers on the course context below.
+4. ACCURACY: If information is not available, say so.
+
+=== YOUR ROLE ===
+You are an EXPERT AI TUTOR for the entire course: ${course.code} - ${course.name}.
+You have knowledge of ALL lessons, their topics, professor emphases, and how concepts connect across weeks.
+You can help the student with:
+- Understanding how topics relate across the course
+- Identifying key themes and patterns
+- Preparing for exams with a holistic view
+- Finding which lessons cover specific topics
+- Study planning and prioritization based on progress
+
+=== COURSE CONTEXT ===
+${courseCtx.fullContext}
+
+=== FORMATTING ===
+- Use **bold** for key terms
+- Use bullet points for organized lists
+- Keep paragraphs short (2-3 sentences)
+
+=== RESPONSE STRUCTURE ===
+1. Answer the student's question
+2. Reference specific lessons/weeks when applicable
+3. At the END, add 3 suggested follow-up questions:
+---
+**Suggested Questions:**
+1. [Follow-up question]
+2. [Deeper question]
+3. [Application question]
+
+=== STUDENT MESSAGE ===
+${message}
+`;
+
+    const result = await chat.sendMessage(prompt);
+    let text = result.response.text();
+
+    const suggestionsMatch = text.match(/\*\*Suggested Questions:\*\*\s*([\s\S]*?)$/);
+    let suggestions: string[] = [];
+    if (suggestionsMatch) {
+      suggestions = suggestionsMatch[1].trim().split('\n')
+        .map(line => line.replace(/^\d+\.\s*/, '').trim())
+        .filter(s => s.length > 5)
+        .slice(0, 3);
+    }
+
+    return res.json({ ok: true, text, suggestions });
+  } catch (e: any) {
+    console.error("Course chat error:", e);
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// ---- Course Progress ----
+app.get("/api/courses/:id/progress", (req, res) => {
+  const progress = getCourseProgress(req.params.id);
+  if (!progress) return res.status(404).json({ ok: false, error: "Course not found" });
+  res.json({ ok: true, progress });
+});
+
+// ---- Course Study Schedule (AI-generated) ----
+app.post("/api/courses/:id/study-schedule", async (req, res) => {
+  try {
+    const courseId = req.params.id;
+    const { examDate } = req.body;
+    const course = getCourse(courseId);
+    if (!course) return res.status(404).json({ ok: false, error: "Course not found" });
+
+    const progress = getCourseProgress(courseId);
+    const ki = course.knowledgeIndex;
+    const effectiveExamDate = examDate || course.settings?.examDate || "Not specified";
+
+    const prompt = `
+You are an expert study planner. Generate a personalized weekly study schedule in JSON format.
+
+=== COURSE INFO ===
+Course: ${course.code} - ${course.name}
+Total Lessons: ${progress?.totalLessons || 0}
+Completed Lessons: ${progress?.completedLessons || 0}
+Quiz Average: ${progress?.overallQuizAvg ? Math.round(progress.overallQuizAvg * 100) + '%' : 'N/A'}
+Flashcards Due: ${progress?.flashcardSummary?.due || 0}
+Weak Topics: ${progress?.weakTopics?.join(', ') || 'None identified'}
+Strong Topics: ${progress?.strongTopics?.join(', ') || 'None identified'}
+Exam Date: ${effectiveExamDate}
+${ki ? `Course Themes: ${ki.overview.courseThemes.join(', ')}` : ''}
+${ki ? `Lesson Topics: ${ki.lessonDigests.map(d => `W${d.weekNumber}: ${d.title}`).join(', ')}` : ''}
+
+=== INSTRUCTIONS ===
+Generate a 7-day study schedule (Monday through Sunday) with 3 time slots per day (Morning, Afternoon, Evening).
+Focus more time on weak topics. Include flashcard review sessions.
+Include practical tips at the end.
+
+=== RESPONSE FORMAT (JSON only, no markdown) ===
+{
+  "days": [
+    {
+      "day": "Monday",
+      "slots": [
+        { "time": "Morning", "activity": "Review: Topic X", "lessonRef": "W1", "tip": "Focus on key concepts" },
+        { "time": "Afternoon", "activity": "Practice quiz for Module Y" },
+        { "time": "Evening", "activity": "Flashcard review (30 min)" }
+      ]
+    }
+  ],
+  "tips": ["Tip 1", "Tip 2", "Tip 3"]
+}
+`;
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+
+    // Parse JSON from response
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      return res.status(500).json({ ok: false, error: "Failed to parse schedule" });
+    }
+
+    const parsed = JSON.parse(jsonMatch[0]);
+    const schedule = {
+      courseId,
+      generatedAt: new Date().toISOString(),
+      examDate: effectiveExamDate !== "Not specified" ? effectiveExamDate : undefined,
+      days: parsed.days || [],
+      tips: parsed.tips || [],
+    };
+
+    return res.json({ ok: true, schedule });
+  } catch (e: any) {
+    console.error("Schedule generation error:", e);
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// ---- Course Export ----
+app.get("/api/courses/:id/export", (req, res) => {
+  const data = exportCourseData(req.params.id);
+  if (!data) return res.status(404).json({ ok: false, error: "Course not found" });
+  res.json({ ok: true, export: data });
+});
+
+// ---- Scheduler Routes ----
+app.get("/api/scheduler/next-session", (req, res) => {
+  const courseId = req.query.courseId as string | undefined;
+  const result = getNextSession(courseId || undefined);
+  res.json({ ok: true, ...result });
+});
+
+app.get("/api/scheduler/daily", (req, res) => {
+  const courseId = req.query.courseId as string | undefined;
+  const plan = getDailyPlan(courseId || undefined);
+  res.json({ ok: true, plan });
+});
+
+app.get("/api/scheduler/weekly", (req, res) => {
+  const courseId = req.query.courseId as string | undefined;
+  const overview = getWeeklyOverview(courseId || undefined);
+  res.json({ ok: true, overview });
+});
+
+app.post("/api/scheduler/complete-task", (req, res) => {
+  const { taskId } = req.body;
+  if (!taskId) return res.status(400).json({ ok: false, error: "taskId required" });
+  const result = completeSchedulerTask(taskId);
+  res.json(result);
+});
+
+app.get("/api/scheduler/streak", (_req, res) => {
+  const streak = getStreak();
+  res.json({ ok: true, streak });
+});
+
+// ---- Notification Routes ----
+app.get("/api/notifications", (req, res) => {
+  const unread = req.query.unread === "true";
+  const notifications = listNotifications(unread);
+  res.json({ ok: true, notifications });
+});
+
+app.post("/api/notifications/:id/dismiss", (req, res) => {
+  const notif = dismissNotification(req.params.id);
+  if (!notif) return res.status(404).json({ ok: false, error: "Notification not found" });
+  res.json({ ok: true, notification: notif });
+});
+
+app.get("/api/notifications/unread-count", (_req, res) => {
+  const count = getUnreadCount();
+  res.json({ ok: true, count });
+});
+
+app.post("/api/notifications/check", (req, res) => {
+  const newNotifications = checkAndGenerateNotifications();
+  const count = getUnreadCount();
+
+  // Broadcast via Socket.IO
+  const io = req.app.get("io");
+  if (io) {
+    for (const notif of newNotifications) {
+      io.emit("notification:new", notif);
+    }
+    io.emit("notification:badge-update", { count });
+  }
+
+  res.json({ ok: true, newNotifications, count });
+});
+
 // ---- server with Socket.IO ----
 const PORT = Number(process.env.PORT || 4000);
 const httpServer = http.createServer(app);
 const io = new SocketServer(httpServer, {
   cors: { origin: true, credentials: true },
 });
+
+app.set("io", io);
 
 // ---- Socket.IO: Delegated to socketHandler.ts ----
 setupSocketHandler(io);

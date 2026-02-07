@@ -115,7 +115,110 @@ export type ModeId =
   | "weakness"
   | "flashcards"
   | "connections"
-  | "study-room";
+  | "study-room"
+  | "course-dashboard";
+
+// ====== Course types ======
+
+export interface CourseKnowledgeIndex {
+  builtAt: string;
+  version: number;
+  overview: {
+    totalLessons: number;
+    topicProgression: string[];
+    courseThemes: string[];
+  };
+  lessonDigests: Array<{
+    lessonId: string;
+    title: string;
+    weekNumber: number;
+    keyTopics: string[];
+    emphasisHighlights: string[];
+    coveredLOIds: string[];
+  }>;
+  conceptBridges: Array<{
+    concept: string;
+    appearsInWeeks: number[];
+    evolution: string;
+  }>;
+  loCoverage: Array<{
+    loId: string;
+    loTitle: string;
+    coveredByLessons: string[];
+    coverageLevel: "full" | "partial" | "none";
+  }>;
+  progressSnapshot: {
+    weakTopics: string[];
+    strongTopics: string[];
+    quizAverageScore: number;
+    flashcardsDue: number;
+    completedLessons: number;
+  };
+}
+
+export interface Course {
+  id: string;
+  code: string;
+  name: string;
+  description?: string;
+  lessonIds: string[];
+  learningOutcomes?: string[];
+  knowledgeIndex?: CourseKnowledgeIndex;
+  settings?: { language: "tr" | "en"; examDate?: string };
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ====== Course Dashboard types ======
+
+export interface CourseProgress {
+  courseId: string;
+  totalLessons: number;
+  completedLessons: number;
+  lessonStatuses: Array<{
+    lessonId: string;
+    title: string;
+    hasTranscript: boolean;
+    hasPlan: boolean;
+    quizScores: number[];
+    flashcardStats: { total: number; new: number; learning: number; review: number; graduated: number };
+  }>;
+  overallQuizAvg: number;
+  flashcardSummary: { total: number; new: number; learning: number; review: number; graduated: number; due: number };
+  weakTopics: string[];
+  strongTopics: string[];
+}
+
+export interface ScheduleSlot {
+  time: "Morning" | "Afternoon" | "Evening";
+  activity: string;
+  lessonRef?: string;
+  tip?: string;
+}
+
+export interface WeeklySchedule {
+  courseId: string;
+  generatedAt: string;
+  examDate?: string;
+  days: Array<{
+    day: string;
+    slots: ScheduleSlot[];
+  }>;
+  tips: string[];
+}
+
+export interface CourseExport {
+  exportedAt: string;
+  course: Course;
+  lessons: Array<{
+    id: string;
+    title: string;
+    plan?: Plan;
+    cheatSheet?: CheatSheet;
+  }>;
+  flashcards: Flashcard[];
+  weakTopics: string[];
+}
 
 export type CheatSheet = {
   title: string;
@@ -446,5 +549,82 @@ export interface CollabSprintState {
   currentPhaseStartedAt: string;
   pomodorosCompleted: number;
   participantStatus: Record<string, { mode: string; lastUpdate: string }>;
+}
+
+// ====== Scheduler types ======
+
+export interface StudyTask {
+  id: string;
+  courseId?: string;
+  lessonId?: string;
+  topicName: string;
+  taskType: "review-weakness" | "flashcard-review" | "quiz-practice" | "deep-dive" | "revision";
+  reason: string;
+  estimatedMinutes: number;
+  score: number;
+  completed: boolean;
+}
+
+export interface DailyPlan {
+  id: string;
+  courseId?: string;
+  date: string;
+  generatedAt: string;
+  tasks: StudyTask[];
+  totalEstimatedMinutes: number;
+  summary: string;
+}
+
+export interface WeeklyOverview {
+  courseId?: string;
+  startDate: string;
+  endDate: string;
+  days: Array<{
+    date: string;
+    dayName: string;
+    totalMinutes: number;
+    taskCount: number;
+    highlights: string[];
+  }>;
+  weeklyStats: {
+    totalTasks: number;
+    totalMinutes: number;
+    focusAreas: string[];
+  };
+}
+
+export interface StreakData {
+  currentStreak: number;
+  longestStreak: number;
+  lastStudyDate: string | null;
+  studyDates: string[];
+}
+
+// ====== Notification types ======
+
+export type NotificationType =
+  | "flashcard-due"
+  | "weakness-alert"
+  | "exam-countdown"
+  | "schedule-reminder"
+  | "streak-milestone";
+
+export type NotificationSeverity = "info" | "warning" | "critical";
+
+export interface AppNotification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  severity: NotificationSeverity;
+  dismissed: boolean;
+  createdAt: string;
+  dismissedAt?: string;
+  actionTarget?: {
+    mode: ModeId;
+    lessonId?: string;
+    courseId?: string;
+  };
+  metadata?: Record<string, any>;
 }
 

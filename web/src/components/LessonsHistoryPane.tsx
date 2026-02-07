@@ -1,10 +1,11 @@
 // src/components/LessonsHistoryPane.tsx
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import toast from "react-hot-toast";
 import { API_BASE } from "../config";
 import { ModeId, SharedBundle } from "../types";
 import { lessonsApi, sharesApi } from "../services/api";
+import { useCourseStore } from "../stores/courseStore";
 
 // Tarih formatlayıcı (Örn: "2 Ara 2025, 14:30")
 const formatDate = (d?: string) => {
@@ -73,10 +74,96 @@ export default function LessonsHistoryPane({ setMode, setQuiz, onSelectLesson, c
     }
   };
 
+  const courses = useCourseStore((s) => s.courses);
+
   // Arama filtresi
   const filtered = lessons.filter(l =>
     l.title.toLowerCase().includes(search.toLowerCase())
   );
+
+  // Group lessons by course
+  const { grouped, ungrouped } = useMemo(() => {
+    const courseGroups: Array<{ courseId: string; code: string; name: string; lessons: any[] }> = [];
+    const assignedIds = new Set<string>();
+
+    for (const course of courses) {
+      const courseLessons = filtered.filter((l) => course.lessonIds.includes(l.id));
+      if (courseLessons.length > 0) {
+        courseGroups.push({ courseId: course.id, code: course.code, name: course.name, lessons: courseLessons });
+        courseLessons.forEach((l) => assignedIds.add(l.id));
+      }
+    }
+
+    const ungroupedLessons = filtered.filter((l) => !assignedIds.has(l.id));
+    return { grouped: courseGroups, ungrouped: ungroupedLessons };
+  }, [filtered, courses]);
+
+  const [collapsedCourses, setCollapsedCourses] = useState<Set<string>>(new Set());
+  const toggleCourseCollapse = (courseId: string) => {
+    setCollapsedCourses((prev) => {
+      const next = new Set(prev);
+      if (next.has(courseId)) next.delete(courseId);
+      else next.add(courseId);
+      return next;
+    });
+  };
+
+  const renderLessonCard = (l: any) => {
+    const isActive = l.id === currentLessonId;
+    return (
+      <div
+        key={l.id}
+        className={`lesson-card ${isActive ? "lesson-card--active" : ""}`}
+      >
+        <div className="flex-between">
+          <div
+            className="font-bold text-lg truncate pr-2 cursor-pointer flex-1"
+            title={l.title}
+            onClick={() => onSelectLesson(l.id)}
+          >
+            {l.title}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {isActive && <div className="active-dot" title="Şu an açık"></div>}
+            <button
+              className="btn-icon-danger"
+              title="Dersi Sil"
+              onClick={(e) => {
+                e.stopPropagation();
+                setDeleteTarget({ id: l.id, title: l.title });
+              }}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                opacity: 0.6,
+                transition: 'opacity 0.2s',
+                fontSize: 16,
+                padding: 4,
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.6')}
+            >
+              🗑️
+            </button>
+          </div>
+        </div>
+        <div className="text-xs op-60 mt-1 flex-between" onClick={() => onSelectLesson(l.id)}>
+          <span>📅 {formatDate(l.date)}</span>
+        </div>
+        <div className="mt-3 flex gap-2" onClick={() => onSelectLesson(l.id)}>
+          {l.highlights?.length > 0 && (
+            <span className="text-xs bg-gray-100 px-2 py-1 rounded">
+              ✨ {l.highlights.length} Kavram
+            </span>
+          )}
+          <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded ml-auto">
+            {isActive ? "Açık" : "İncele →"}
+          </span>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="history-pane">
@@ -108,66 +195,49 @@ export default function LessonsHistoryPane({ setMode, setQuiz, onSelectLesson, c
           </div>
         )}
 
-        {filtered.map((l) => {
-          const isActive = l.id === currentLessonId;
-
-          return (
+        {/* Grouped by course */}
+        {grouped.map((group) => (
+          <div key={group.courseId} style={{ marginBottom: 8 }}>
             <div
-              key={l.id}
-              className={`lesson-card ${isActive ? "lesson-card--active" : ""}`}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "6px 10px",
+                cursor: "pointer",
+                borderRadius: 8,
+                background: "var(--card-hover, rgba(0,0,0,0.03))",
+                marginBottom: 6,
+              }}
+              onClick={() => toggleCourseCollapse(group.courseId)}
             >
-              <div className="flex-between">
-                <div
-                  className="font-bold text-lg truncate pr-2 cursor-pointer flex-1"
-                  title={l.title}
-                  onClick={() => onSelectLesson(l.id)}
-                >
-                  {l.title}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  {isActive && <div className="active-dot" title="Şu an açık"></div>}
-                  <button
-                    className="btn-icon-danger"
-                    title="Dersi Sil"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setDeleteTarget({ id: l.id, title: l.title });
-                    }}
-                    style={{
-                      background: 'transparent',
-                      border: 'none',
-                      cursor: 'pointer',
-                      opacity: 0.6,
-                      transition: 'opacity 0.2s',
-                      fontSize: 16,
-                      padding: 4,
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
-                    onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.6')}
-                  >
-                    🗑️
-                  </button>
-                </div>
-              </div>
-
-              <div className="text-xs op-60 mt-1 flex-between" onClick={() => onSelectLesson(l.id)}>
-                <span>📅 {formatDate(l.date)}</span>
-              </div>
-
-              {/* Alt Bilgi Çubuğu */}
-              <div className="mt-3 flex gap-2" onClick={() => onSelectLesson(l.id)}>
-                {l.highlights?.length > 0 && (
-                  <span className="text-xs bg-gray-100 px-2 py-1 rounded">
-                    ✨ {l.highlights.length} Kavram
-                  </span>
-                )}
-                <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded ml-auto">
-                  {isActive ? "Açık" : "İncele →"}
-                </span>
-              </div>
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 16 16"
+                fill="currentColor"
+                style={{
+                  transform: collapsedCourses.has(group.courseId) ? "rotate(-90deg)" : "rotate(0deg)",
+                  transition: "transform 0.2s",
+                }}
+              >
+                <path d="M4 4l4 4-4 4" />
+              </svg>
+              <span style={{ fontWeight: 600, color: "var(--accent-2)", fontSize: 13 }}>{group.code}</span>
+              <span style={{ fontWeight: 500, fontSize: 13 }}>{group.name}</span>
+              <span className="muted small" style={{ marginLeft: "auto" }}>{group.lessons.length}</span>
             </div>
-          );
-        })}
+            {!collapsedCourses.has(group.courseId) && group.lessons.map((l) => renderLessonCard(l))}
+          </div>
+        ))}
+
+        {/* Ungrouped lessons */}
+        {ungrouped.length > 0 && grouped.length > 0 && (
+          <div style={{ padding: "6px 10px", fontSize: 13, fontWeight: 600, color: "var(--muted)", marginTop: 4 }}>
+            Other Lessons
+          </div>
+        )}
+        {ungrouped.map((l) => renderLessonCard(l))}
       </div>
 
       {/* Shared Lessons Section */}

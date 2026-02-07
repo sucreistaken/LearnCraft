@@ -1,0 +1,115 @@
+{
+  "dailyPlans": [
+    {
+      "id": "plan-1770067227773",
+      "date": "2026-02-02",
+      "generatedAt": "2026-02-02T21:20:27.773Z",
+      "tasks": [
+        {
+          "id": "task-1770067227747-g4pzis",
+          "lessonId": "lec-1764808314795",
+          "topicName": "Module 3: Data Management in Declarative UIs",
+          "taskType": "deep-dive",
+          "reason": "Critical weakness (20% score). Deep study recommended.",
+          "estimatedMinutes": 30,
+          "score": 6,
+          "completed": false
+        },
+        {
+          "id": "task-1770067227747-u8fvnd",
+          "lessonId": "lec-1764808314795",
+          "topicName": "The live lecture is the primary and most important source of...",
+          "taskType": "deep-dive",
+          "reason": "Critical weakness (20% score). Deep study recommended.",
+          "estimatedMinutes": 30,
+          "score": 6,
+          "completed": false
+        },
+        {
+          "id": "task-1770067227748-yacm5h",
+          "lessonId": "lec-1768448481012",
+          "topicName": "HDD Fundamentals and Performance",
+          "taskType": "deep-dive",
+          "reason": "Critical weakness (20% score). Deep study recommended.",
+          "estimatedMinutes": 30,
+          "score": 6,
+          "completed": false
+        },
+        {
+          "id": "task-1770067227748-njri3q",
+          "lessonId": "lec-1768448481012",
+          "topicName": "HDD Performance Metrics",
+          "taskType": "deep-dive",
+          "reason": "Critical weakness (20% score). Deep study recommended.",
+          "estimatedMinutes": 30,
+          "score": 6,
+          "completed": false
+        }
+      ],
+      "totalEstimatedMinutes": 120,
+      "summary": "4 tasks planned: Module 3: Data Management in Declarative UIs, The live lecture is the primary and most important source of..., HDD Fundamentals and Performance..."
+    },
+    {
+      "id": "plan-1770241917158",
+      "date": "2026-02-04",
+      "generatedAt": "2026-02-04T21:51:57.158Z",
+      "tasks": [
+        {
+          "id": "task-1770241917122-b785jf",
+          "lessonId": "lec-1764808314795",
+          "topicName": "Module 3: Data Management in Declarative UIs",
+          "taskType": "deep-dive",
+          "reason": "Critical weakness (20% score). Deep study recommended.",
+          "estimatedMinutes": 30,
+          "score": 6,
+          "completed": true
+        },
+        {
+          "id": "task-1770241917123-owa28u",
+          "lessonId": "lec-1764808314795",
+          "topicName": "The live lecture is the primary and most important source of...",
+          "taskType": "deep-dive",
+          "reason": "Critical weakness (20% score). Deep study recommended.",
+          "estimatedMinutes": 30,
+          "score": 6,
+          "completed": true
+        },
+        {
+          "id": "task-1770241917123-oghnpb",
+          "lessonId": "lec-1768448481012",
+          "topicName": "HDD Fundamentals and Performance",
+          "taskType": "deep-dive",
+          "reason": "Critical weakness (20% score). Deep study recommended.",
+          "estimatedMinutes": 30,
+          "score": 6,
+          "completed": true
+        },
+        {
+          "id": "task-1770241917123-8eb2q0",
+          "lessonId": "lec-1768448481012",
+          "topicName": "HDD Performance Metrics",
+          "taskType": "deep-dive",
+          "reason": "Critical weakness (20% score). Deep study recommended.",
+          "estimatedMinutes": 30,
+          "score": 6,
+          "completed": false
+        }
+      ],
+      "totalEstimatedMinutes": 120,
+      "summary": "4 tasks planned: Module 3: Data Management in Declarative UIs, The live lecture is the primary and most important source of..., HDD Fundamentals and Performance..."
+    }
+  ],
+  "streak": {
+    "currentStreak": 1,
+    "longestStreak": 1,
+    "lastStudyDate": "2026-02-04",
+    "studyDates": [
+      "2026-02-04"
+    ]
+  },
+  "completedTasks": [
+    "task-1770241917122-b785jf",
+    "task-1770241917123-owa28u",
+    "task-1770241917123-oghnpb"
+  ]
+}

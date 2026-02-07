@@ -1,0 +1,118 @@
+[
+  {
+    "id": "course-1770062663446",
+    "code": "ce 323",
+    "name": "Operating System",
+    "lessonIds": [
+      "lec-1768462362982",
+      "lec-1768448481012"
+    ],
+    "learningOutcomes": [],
+    "settings": {
+      "language": "en"
+    },
+    "createdAt": "2026-02-02T20:04:23.446Z",
+    "updatedAt": "2026-02-02T20:04:30.537Z",
+    "knowledgeIndex": {
+      "builtAt": "2026-02-02T20:04:30.537Z",
+      "version": 2,
+      "overview": {
+        "totalLessons": 2,
+        "topicProgression": [
+          "ce 323 -1",
+          "ce 323"
+        ],
+        "courseThemes": [
+          "hard disk drives (hdds)",
+          "non-volatile memory (nvm)",
+          "solid state drives (ssds)",
+          "physical structure of storage devices",
+          "hdd performance metrics (seek time, rotational latency, transfer rate)"
+        ]
+      },
+      "lessonDigests": [
+        {
+          "lessonId": "lec-1768462362982",
+          "title": "ce 323 -1",
+          "weekNumber": 1,
+          "keyTopics": [
+            "Hard Disk Drives (HDDs)",
+            "Non-Volatile Memory (NVM)",
+            "Solid State Drives (SSDs)",
+            "Physical structure of storage devices",
+            "HDD performance metrics (seek time, rotational latency, transfer rate)"
+          ],
+          "emphasisHighlights": [
+            "Hard Disk Drives (HDDs) remain critically important, especially for data centers and AI, despite the rise of Solid State Drives (SSDs).",
+            "The physical structure of a hard disk drive directly impacts its performance, particularly concerning seek time.",
+            "Disk heads must not physically contact the platters; contact results in a 'head crash' which damages the disk."
+          ],
+          "coveredLOIds": []
+        },
+        {
+          "lessonId": "lec-1768448481012",
+          "title": "ce 323",
+          "weekNumber": 2,
+          "keyTopics": [
+            "Hard Disk Drives (HDDs)",
+            "Solid State Drives (SSDs)",
+            "Non-Volatile Memory (NVM)",
+            "Disk Scheduling",
+            "Error Detection and Correction"
+          ],
+          "emphasisHighlights": [
+            "Hard disks are still relevant due to their use in data centers, especially with the growth of AI.",
+            "Transfer rate is an important parameter because the speed of reading bits by the head has to match the speed of the transfer rate.",
+            "Positional delay, or seek time, is the dominant factor affecting hard disk performance."
+          ],
+          "coveredLOIds": []
+        }
+      ],
+      "conceptBridges": [
+        {
+          "concept": "hard disk drives (hdds)",
+          "appearsInWeeks": [
+            1,
+            2
+          ],
+          "evolution": "Introduced in W1, revisited in W2"
+        },
+        {
+          "concept": "non-volatile memory (nvm)",
+          "appearsInWeeks": [
+            1,
+            2
+          ],
+          "evolution": "Introduced in W1, revisited in W2"
+        },
+        {
+          "concept": "solid state drives (ssds)",
+          "appearsInWeeks": [
+            1,
+            2
+          ],
+          "evolution": "Introduced in W1, revisited in W2"
+        }
+      ],
+      "loCoverage": [],
+      "progressSnapshot": {
+        "weakTopics": [
+          "Module 1: Hard Disk Drive Fundamentals & Performance",
+          "Lesson 1.2: HDD Performance Metrics and I/O Time Calculation",
+          "Module 2: Non-Volatile Memory (NVM) and Storage Interfaces",
+          "Lesson 2.1: Solid State Drives (SSDs) and NVM Characteristics",
+          "Lesson 2.2: Other Mass Storage and Attachment",
+          "Lesson 3.2: Error Handling and Storage Management",
+          "Hard Disk Drives (HDDs) remain critically important, especia...",
+          "The physical structure of a hard disk drive directly impacts...",
+          "Disk heads must not physically contact the platters; contact...",
+          "Positional delay (seek time) is the dominating factor in det..."
+        ],
+        "strongTopics": [],
+        "quizAverageScore": 0,
+        "flashcardsDue": 0,
+        "completedLessons": 2
+      }
+    }
+  }
+]
