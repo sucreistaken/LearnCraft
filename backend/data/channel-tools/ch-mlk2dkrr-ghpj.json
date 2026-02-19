@@ -1,0 +1,150 @@
+{
+  "channelId": "ch-mlk2dkrr-ghpj",
+  "toolType": "",
+  "quiz": {
+    "questions": [
+      {
+        "id": "mlk3sjjxv4a77x",
+        "question": "Beyond mere entertainment, what is a primary pedagogical benefit of incorporating 'quiz-yarışması' into a university study group setting?",
+        "options": [
+          "Strictly for ranking students academically.",
+          "To identify individuals with the highest IQs.",
+          "To foster active recall, identify knowledge gaps, and promote collaborative learning.",
+          "To replace traditional lectures entirely."
+        ],
+        "correctIndex": 2,
+        "explanation": "Quizzes, especially in a study group, are excellent tools for active recall, which strengthens memory and understanding. They also help participants identify areas where their knowledge is weak, prompting further study, and can encourage peer-to-peer learning. They are not meant for strict academic ranking or IQ assessment, nor to fully replace comprehensive lectures.",
+        "type": "mc",
+        "difficulty": "medium"
+      },
+      {
+        "id": "mlk3sjjx4yzlp7",
+        "question": "Which of the following is the most crucial skill for a 'quizmaster' in ensuring a fair and engaging 'quiz-yarışması'?",
+        "options": [
+          "Exceptional singing ability.",
+          "Strict adherence to a pre-written script without deviation.",
+          "Clear communication, impartial judgment, and effective time management.",
+          "Deep expertise in every single quiz topic."
+        ],
+        "correctIndex": 2,
+        "explanation": "A quizmaster's primary role is to facilitate the competition smoothly and fairly. This requires clear articulation of questions and rules, unbiased decision-making, and keeping the event on schedule. While subject knowledge helps, a quizmaster doesn't need to be an expert in everything; they rely on well-researched questions. Singing ability is irrelevant, and strict adherence to a script without flexibility can hinder engagement.",
+        "type": "mc",
+        "difficulty": "medium"
+      },
+      {
+        "id": "mlk3sjjx6hmfuu",
+        "question": "True or False: The sole purpose of a 'quiz-yarışması' is to measure a participant's ability to memorize isolated facts.",
+        "options": [
+          "True",
+          "False"
+        ],
+        "correctIndex": 1,
+        "explanation": "While quizzes do test recall of facts, they often serve broader purposes such as promoting critical thinking, problem-solving, teamwork, and identifying learning gaps. They can also be used for entertainment, team-building, and encouraging deeper engagement with a subject beyond simple memorization.",
+        "type": "tf",
+        "difficulty": "medium"
+      },
+      {
+        "id": "mlk3sjjxlxggaf",
+        "question": "In many 'quiz-yarışması' formats, especially those involving multiple rounds, what is a common approach to scoring that incentivizes accuracy while discouraging wild guessing?",
+        "options": [
+          "Awarding points only for answers provided within the first 5 seconds.",
+          "Subtracting points for incorrect answers (negative scoring).",
+          "Granting bonus points for answering questions loudly.",
+          "Giving all teams points regardless of their answers."
+        ],
+        "correctIndex": 1,
+        "explanation": "Negative scoring is a common strategy in quizzes to penalize incorrect answers, thereby discouraging participants from guessing randomly. This method encourages participants to answer only when they are reasonably confident, thus promoting thoughtful engagement rather than speculative responses. Options A, C, and D are generally not standard practices for fair scoring.",
+        "type": "mc",
+        "difficulty": "medium"
+      },
+      {
+        "id": "mlk3sjjxae8w1l",
+        "question": "For a university study group, what is a significant advantage of structuring a 'quiz-yarışması' as a team-based activity rather than individual competition?",
+        "options": [
+          "It guarantees that only the most knowledgeable individual on the team answers every question.",
+          "It fosters peer-to-peer learning, communication skills, and collaborative problem-solving.",
+          "It reduces the overall number of questions needed for the quiz.",
+          "It eliminates all forms of competitive pressure among participants."
+        ],
+        "correctIndex": 1,
+        "explanation": "Team-based quizzes encourage participants to discuss questions, share knowledge, and collectively arrive at an answer, thus enhancing communication and collaborative problem-solving skills. This promotes a deeper understanding of the material through peer instruction and discussion, rather than isolating the knowledge to one individual. It also doesn't eliminate all competitive pressure, but shifts it to a team dynamic.",
+        "type": "mc",
+        "difficulty": "medium"
+      },
+      {
+        "id": "mlk3sjjxio4hbx",
+        "question": "True or False: A well-designed 'quiz-yarışması' question should always be incredibly obscure or trivial to truly challenge participants.",
+        "options": [
+          "True",
+          "False"
+        ],
+        "correctIndex": 1,
+        "explanation": "While some challenging questions are good, consistently obscure or trivial questions can be frustrating and demotivating. Effective quiz questions should ideally be clear, unambiguous, relevant to the topic (if applicable), and of varying difficulty, including some that test deeper understanding or application, not just rote memorization of trivia. The goal is to challenge, but also to encourage learning and participation.",
+        "type": "tf",
+        "difficulty": "medium"
+      },
+      {
+        "id": "mlk3sjjxxz4pby",
+        "question": "One of the main challenges in creating effective questions for a 'quiz-yarışması' is ensuring:",
+        "options": [
+          "They are all exactly the same length.",
+          "They are culturally biased towards a specific group.",
+          "They are unambiguous, well-researched, and have a clear, indisputable correct answer.",
+          "They are impossible for anyone to answer correctly without cheating."
+        ],
+        "correctIndex": 2,
+        "explanation": "For a quiz to be fair and effective, its questions must be unambiguous, preventing multiple interpretations. They should be well-researched to ensure factual accuracy, and there should be a single, clearly identifiable correct answer to avoid disputes and maintain integrity. Questions that are intentionally impossible or culturally biased undermine the purpose of a fair competition.",
+        "type": "mc",
+        "difficulty": "medium"
+      },
+      {
+        "id": "mlk3sjjxu7p28s",
+        "question": "True or False: Modern technology, such as online platforms and interactive apps, has had no significant impact on the format or accessibility of 'quiz-yarışması' events.",
+        "options": [
+          "True",
+          "False"
+        ],
+        "correctIndex": 1,
+        "explanation": "Technology has profoundly transformed quizzes, enabling online participation from anywhere, offering automated scoring, diverse multimedia question formats (audio, video, images), and instant feedback. This has greatly increased accessibility, engagement, and the variety of quiz experiences available today, from educational tools to large-scale online tournaments.",
+        "type": "tf",
+        "difficulty": "medium"
+      },
+      {
+        "id": "mlk3sjjxeyzw4l",
+        "question": "In a casual 'quiz-yarışması' context, what typically distinguishes a 'quiz' from a more formal 'test' or 'exam'?",
+        "options": [
+          "Quizzes always have higher stakes and are graded for academic records.",
+          "Quizzes are primarily for entertainment, engagement, or informal learning, often with immediate feedback and lower stakes.",
+          "Tests always involve team collaboration, while quizzes are strictly individual.",
+          "Quizzes only contain multiple-choice questions, while tests use all question types."
+        ],
+        "correctIndex": 1,
+        "explanation": "While both quizzes and tests assess knowledge, quizzes in a casual context (like a study group) are generally designed for entertainment, engagement, quick knowledge checks, or informal learning, often featuring immediate feedback and lower stakes (no impact on grades). Formal tests or exams usually carry significant academic weight, are graded, and are primarily for summative assessment.",
+        "type": "mc",
+        "difficulty": "medium"
+      },
+      {
+        "id": "mlk3sjjxwpnww2",
+        "question": "When a dispute arises regarding a question's answer or fairness during a 'quiz-yarışması', what is the most appropriate course of action for the quizmaster?",
+        "options": [
+          "Immediately dismiss the protest without explanation.",
+          "Halt the entire quiz for an hour to consult an academic expert.",
+          "Listen to the protest, consult pre-prepared alternative answers/sources if available, and make a fair, transparent ruling.",
+          "Always side with the team that complained first to avoid further argument."
+        ],
+        "correctIndex": 2,
+        "explanation": "A fair and respected quizmaster handles disputes by listening attentively to the protest, referencing authoritative sources or pre-determined criteria, and then making a transparent and reasoned decision. This ensures integrity and maintains participant trust. Arbitrarily dismissing protests or always siding with the first complaint is unfair, and halting the game for an extended period disrupts the flow excessively.",
+        "type": "mc",
+        "difficulty": "medium"
+      }
+    ],
+    "scores": {
+      "u-mlhaffd5-j97j": {
+        "correct": 0,
+        "total": 1,
+        "nickname": "Kadir"
+      }
+    },
+    "generatedAt": "2026-02-12T23:42:13.245Z"
+  }
+}

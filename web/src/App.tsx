@@ -9,6 +9,7 @@ import { useLessonStore } from "./stores/lessonStore";
 import { useUiStore } from "./stores/uiStore";
 import { useRoomStore } from "./stores/roomStore";
 import { useCourseStore } from "./stores/courseStore";
+import { useAuthStore } from "./stores/authStore";
 
 // Hooks
 import { useLesson } from "./hooks/useLesson";
@@ -27,6 +28,9 @@ import NicknamePrompt from "./components/ui/NicknamePrompt";
 import IdentityBadge from "./components/ui/IdentityBadge";
 import NotificationBell from "./components/ui/NotificationBell";
 import SchedulerWidget from "./components/SchedulerWidget";
+import AuthGuard from "./components/auth/AuthGuard";
+
+const SettingsPage = lazy(() => import("./components/settings/SettingsPage"));
 
 // Lazy loaded panes
 const PlanPane = lazy(() => import("./components/PlanPane"));
@@ -46,6 +50,7 @@ const FlashcardPane = lazy(() => import("./components/FlashcardPane"));
 const ConnectionsPane = lazy(() => import("./components/ConnectionsPane"));
 const StudyRoomPane = lazy(() => import("./components/StudyRoomPane"));
 const CourseDashboard = lazy(() => import("./components/CourseDashboard"));
+const StudyHub = lazy(() => import("./components/collab-v2/layout/StudyHub"));
 
 // Loading fallback
 function PaneLoading() {
@@ -74,12 +79,17 @@ export default function App() {
   const ui = useUiStore();
   const leftPanelCollapsed = useUiStore((s) => s.leftPanelCollapsed);
   const toggleLeftPanel = useUiStore((s) => s.toggleLeftPanel);
+  const authUser = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
 
   // Room store
   const roomStore = useRoomStore();
 
   // Course store
   const courseStore = useCourseStore();
+
+  // Settings modal
+  const [showSettings, setShowSettings] = useState(false);
   const currentCourse = courseStore.courses.find((c) => c.id === courseStore.currentCourseId) || null;
 
   // Share link detection
@@ -278,6 +288,7 @@ export default function App() {
             {ui.mode === "connections" && <ConnectionsPane />}
             {ui.mode === "notes" && <NotesPane />}
             {ui.mode === "study-room" && <StudyRoomPane />}
+            {ui.mode === "study-hub" && <StudyHub />}
             {ui.mode === "course-dashboard" && <CourseDashboard />}
           </motion.div>
         </AnimatePresence>
@@ -286,6 +297,7 @@ export default function App() {
   };
 
   return (
+    <AuthGuard>
     <div className="page">
       {/* Navbar */}
       <nav className="nav" role="navigation" aria-label="Ana navigasyon">
@@ -298,7 +310,19 @@ export default function App() {
           <div className="nav-divider" />
           <div className="nav-actions">
             <NotificationBell />
-            <IdentityBadge />
+            {authUser && (
+              <span className="nav-user-name" style={{ fontSize: "var(--text-sm)", color: "var(--muted)" }}>
+                {authUser.profile.nickname}
+              </span>
+            )}
+            <button
+              className="nav-settings-btn"
+              onClick={() => setShowSettings(true)}
+              title="Settings"
+              style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: "var(--text-lg)", padding: "var(--space-1)" }}
+            >
+              &#9881;
+            </button>
             <ShareButton />
             <ThemeToggle />
           </div>
@@ -322,9 +346,9 @@ export default function App() {
           </div>
         </header>
 
-        <div className={`lc-shell${ui.mode === "study-room" ? " lc-shell--room" : leftPanelCollapsed ? " lc-shell--collapsed" : ""}`}>
+        <div className={`lc-shell${ui.mode === "study-room" || ui.mode === "study-hub" ? " lc-shell--room" : leftPanelCollapsed ? " lc-shell--collapsed" : ""}`}>
           {/* LEFT: Form or Collapsed Bar */}
-          {ui.mode !== "study-room" && (
+          {ui.mode !== "study-room" && ui.mode !== "study-hub" && (
             leftPanelCollapsed ? (
               <div className="lc-collapsed-bar">
                 <button className="lc-collapsed-bar__toggle" onClick={toggleLeftPanel} title="Expand panel">
@@ -724,6 +748,14 @@ export default function App() {
 
       {/* Nickname Prompt - shown when entering study-room without identity */}
       {ui.mode === "study-room" && <NicknamePrompt />}
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <Suspense fallback={null}>
+          <SettingsPage onClose={() => setShowSettings(false)} />
+        </Suspense>
+      )}
     </div>
+    </AuthGuard>
   );
 }

@@ -17,7 +17,7 @@ body,
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter,
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Text",
     system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
   font-size: var(--text-base);
   line-height: var(--leading-normal);

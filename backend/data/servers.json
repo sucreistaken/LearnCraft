@@ -1,0 +1,666 @@
+[
+  {
+    "id": "srv-mlhaftmd-w491",
+    "name": "dasdas",
+    "description": "",
+    "iconColor": "#6C5CE7",
+    "inviteCode": "3C92UM",
+    "ownerId": "u-mlhaffd5-j97j",
+    "categories": [
+      {
+        "id": "cat-mlhaftmd-wt",
+        "name": "Genel",
+        "position": 0,
+        "channelIds": [
+          "ch-mlhaftmf-xncl",
+          "ch-mlhaftmh-m89f"
+        ]
+      },
+      {
+        "id": "cat-mlhaftmd-bv",
+        "name": "Soru Çözüm",
+        "position": 1,
+        "channelIds": [
+          "ch-mlhaftmi-y5zg",
+          "ch-mlhaftmk-496v"
+        ]
+      },
+      {
+        "id": "cat-mlhaftmd-mr",
+        "name": "Yarışma",
+        "position": 2,
+        "channelIds": [
+          "ch-mlhaftml-7uug",
+          "ch-mlhaftmm-3b0e"
+        ]
+      },
+      {
+        "id": "cat-mlhaftmd-bj",
+        "name": "Özet",
+        "position": 3,
+        "channelIds": [
+          "ch-mlhaftmn-jdci",
+          "ch-mlhaftmo-25hg"
+        ]
+      }
+    ],
+    "roles": [
+      {
+        "id": "role-owner",
+        "name": "Owner",
+        "color": "#E74C3C",
+        "permissions": [
+          "manage_server",
+          "manage_channels",
+          "manage_roles",
+          "manage_members",
+          "kick_members",
+          "send_messages",
+          "manage_messages",
+          "pin_messages",
+          "mention_everyone",
+          "create_invite",
+          "use_tools"
+        ],
+        "position": 3
+      },
+      {
+        "id": "role-admin",
+        "name": "Admin",
+        "color": "#3498DB",
+        "permissions": [
+          "manage_channels",
+          "manage_members",
+          "kick_members",
+          "send_messages",
+          "manage_messages",
+          "pin_messages",
+          "mention_everyone",
+          "create_invite",
+          "use_tools"
+        ],
+        "position": 2
+      },
+      {
+        "id": "role-member",
+        "name": "Member",
+        "color": "#95A5A6",
+        "permissions": [
+          "send_messages",
+          "pin_messages",
+          "create_invite",
+          "use_tools"
+        ],
+        "position": 0
+      }
+    ],
+    "memberIds": [
+      "u-mlhaffd5-j97j"
+    ],
+    "memberRoles": {
+      "u-mlhaffd5-j97j": [
+        "role-owner"
+      ]
+    },
+    "settings": {
+      "maxMembers": 50,
+      "isPublic": false,
+      "defaultRole": "role-member"
+    },
+    "tags": [
+      "dasd"
+    ],
+    "university": "asd",
+    "memberCount": 1,
+    "lastActivityAt": "2026-02-11T00:24:58.549Z",
+    "createdAt": "2026-02-11T00:24:58.549Z"
+  },
+  {
+    "id": "srv-mlhazgrn-tjsp",
+    "name": "uıuıuı",
+    "description": "",
+    "iconColor": "#E17055",
+    "inviteCode": "F4JJPU",
+    "ownerId": "u-mlhaffd5-j97j",
+    "categories": [
+      {
+        "id": "cat-mlhazgrn-ha",
+        "name": "Genel",
+        "position": 0,
+        "channelIds": [
+          "ch-mlhazgro-wdx5",
+          "ch-mlhazgrq-vxwr",
+          "ch-mlhazgrr-s1x6"
+        ]
+      },
+      {
+        "id": "cat-mlhazgrn-hw",
+        "name": "Çalışma Araçları",
+        "position": 1,
+        "channelIds": [
+          "ch-mlhazgrs-eqvu",
+          "ch-mlhazgru-ouli",
+          "ch-mlhazgrv-sfl6",
+          "ch-mlhazgrx-cgso"
+        ]
+      },
+      {
+        "id": "cat-mlhazgrn-m8",
+        "name": "Sprint",
+        "position": 2,
+        "channelIds": [
+          "ch-mlhazgry-xugf",
+          "ch-mlhazgrz-xljj"
+        ]
+      }
+    ],
+    "roles": [
+      {
+        "id": "role-owner",
+        "name": "Owner",
+        "color": "#E74C3C",
+        "permissions": [
+          "manage_server",
+          "manage_channels",
+          "manage_roles",
+          "manage_members",
+          "kick_members",
+          "send_messages",
+          "manage_messages",
+          "pin_messages",
+          "mention_everyone",
+          "create_invite",
+          "use_tools"
+        ],
+        "position": 3
+      },
+      {
+        "id": "role-admin",
+        "name": "Admin",
+        "color": "#3498DB",
+        "permissions": [
+          "manage_channels",
+          "manage_members",
+          "kick_members",
+          "send_messages",
+          "manage_messages",
+          "pin_messages",
+          "mention_everyone",
+          "create_invite",
+          "use_tools"
+        ],
+        "position": 2
+      },
+      {
+        "id": "role-member",
+        "name": "Member",
+        "color": "#95A5A6",
+        "permissions": [
+          "send_messages",
+          "pin_messages",
+          "create_invite",
+          "use_tools"
+        ],
+        "position": 0
+      }
+    ],
+    "memberIds": [
+      "u-mlhaffd5-j97j"
+    ],
+    "memberRoles": {
+      "u-mlhaffd5-j97j": [
+        "role-owner"
+      ]
+    },
+    "settings": {
+      "maxMembers": 50,
+      "isPublic": true,
+      "defaultRole": "role-member"
+    },
+    "tags": [
+      "uıou"
+    ],
+    "university": "ıuıuı",
+    "memberCount": 1,
+    "lastActivityAt": "2026-02-11T00:40:15.011Z",
+    "createdAt": "2026-02-11T00:40:15.011Z"
+  },
+  {
+    "id": "srv-mlk2dkrd-3365",
+    "name": "111",
+    "description": "aaa",
+    "iconColor": "#0984E3",
+    "inviteCode": "44F4LN",
+    "ownerId": "u-mlhaffd5-j97j",
+    "categories": [
+      {
+        "id": "cat-mlk2dkrc-8k",
+        "name": "Genel",
+        "position": 0,
+        "channelIds": [
+          "ch-mlk2dkre-3544",
+          "ch-mlk2dkrn-kxxg",
+          "ch-mlk2dkrp-3i85"
+        ]
+      },
+      {
+        "id": "cat-mlk2dkrd-bd",
+        "name": "Çalışma Araçları",
+        "position": 1,
+        "channelIds": [
+          "ch-mlk2dkrp-j5us",
+          "ch-mlk2dkrq-8f8t",
+          "ch-mlk2dkrr-ghpj",
+          "ch-mlk2dkrt-crzn"
+        ]
+      },
+      {
+        "id": "cat-mlk2dkrd-6b",
+        "name": "Sprint",
+        "position": 2,
+        "channelIds": [
+          "ch-mlk2dkru-cxpy",
+          "ch-mlk2dkrv-9sl5"
+        ]
+      }
+    ],
+    "roles": [
+      {
+        "id": "role-owner",
+        "name": "Owner",
+        "color": "#E74C3C",
+        "permissions": [
+          "manage_server",
+          "manage_channels",
+          "manage_roles",
+          "manage_members",
+          "kick_members",
+          "send_messages",
+          "manage_messages",
+          "pin_messages",
+          "mention_everyone",
+          "create_invite",
+          "use_tools"
+        ],
+        "position": 3
+      },
+      {
+        "id": "role-admin",
+        "name": "Admin",
+        "color": "#3498DB",
+        "permissions": [
+          "manage_channels",
+          "manage_members",
+          "kick_members",
+          "send_messages",
+          "manage_messages",
+          "pin_messages",
+          "mention_everyone",
+          "create_invite",
+          "use_tools"
+        ],
+        "position": 2
+      },
+      {
+        "id": "role-member",
+        "name": "Member",
+        "color": "#95A5A6",
+        "permissions": [
+          "send_messages",
+          "pin_messages",
+          "create_invite",
+          "use_tools"
+        ],
+        "position": 0
+      }
+    ],
+    "memberIds": [
+      "u-mlhaffd5-j97j"
+    ],
+    "memberRoles": {
+      "u-mlhaffd5-j97j": [
+        "role-owner"
+      ]
+    },
+    "settings": {
+      "maxMembers": 50,
+      "isPublic": true,
+      "defaultRole": "role-member"
+    },
+    "tags": [],
+    "memberCount": 1,
+    "lastActivityAt": "2026-02-12T23:02:35.352Z",
+    "createdAt": "2026-02-12T23:02:35.352Z"
+  },
+  {
+    "id": "srv-mlk2r2at-u5ny",
+    "name": "ııı",
+    "description": "ııı",
+    "iconColor": "#D63031",
+    "inviteCode": "VPS6LM",
+    "ownerId": "u-mlhaffd5-j97j",
+    "categories": [
+      {
+        "id": "cat-mlk2r2at-iq",
+        "name": "Genel",
+        "position": 0,
+        "channelIds": [
+          "ch-mlk2r2av-jocm",
+          "ch-mlk2r2aw-5qlu",
+          "ch-mlk2r2ax-ac9i"
+        ]
+      },
+      {
+        "id": "cat-mlk2r2at-pr",
+        "name": "Çalışma Araçları",
+        "position": 1,
+        "channelIds": [
+          "ch-mlk2r2ay-1dhx",
+          "ch-mlk2r2az-0b13",
+          "ch-mlk2r2b0-sl45",
+          "ch-mlk2r2b1-ig1j"
+        ]
+      },
+      {
+        "id": "cat-mlk2r2at-dz",
+        "name": "Sprint",
+        "position": 2,
+        "channelIds": [
+          "ch-mlk2r2b2-sx14",
+          "ch-mlk2r2b3-p09d"
+        ]
+      }
+    ],
+    "roles": [
+      {
+        "id": "role-owner",
+        "name": "Owner",
+        "color": "#E74C3C",
+        "permissions": [
+          "manage_server",
+          "manage_channels",
+          "manage_roles",
+          "manage_members",
+          "kick_members",
+          "send_messages",
+          "manage_messages",
+          "pin_messages",
+          "mention_everyone",
+          "create_invite",
+          "use_tools"
+        ],
+        "position": 3
+      },
+      {
+        "id": "role-admin",
+        "name": "Admin",
+        "color": "#3498DB",
+        "permissions": [
+          "manage_channels",
+          "manage_members",
+          "kick_members",
+          "send_messages",
+          "manage_messages",
+          "pin_messages",
+          "mention_everyone",
+          "create_invite",
+          "use_tools"
+        ],
+        "position": 2
+      },
+      {
+        "id": "role-member",
+        "name": "Member",
+        "color": "#95A5A6",
+        "permissions": [
+          "send_messages",
+          "pin_messages",
+          "create_invite",
+          "use_tools"
+        ],
+        "position": 0
+      }
+    ],
+    "memberIds": [
+      "u-mlhaffd5-j97j"
+    ],
+    "memberRoles": {
+      "u-mlhaffd5-j97j": [
+        "role-owner"
+      ]
+    },
+    "settings": {
+      "maxMembers": 50,
+      "isPublic": false,
+      "defaultRole": "role-member"
+    },
+    "tags": [],
+    "university": "ı",
+    "memberCount": 1,
+    "lastActivityAt": "2026-02-12T23:13:04.613Z",
+    "createdAt": "2026-02-12T23:13:04.613Z"
+  },
+  {
+    "id": "srv-mlk67vaj-vsyl",
+    "name": "fgfg",
+    "description": "vb",
+    "iconColor": "#6C5CE7",
+    "inviteCode": "BWVTNJ",
+    "ownerId": "u-mlhaffd5-j97j",
+    "categories": [
+      {
+        "id": "cat-mlk67vaj-3k",
+        "name": "Genel",
+        "position": 0,
+        "channelIds": [
+          "ch-mlk67vak-8np3",
+          "ch-mlk67val-u05u",
+          "ch-mlk67vam-gczc"
+        ]
+      },
+      {
+        "id": "cat-mlk67vaj-te",
+        "name": "Çalışma Araçları",
+        "position": 1,
+        "channelIds": [
+          "ch-mlk67van-45ue",
+          "ch-mlk67vao-sguv",
+          "ch-mlk67vap-xqz9",
+          "ch-mlk67vaq-n7e5"
+        ]
+      },
+      {
+        "id": "cat-mlk67vaj-vz",
+        "name": "Sprint",
+        "position": 2,
+        "channelIds": [
+          "ch-mlk67var-ex1r",
+          "ch-mlk67vas-x9sz"
+        ]
+      }
+    ],
+    "roles": [
+      {
+        "id": "role-owner",
+        "name": "Owner",
+        "color": "#E74C3C",
+        "permissions": [
+          "manage_server",
+          "manage_channels",
+          "manage_roles",
+          "manage_members",
+          "kick_members",
+          "send_messages",
+          "manage_messages",
+          "pin_messages",
+          "mention_everyone",
+          "create_invite",
+          "use_tools"
+        ],
+        "position": 3
+      },
+      {
+        "id": "role-admin",
+        "name": "Admin",
+        "color": "#3498DB",
+        "permissions": [
+          "manage_channels",
+          "manage_members",
+          "kick_members",
+          "send_messages",
+          "manage_messages",
+          "pin_messages",
+          "mention_everyone",
+          "create_invite",
+          "use_tools"
+        ],
+        "position": 2
+      },
+      {
+        "id": "role-member",
+        "name": "Member",
+        "color": "#95A5A6",
+        "permissions": [
+          "send_messages",
+          "pin_messages",
+          "create_invite",
+          "use_tools"
+        ],
+        "position": 0
+      }
+    ],
+    "memberIds": [
+      "u-mlhaffd5-j97j"
+    ],
+    "memberRoles": {
+      "u-mlhaffd5-j97j": [
+        "role-owner"
+      ]
+    },
+    "settings": {
+      "maxMembers": 50,
+      "isPublic": false,
+      "defaultRole": "role-member"
+    },
+    "tags": [
+      "fg"
+    ],
+    "university": "fg",
+    "memberCount": 1,
+    "lastActivityAt": "2026-02-13T00:50:07.531Z",
+    "createdAt": "2026-02-13T00:50:07.531Z"
+  },
+  {
+    "id": "srv-mll42ltj-679l",
+    "name": "ce 315",
+    "description": "sinaniki",
+    "iconColor": "#A29BFE",
+    "inviteCode": "C8XYE9",
+    "ownerId": "u-mll3zw79-83n2",
+    "categories": [
+      {
+        "id": "cat-mll42ltj-ms",
+        "name": "Genel",
+        "position": 0,
+        "channelIds": [
+          "ch-mll42ltk-rhgk",
+          "ch-mll42ltm-n6sl",
+          "ch-mll484zh-5s3t",
+          "ch-mll4b8co-vxzp"
+        ]
+      },
+      {
+        "id": "cat-mll42ltj-p9",
+        "name": "Çalışma",
+        "position": 1,
+        "channelIds": [
+          "ch-mll42ltn-26fj",
+          "ch-mll42lto-tlly"
+        ]
+      },
+      {
+        "id": "cat-mll42ltj-ff",
+        "name": "Sprint",
+        "position": 2,
+        "channelIds": [
+          "ch-mll42ltp-upzt"
+        ]
+      }
+    ],
+    "roles": [
+      {
+        "id": "role-owner",
+        "name": "Owner",
+        "color": "#E74C3C",
+        "permissions": [
+          "manage_server",
+          "manage_channels",
+          "manage_roles",
+          "manage_members",
+          "kick_members",
+          "send_messages",
+          "manage_messages",
+          "pin_messages",
+          "mention_everyone",
+          "create_invite",
+          "use_tools"
+        ],
+        "position": 3
+      },
+      {
+        "id": "role-admin",
+        "name": "Admin",
+        "color": "#3498DB",
+        "permissions": [
+          "manage_channels",
+          "manage_members",
+          "kick_members",
+          "send_messages",
+          "manage_messages",
+          "pin_messages",
+          "mention_everyone",
+          "create_invite",
+          "use_tools"
+        ],
+        "position": 2
+      },
+      {
+        "id": "role-member",
+        "name": "Member",
+        "color": "#95A5A6",
+        "permissions": [
+          "send_messages",
+          "pin_messages",
+          "create_invite",
+          "use_tools"
+        ],
+        "position": 0
+      }
+    ],
+    "memberIds": [
+      "u-mll3zw79-83n2",
+      "u-mll3yx6d-2zaw",
+      "u-mlhaffd5-j97j"
+    ],
+    "memberRoles": {
+      "u-mll3zw79-83n2": [
+        "role-owner"
+      ],
+      "u-mll3yx6d-2zaw": [
+        "role-member"
+      ],
+      "u-mlhaffd5-j97j": [
+        "role-member"
+      ]
+    },
+    "settings": {
+      "maxMembers": 50,
+      "isPublic": true,
+      "defaultRole": "role-member"
+    },
+    "tags": [],
+    "memberCount": 3,
+    "lastActivityAt": "2026-02-13T16:37:48.919Z",
+    "createdAt": "2026-02-13T16:37:48.919Z"
+  }
+]

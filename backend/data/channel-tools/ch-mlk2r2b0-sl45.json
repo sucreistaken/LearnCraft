@@ -1,0 +1,144 @@
+{
+  "channelId": "ch-mlk2r2b0-sl45",
+  "toolType": "",
+  "quiz": {
+    "questions": [
+      {
+        "id": "mlk2s2o447l2t4",
+        "question": "Bir quiz yarışmasının temel amacı nedir?",
+        "options": [
+          "Katılımcıların rekabetçi ruhunu test etmek",
+          "Genel kültür bilgilerini eğlenceli bir ortamda ölçmek ve pekiştirmek",
+          "En iyi hafızaya sahip kişiyi belirlemek",
+          "Sadece akademik başarıyı ödüllendirmek"
+        ],
+        "correctIndex": 1,
+        "explanation": "Bir quiz yarışmasının birincil amacı, katılımcıların genel bilgilerini eğlenceli ve teşvik edici bir biçimde sınamak ve aynı zamanda yeni bilgiler öğrenmelerini veya mevcut bilgilerini pekiştirmelerini sağlamaktır. Rekabet ve hafıza test etme gibi diğer unsurlar ikincil faydalardır, ancak eğitici eğlence ana hedeftir.",
+        "type": "mc",
+        "difficulty": "medium"
+      },
+      {
+        "id": "mlk2s2o45c6td5",
+        "question": "Quiz yarışmalarında bilginin yanı sıra sıklıkla hangi kritik beceri test edilir?",
+        "options": [
+          "Fiziksel dayanıklılık",
+          "Hızlı problem çözme ve karar verme",
+          "Sanatsal yetenek",
+          "İkna edici konuşma"
+        ],
+        "correctIndex": 1,
+        "explanation": "Quiz yarışmaları, sadece bilgiye sahip olmayı değil, aynı zamanda bu bilgiyi zaman kısıtlamaları altında hızlı bir şekilde hatırlama, analiz etme ve uygulama yeteneğini de gerektirir. Bu durum, katılımcıların baskı altında hızlı problem çözme ve karar verme becerilerini önemli ölçüde sınar.",
+        "type": "mc",
+        "difficulty": "medium"
+      },
+      {
+        "id": "mlk2s2o4z2qnqg",
+        "question": "Takım quiz yarışmalarında, bireysel yarışmalara kıyasla stratejik iletişim daha az önemlidir.",
+        "options": [
+          "True",
+          "False"
+        ],
+        "correctIndex": 1,
+        "explanation": "Yanlış. Takım quiz yarışmalarında, stratejik iletişim, soruları tartışmak, görevleri bölüşmek, güçlü yönleri kullanmak ve zamanı etkin yönetmek için hayati öneme sahiptir. Bireysel yarışmalara kıyasla, takım içinde uyumlu ve stratejik iletişim, başarı için genellikle daha kritik bir faktördür.",
+        "type": "tf",
+        "difficulty": "medium"
+      },
+      {
+        "id": "mlk2s2o4182t71",
+        "question": "Hangi soru formatı, katılımcının anlık bilgi hatırlama becerisini birincil olarak test eder?",
+        "options": [
+          "Açık uçlu, yoruma dayalı sorular",
+          "Çoktan seçmeli sorular",
+          "Görsel veya işitsel ipuçlarına dayalı sorular",
+          "Hızlı cevap gerektiren kısa sorular"
+        ],
+        "correctIndex": 3,
+        "explanation": "Hızlı cevap gerektiren kısa sorular (bazen 'buzzer' soruları olarak da bilinir), katılımcının belirli bir bilgiyi hafızasından ne kadar çabuk ve doğru bir şekilde alabildiğini doğrudan ölçer. Diğer formatlar analizi, çıkarımı veya seçenekleri değerlendirmeyi içerebilir.",
+        "type": "mc",
+        "difficulty": "medium"
+      },
+      {
+        "id": "mlk2s2o43an0sr",
+        "question": "Quiz yarışmalarına katılmanın önemli bir eğitimsel faydası nedir?",
+        "options": [
+          "Sadece en yüksek puanı almayı öğrenmek",
+          "Zaman yönetimi ve baskı altında performans gösterme yeteneğini geliştirmek",
+          "Sosyal medyada popülerlik kazanmak",
+          "Konuşma ve münazara becerilerini geliştirmek"
+        ],
+        "correctIndex": 1,
+        "explanation": "Quiz yarışmaları, katılımcılardan hızlı düşünmelerini, sınırlı bir süre içinde cevap vermelerini ve rekabetçi bir ortamda doğru kararlar almalarını bekler. Bu süreç, sadece bilgi edinmekle kalmaz, aynı zamanda etkili zaman yönetimi ve baskı altında sakin kalıp performans gösterme gibi değerli transfer edilebilir becerileri de geliştirir.",
+        "type": "mc",
+        "difficulty": "medium"
+      },
+      {
+        "id": "mlk2s2o4ea36yb",
+        "question": "İyi tasarlanmış bir quiz yarışması, en bilgili takımın her zaman kazanacağını garanti eder.",
+        "options": [
+          "True",
+          "False"
+        ],
+        "correctIndex": 1,
+        "explanation": "Yanlış. Bilgi kritik olsa da, bir quiz yarışmasının sonucunu etkileyen birçok faktör vardır. Bunlar arasında strateji, takım çalışması, hız (örn. buzzer refleksleri), risk alma eğilimi ve hatta soruların belirli uzmanlık alanlarını ne kadar kapsadığı gibi şans faktörleri de yer alır. Bu nedenle, 'en bilgili' takım her zaman kazanamayabilir.",
+        "type": "tf",
+        "difficulty": "medium"
+      },
+      {
+        "id": "mlk2s2o4etx9o8",
+        "question": "Bir quiz ustasının (moderator) bir quiz yarışmasındaki en önemli rolü nedir?",
+        "options": [
+          "Sadece soruları okumak",
+          "Kurallara uyulmasını sağlamak ve adil bir ortam yaratmak",
+          "Kazanan takımı tahmin etmek",
+          "En bilgili kişi olmak"
+        ],
+        "correctIndex": 1,
+        "explanation": "Bir quiz ustasının en önemli rolü, yarışmanın kurallarına harfiyen uyulmasını sağlayarak tüm katılımcılar için adil ve tarafsız bir ortam yaratmaktır. Bu, yarışmanın bütünlüğünü ve güvenilirliğini sürdürmek için kritik öneme sahiptir. Sadece soruları okumak veya bilgili olmak ikincil rollerdir.",
+        "type": "mc",
+        "difficulty": "medium"
+      },
+      {
+        "id": "mlk2s2o4lm1vtf",
+        "question": "Modern bir quiz yarışması deneyimini teknoloji nasıl geliştirebilir?",
+        "options": [
+          "Sadece soru bankalarını manuel olarak oluşturmak",
+          "Katılımcılar için interaktif cevaplama sistemleri ve anlık puan tabloları sağlamak",
+          "Kağıt ve kalem kullanımını zorunlu kılmak",
+          "Sadece video izleme için kullanmak"
+        ],
+        "correctIndex": 1,
+        "explanation": "Teknoloji, interaktif cevaplama uygulamaları, anlık puan tabloları, multimedya soruları ve gerçek zamanlı geri bildirim sağlayarak modern quiz yarışmalarını daha dinamik ve ilgi çekici hale getirebilir. Bu yenilikler, katılımcı deneyimini zenginleştirir ve yarışmanın akışını hızlandırır.",
+        "type": "mc",
+        "difficulty": "medium"
+      },
+      {
+        "id": "mlk2s2o47otulq",
+        "question": "Bir quiz yarışmasındaki öğrenme süreci öncelikli olarak etkinlik öncesinde gerçekleri ezberlemeye odaklanır.",
+        "options": [
+          "True",
+          "False"
+        ],
+        "correctIndex": 1,
+        "explanation": "Yanlış. Etkinlik öncesi ezberleme yardımcı olsa da, quiz yarışmasındaki öğrenme, yalnızca olguları ezberlemenin ötesine geçer. Aynı zamanda, baskı altında eleştirel düşünmeyi, bilgiyi sentezlemeyi, rekabet sırasında hatalardan ders çıkarmayı ve yeni ilgi alanları keşfetmeyi de içerir. Süreç, ürün kadar önemlidir.",
+        "type": "tf",
+        "difficulty": "medium"
+      },
+      {
+        "id": "mlk2s2o4qls311",
+        "question": "Yüksek riskli bir quiz yarışmasında performansı önemli ölçüde etkileyebilecek psikolojik faktör hangisidir?",
+        "options": [
+          "Fiziksel görünüm",
+          "Seyirci sayısı",
+          "Stres yönetimi ve baskı altında sakin kalma becerisi",
+          "Ev sahibi takım avantajı"
+        ],
+        "correctIndex": 2,
+        "explanation": "Yüksek riskli yarışmalarda, stres ve kaygı yönetimi, katılımcının bilişsel işlevini ve karar verme yeteneğini doğrudan etkileyebilir. Bilgili bir kişi bile, baskı altında sakin kalamazsa performansında düşüş yaşayabilir. Bu, performansı etkileyen en kritik psikolojik faktörlerden biridir.",
+        "type": "mc",
+        "difficulty": "medium"
+      }
+    ],
+    "scores": {},
+    "generatedAt": "2026-02-12T23:13:51.748Z"
+  }
+}

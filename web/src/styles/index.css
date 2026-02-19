@@ -23,5 +23,7 @@
 @import "./components/spinner.css";
 @import "./components/tabs.css";
 
+@import "./components/study-hub.css";
+
 /* Legacy styles — everything existing continues to work */
 @import "../App.css";

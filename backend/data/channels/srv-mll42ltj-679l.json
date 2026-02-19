@@ -1,0 +1,88 @@
+[
+  {
+    "id": "ch-mll42ltk-rhgk",
+    "serverId": "srv-mll42ltj-679l",
+    "categoryId": "cat-mll42ltj-ms",
+    "name": "genel",
+    "type": "text",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-18T13:35:02.722Z",
+    "createdAt": "2026-02-13T16:37:48.920Z"
+  },
+  {
+    "id": "ch-mll42ltm-n6sl",
+    "serverId": "srv-mll42ltj-679l",
+    "categoryId": "cat-mll42ltj-ms",
+    "name": "görevler",
+    "type": "announcement",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-13T16:37:48.922Z",
+    "createdAt": "2026-02-13T16:37:48.922Z"
+  },
+  {
+    "id": "ch-mll42ltn-26fj",
+    "serverId": "srv-mll42ltj-679l",
+    "categoryId": "cat-mll42ltj-p9",
+    "name": "deep-dive",
+    "type": "study-tool",
+    "toolType": "deep-dive",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-13T16:37:48.923Z",
+    "createdAt": "2026-02-13T16:37:48.923Z",
+    "lessonId": "lec-1764808314795",
+    "lessonTitle": "Lecture 07.12.2025"
+  },
+  {
+    "id": "ch-mll42lto-tlly",
+    "serverId": "srv-mll42ltj-679l",
+    "categoryId": "cat-mll42ltj-p9",
+    "name": "notlar",
+    "type": "study-tool",
+    "toolType": "notes",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-13T16:37:48.924Z",
+    "createdAt": "2026-02-13T16:37:48.924Z"
+  },
+  {
+    "id": "ch-mll42ltp-upzt",
+    "serverId": "srv-mll42ltj-679l",
+    "categoryId": "cat-mll42ltj-ff",
+    "name": "pomodoro",
+    "type": "study-tool",
+    "toolType": "sprint",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-13T16:37:48.925Z",
+    "createdAt": "2026-02-13T16:37:48.925Z"
+  },
+  {
+    "id": "ch-mll484zh-5s3t",
+    "serverId": "srv-mll42ltj-679l",
+    "categoryId": "cat-mll42ltj-ms",
+    "name": "quizsoruları",
+    "type": "study-tool",
+    "toolType": "quiz",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-13T16:42:07.038Z",
+    "createdAt": "2026-02-13T16:42:07.038Z"
+  },
+  {
+    "id": "ch-mll4b8co-vxzp",
+    "serverId": "srv-mll42ltj-679l",
+    "categoryId": "cat-mll42ltj-ms",
+    "name": "mindmap",
+    "type": "study-tool",
+    "toolType": "mind-map",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-13T16:44:31.368Z",
+    "createdAt": "2026-02-13T16:44:31.368Z",
+    "lessonId": "lec-1768448481012",
+    "lessonTitle": "ce 323"
+  }
+]

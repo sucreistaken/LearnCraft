@@ -1,0 +1,70 @@
+[
+  {
+    "id": "u-mlhaffd5-j97j",
+    "nickname": "Kadir",
+    "avatar": "#3DC1D3",
+    "bio": "",
+    "status": "offline",
+    "friendIds": [],
+    "friendRequestsSent": [],
+    "friendRequestsReceived": [],
+    "friendCode": "Kadir#7754",
+    "serverIds": [
+      "srv-mlhaftmd-w491",
+      "srv-mlhazgrn-tjsp",
+      "srv-mlk2dkrd-3365",
+      "srv-mlk2r2at-u5ny",
+      "srv-mlk67vaj-vsyl",
+      "srv-mll42ltj-679l"
+    ],
+    "dmChannelIds": [],
+    "lastActiveAt": "2026-02-11T00:24:40.073Z",
+    "createdAt": "2026-02-11T00:24:40.073Z",
+    "settings": {
+      "notifyMentions": true,
+      "notifyDMs": true
+    }
+  },
+  {
+    "id": "u-mll3yx6d-2zaw",
+    "nickname": "Enes",
+    "avatar": "#A29BFE",
+    "bio": "",
+    "status": "offline",
+    "friendIds": [],
+    "friendRequestsSent": [],
+    "friendRequestsReceived": [],
+    "friendCode": "Enes#2952",
+    "serverIds": [
+      "srv-mll42ltj-679l"
+    ],
+    "dmChannelIds": [],
+    "lastActiveAt": "2026-02-13T16:34:57.013Z",
+    "createdAt": "2026-02-13T16:34:57.013Z",
+    "settings": {
+      "notifyMentions": true,
+      "notifyDMs": true
+    }
+  },
+  {
+    "id": "u-mll3zw79-83n2",
+    "nickname": "enes",
+    "avatar": "#D63031",
+    "bio": "",
+    "status": "online",
+    "friendIds": [],
+    "friendRequestsSent": [],
+    "friendRequestsReceived": [],
+    "friendCode": "enes#9395",
+    "serverIds": [
+      "srv-mll42ltj-679l"
+    ],
+    "dmChannelIds": [],
+    "lastActiveAt": "2026-02-13T16:35:42.405Z",
+    "createdAt": "2026-02-13T16:35:42.405Z",
+    "settings": {
+      "notifyMentions": true,
+      "notifyDMs": true
+    }
+  }
+]

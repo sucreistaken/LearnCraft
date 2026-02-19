@@ -1,5 +1,144 @@
 [
   {
+    "id": "notif-1771421092926-5d3v84",
+    "type": "weakness-alert",
+    "title": "Weak Topics Detected",
+    "message": "\"Lesson 1.1: Introduction to Declarative Programming\" is at 20%. 46 more weak topics.",
+    "severity": "critical",
+    "dismissed": false,
+    "createdAt": "2026-02-18T13:24:52.926Z",
+    "actionTarget": {
+      "mode": "weakness"
+    },
+    "metadata": {
+      "topicCount": 47,
+      "worstRatio": 0.2
+    }
+  },
+  {
+    "id": "notif-1771421092919-1h04wp",
+    "type": "flashcard-due",
+    "title": "Flashcards Due",
+    "message": "You have 15 flashcards waiting for review.",
+    "severity": "warning",
+    "dismissed": false,
+    "createdAt": "2026-02-18T13:24:52.919Z",
+    "actionTarget": {
+      "mode": "flashcards"
+    },
+    "metadata": {
+      "count": 15
+    }
+  },
+  {
+    "id": "notif-1771245892556-n681np",
+    "type": "weakness-alert",
+    "title": "Weak Topics Detected",
+    "message": "\"Lesson 1.1: Introduction to Declarative Programming\" is at 20%. 46 more weak topics.",
+    "severity": "critical",
+    "dismissed": false,
+    "createdAt": "2026-02-16T12:44:52.556Z",
+    "actionTarget": {
+      "mode": "weakness"
+    },
+    "metadata": {
+      "topicCount": 47,
+      "worstRatio": 0.2
+    }
+  },
+  {
+    "id": "notif-1771245892550-5zqfo3",
+    "type": "flashcard-due",
+    "title": "Flashcards Due",
+    "message": "You have 15 flashcards waiting for review.",
+    "severity": "warning",
+    "dismissed": false,
+    "createdAt": "2026-02-16T12:44:52.550Z",
+    "actionTarget": {
+      "mode": "flashcards"
+    },
+    "metadata": {
+      "count": 15
+    }
+  },
+  {
+    "id": "notif-1771000527447-i11vds",
+    "type": "flashcard-due",
+    "title": "Flashcards Due",
+    "message": "You have 15 flashcards waiting for review.",
+    "severity": "warning",
+    "dismissed": false,
+    "createdAt": "2026-02-13T16:35:27.447Z",
+    "actionTarget": {
+      "mode": "flashcards"
+    },
+    "metadata": {
+      "count": 15
+    }
+  },
+  {
+    "id": "notif-1770937195337-9fg2ks",
+    "type": "weakness-alert",
+    "title": "Weak Topics Detected",
+    "message": "\"Lesson 1.1: Introduction to Declarative Programming\" is at 20%. 46 more weak topics.",
+    "severity": "critical",
+    "dismissed": false,
+    "createdAt": "2026-02-12T22:59:55.337Z",
+    "actionTarget": {
+      "mode": "weakness"
+    },
+    "metadata": {
+      "topicCount": 47,
+      "worstRatio": 0.2
+    }
+  },
+  {
+    "id": "notif-1770937195333-j29lkp",
+    "type": "flashcard-due",
+    "title": "Flashcards Due",
+    "message": "You have 15 flashcards waiting for review.",
+    "severity": "warning",
+    "dismissed": false,
+    "createdAt": "2026-02-12T22:59:55.333Z",
+    "actionTarget": {
+      "mode": "flashcards"
+    },
+    "metadata": {
+      "count": 15
+    }
+  },
+  {
+    "id": "notif-1770769409730-ka0pef",
+    "type": "weakness-alert",
+    "title": "Weak Topics Detected",
+    "message": "\"Lesson 1.1: Introduction to Declarative Programming\" is at 20%. 46 more weak topics.",
+    "severity": "critical",
+    "dismissed": false,
+    "createdAt": "2026-02-11T00:23:29.730Z",
+    "actionTarget": {
+      "mode": "weakness"
+    },
+    "metadata": {
+      "topicCount": 47,
+      "worstRatio": 0.2
+    }
+  },
+  {
+    "id": "notif-1770769409728-vjyvvw",
+    "type": "flashcard-due",
+    "title": "Flashcards Due",
+    "message": "You have 15 flashcards waiting for review.",
+    "severity": "warning",
+    "dismissed": false,
+    "createdAt": "2026-02-11T00:23:29.728Z",
+    "actionTarget": {
+      "mode": "flashcards"
+    },
+    "metadata": {
+      "count": 15
+    }
+  },
+  {
     "id": "notif-1770241917163-ccnljl",
     "type": "weakness-alert",
     "title": "Weak Topics Detected",

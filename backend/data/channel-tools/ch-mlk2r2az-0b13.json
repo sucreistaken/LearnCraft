@@ -1,0 +1,104 @@
+{
+  "channelId": "ch-mlk2r2az-0b13",
+  "toolType": "",
+  "flashcards": {
+    "cards": [
+      {
+        "id": "mlk2rggh3uspr2",
+        "front": "What cognitive principle makes flashcards an effective study tool?",
+        "back": "Flashcards primarily leverage the principle of **Active Recall**. Instead of passively re-reading material, flashcards force you to retrieve information from memory, strengthening neural pathways and improving long-term retention. This process is more demanding but significantly more effective for deep learning.",
+        "hint": "Imagine your brain as a library; active recall is like finding a specific book without the Dewey Decimal system open in front of you.",
+        "topic": "Cognitive Principles",
+        "createdBy": "ai",
+        "createdByNickname": "Study AI",
+        "createdAt": "2026-02-12T23:13:22.961Z",
+        "votes": [],
+        "source": "ai-generated"
+      },
+      {
+        "id": "mlk2rgghpafp2r",
+        "front": "Explain the concept of 'Spaced Repetition' in the context of flashcards.",
+        "back": "Spaced Repetition is an evidence-based learning technique where flashcards are reviewed at progressively longer intervals. This timing is optimized to re-engage with information just as you're about to forget it, maximizing memory consolidation and combating the Ebbinghaus forgetting curve. Algorithms often manage these intervals automatically.",
+        "hint": "Think of 'spacing' as giving your brain just enough time to almost forget, then reminding it before it's gone for good.",
+        "topic": "Study Techniques",
+        "createdBy": "ai",
+        "createdByNickname": "Study AI",
+        "createdAt": "2026-02-12T23:13:22.961Z",
+        "votes": [],
+        "source": "ai-generated"
+      },
+      {
+        "id": "mlk2rggh8kg7sb",
+        "front": "What is a key design principle for creating effective flashcards, especially for complex topics?",
+        "back": "A key design principle is the **atomic principle**, also known as 'one idea per card.' Each flashcard should ideally present only one distinct piece of information or concept to be recalled. This prevents cognitive overload, makes recall easier to assess accurately, and allows for more precise tracking with spaced repetition systems.",
+        "hint": "Like an atom, each card should represent the smallest, indivisible unit of information.",
+        "topic": "Flashcard Design",
+        "createdBy": "ai",
+        "createdByNickname": "Study AI",
+        "createdAt": "2026-02-12T23:13:22.961Z",
+        "votes": [],
+        "source": "ai-generated"
+      },
+      {
+        "id": "mlk2rggh21nt69",
+        "front": "Beyond active recall, how can 'elaborative interrogation' be integrated into flashcard use?",
+        "back": "Elaborative interrogation involves asking 'why' and 'how' questions about the information on the card, connecting it to existing knowledge, and explaining it in your own words. Instead of just defining a term, ask 'Why is X important?' or 'How does X relate to Y?' This deepens understanding and strengthens memory encoding.",
+        "hint": "Elaborate means to add detail; ask 'why' to build a richer mental picture around the fact.",
+        "topic": "Memory Enhancement",
+        "createdBy": "ai",
+        "createdByNickname": "Study AI",
+        "createdAt": "2026-02-12T23:13:22.961Z",
+        "votes": [],
+        "source": "ai-generated"
+      },
+      {
+        "id": "mlk2rgghxt2gdh",
+        "front": "Identify a common mistake students make when creating or using flashcards and how to avoid it.",
+        "back": "A common mistake is **overstuffing cards with too much information** (violating the atomic principle) or **passively reviewing** them by just looking at the answer before attempting recall. To avoid this, keep cards concise, test yourself *before* looking at the back, and honestly assess your knowledge.",
+        "hint": "Don't treat your flashcards like mini-textbooks; they're meant for quick, focused self-testing.",
+        "topic": "Common Mistakes",
+        "createdBy": "ai",
+        "createdByNickname": "Study AI",
+        "createdAt": "2026-02-12T23:13:22.961Z",
+        "votes": [],
+        "source": "ai-generated"
+      },
+      {
+        "id": "mlk2rgghnn3o5b",
+        "front": "How do flashcards contribute to a student's meta-cognition?",
+        "back": "Flashcards foster meta-cognition by forcing students to **monitor their own learning and understanding**. When attempting to recall an answer, you become aware of what you know and what you don't. This self-assessment (judgments of learning) helps you direct your study efforts more effectively, focusing on weaker areas.",
+        "hint": "Meta-cognition is 'thinking about thinking'; flashcards make you *think about what you know*.",
+        "topic": "Learning Psychology",
+        "createdBy": "ai",
+        "createdByNickname": "Study AI",
+        "createdAt": "2026-02-12T23:13:22.961Z",
+        "votes": [],
+        "source": "ai-generated"
+      },
+      {
+        "id": "mlk2rggh4ti3wr",
+        "front": "Name two different ways flashcards can be adapted beyond simple term-definition pairs.",
+        "back": "Flashcards are highly versatile and can be used for: 1. **Concept-Example**: Front 'Define X', Back 'Definition + 2 examples'. 2. **Problem-Solution**: Front 'Math problem Y', Back 'Step-by-step solution'. They can also be used for critical thinking questions or image labeling.",
+        "hint": "Flashcards are more than just words; they can be pictures, problems, or entire scenarios.",
+        "topic": "Versatility & Types",
+        "createdBy": "ai",
+        "createdByNickname": "Study AI",
+        "createdAt": "2026-02-12T23:13:22.961Z",
+        "votes": [],
+        "source": "ai-generated"
+      },
+      {
+        "id": "mlk2rggh36hxac",
+        "front": "What is a significant advantage of using digital flashcards over physical ones for university study?",
+        "back": "A significant advantage of digital flashcards (e.g., Anki, Quizlet) is the **automatic implementation of spaced repetition algorithms**. This eliminates the manual sorting and scheduling required for physical cards, ensuring optimal review intervals and greater efficiency, especially with a large volume of material over long periods.",
+        "hint": "Digital flashcards have a built-in 'smart scheduler' that physical cards lack.",
+        "topic": "Tools & Technology",
+        "createdBy": "ai",
+        "createdByNickname": "Study AI",
+        "createdAt": "2026-02-12T23:13:22.961Z",
+        "votes": [],
+        "source": "ai-generated"
+      }
+    ]
+  }
+}

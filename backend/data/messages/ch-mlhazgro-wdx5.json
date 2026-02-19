@@ -1,0 +1,32 @@
+[
+  {
+    "id": "msg-mlhazgs4-v6e2",
+    "channelId": "ch-mlhazgro-wdx5",
+    "authorId": "system",
+    "content": "Kadir sunucuya katıldı!",
+    "type": "system",
+    "embeds": [],
+    "mentions": [],
+    "reactions": [],
+    "replyCount": 0,
+    "pinned": false,
+    "edited": false,
+    "deleted": false,
+    "createdAt": "2026-02-11T00:40:15.028Z"
+  },
+  {
+    "id": "msg-mlhda20t-3gw4",
+    "channelId": "ch-mlhazgro-wdx5",
+    "authorId": "system",
+    "content": "Kadir sunucuya katıldı!",
+    "type": "system",
+    "embeds": [],
+    "mentions": [],
+    "reactions": [],
+    "replyCount": 0,
+    "pinned": false,
+    "edited": false,
+    "deleted": false,
+    "createdAt": "2026-02-11T01:44:28.349Z"
+  }
+]

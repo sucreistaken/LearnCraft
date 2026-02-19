@@ -1,0 +1,107 @@
+[
+  {
+    "id": "ch-mlk67vak-8np3",
+    "serverId": "srv-mlk67vaj-vsyl",
+    "categoryId": "cat-mlk67vaj-3k",
+    "name": "genel",
+    "type": "text",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-13T00:50:07.549Z",
+    "createdAt": "2026-02-13T00:50:07.532Z"
+  },
+  {
+    "id": "ch-mlk67val-u05u",
+    "serverId": "srv-mlk67vaj-vsyl",
+    "categoryId": "cat-mlk67vaj-3k",
+    "name": "duyurular",
+    "type": "announcement",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-13T00:50:07.533Z",
+    "createdAt": "2026-02-13T00:50:07.533Z"
+  },
+  {
+    "id": "ch-mlk67vam-gczc",
+    "serverId": "srv-mlk67vaj-vsyl",
+    "categoryId": "cat-mlk67vaj-3k",
+    "name": "kaynaklar",
+    "type": "text",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-13T00:50:07.534Z",
+    "createdAt": "2026-02-13T00:50:07.534Z"
+  },
+  {
+    "id": "ch-mlk67van-45ue",
+    "serverId": "srv-mlk67vaj-vsyl",
+    "categoryId": "cat-mlk67vaj-te",
+    "name": "deep-dive",
+    "type": "study-tool",
+    "toolType": "deep-dive",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-13T00:50:07.535Z",
+    "createdAt": "2026-02-13T00:50:07.535Z"
+  },
+  {
+    "id": "ch-mlk67vao-sguv",
+    "serverId": "srv-mlk67vaj-vsyl",
+    "categoryId": "cat-mlk67vaj-te",
+    "name": "flashcards",
+    "type": "study-tool",
+    "toolType": "flashcards",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-13T00:50:07.536Z",
+    "createdAt": "2026-02-13T00:50:07.536Z"
+  },
+  {
+    "id": "ch-mlk67vap-xqz9",
+    "serverId": "srv-mlk67vaj-vsyl",
+    "categoryId": "cat-mlk67vaj-te",
+    "name": "quiz-yarışması",
+    "type": "study-tool",
+    "toolType": "quiz",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-13T00:50:07.538Z",
+    "createdAt": "2026-02-13T00:50:07.538Z"
+  },
+  {
+    "id": "ch-mlk67vaq-n7e5",
+    "serverId": "srv-mlk67vaj-vsyl",
+    "categoryId": "cat-mlk67vaj-te",
+    "name": "zihin-haritası",
+    "type": "study-tool",
+    "toolType": "mind-map",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-13T00:50:07.538Z",
+    "createdAt": "2026-02-13T00:50:07.538Z"
+  },
+  {
+    "id": "ch-mlk67var-ex1r",
+    "serverId": "srv-mlk67vaj-vsyl",
+    "categoryId": "cat-mlk67vaj-vz",
+    "name": "pomodoro",
+    "type": "study-tool",
+    "toolType": "sprint",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-13T00:50:07.539Z",
+    "createdAt": "2026-02-13T00:50:07.539Z"
+  },
+  {
+    "id": "ch-mlk67vas-x9sz",
+    "serverId": "srv-mlk67vaj-vsyl",
+    "categoryId": "cat-mlk67vaj-vz",
+    "name": "notlar",
+    "type": "study-tool",
+    "toolType": "notes",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-13T00:50:07.540Z",
+    "createdAt": "2026-02-13T00:50:07.540Z"
+  }
+]

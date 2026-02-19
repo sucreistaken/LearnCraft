@@ -1,0 +1,408 @@
+/* Room Card */
+.sh-room-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs, 6px);
+  cursor: pointer;
+  transition: border-color var(--duration-fast) ease;
+}
+
+.sh-room-card:hover {
+  border-color: var(--accent-2);
+}
+
+.sh-room-card__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: var(--font-bold);
+  font-size: var(--text-lg);
+  flex-shrink: 0;
+}
+
+.sh-room-card__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.sh-room-card__name {
+  font-weight: var(--font-semibold);
+  font-size: var(--text-sm);
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sh-room-card__topic {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sh-room-card__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.sh-room-card__tags {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.sh-room-card__tag {
+  padding: 1px 6px;
+  background: rgba(88, 101, 242, 0.15);
+  color: var(--accent-2);
+  border-radius: 4px;
+  font-size: 10px;
+}
+
+.sh-room-card__join,
+.sh-room-card__enter {
+  padding: var(--space-1-5) var(--space-3);
+  border: none;
+  border-radius: var(--radius-xs, 6px);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  font-family: inherit;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.sh-room-card__join {
+  background: var(--accent-2);
+  color: #fff;
+}
+
+.sh-room-card__enter {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+/* Discovery */
+.sh-discovery {
+  padding: var(--space-4);
+}
+
+.sh-discovery__title {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--text);
+  margin: 0 0 var(--space-4);
+}
+
+.sh-discovery__filters {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.sh-discovery__search {
+  flex: 1;
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs, 6px);
+  color: var(--text);
+  font-size: var(--text-sm);
+  font-family: inherit;
+}
+
+.sh-discovery__search:focus {
+  outline: none;
+  border-color: var(--accent-2);
+}
+
+.sh-discovery__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sh-discovery__loading,
+.sh-discovery__empty {
+  text-align: center;
+  color: var(--muted);
+  padding: var(--space-6);
+  font-size: var(--text-sm);
+}
+
+/* Wizard */
+.sh-wizard-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal, 1000);
+  padding: var(--space-4);
+}
+
+.sh-wizard {
+  width: 100%;
+  max-width: 520px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 14px);
+  overflow: hidden;
+  box-shadow: var(--shadow-xl);
+}
+
+.sh-wizard__header {
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border);
+}
+
+.sh-wizard__header h2 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-lg);
+  color: var(--text);
+}
+
+.sh-wizard__steps {
+  display: flex;
+  gap: var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+
+.sh-wizard__step--active {
+  color: var(--accent-2);
+  font-weight: var(--font-semibold);
+}
+
+.sh-wizard__body {
+  padding: var(--space-5);
+  min-height: 200px;
+}
+
+.sh-wizard__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.sh-wizard__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+}
+
+.sh-wizard__field label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--text);
+}
+
+.sh-wizard__field input[type="text"],
+.sh-wizard__field input[type="number"] {
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs, 6px);
+  color: var(--text);
+  font-size: var(--text-sm);
+  font-family: inherit;
+}
+
+.sh-wizard__field input:focus {
+  outline: none;
+  border-color: var(--accent-2);
+}
+
+.sh-wizard__hint {
+  color: var(--muted);
+  font-size: var(--text-sm);
+  margin: 0;
+}
+
+.sh-wizard__templates {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sh-wizard__template {
+  text-align: left;
+  padding: var(--space-3);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs, 6px);
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color var(--duration-fast) ease;
+}
+
+.sh-wizard__template:hover {
+  border-color: var(--accent-2);
+}
+
+.sh-wizard__template--selected {
+  border-color: var(--accent-2);
+  background: rgba(88, 101, 242, 0.1);
+}
+
+.sh-wizard__template-name {
+  font-weight: var(--font-semibold);
+  font-size: var(--text-sm);
+  color: var(--text);
+}
+
+.sh-wizard__template-desc {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.sh-wizard__footer {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  border-top: 1px solid var(--border);
+}
+
+.sh-wizard__btn {
+  padding: var(--space-2) var(--space-4);
+  background: var(--accent-2);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-xs, 6px);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.sh-wizard__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sh-wizard__btn--secondary {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+
+/* Room Settings */
+.sh-room-settings-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal, 1000);
+}
+
+.sh-room-settings {
+  width: 100%;
+  max-width: 400px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 14px);
+  padding: var(--space-5);
+  position: relative;
+  box-shadow: var(--shadow-xl);
+}
+
+.sh-room-settings h3 {
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-lg);
+  color: var(--text);
+}
+
+.sh-room-settings__close {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: var(--text-xl);
+  cursor: pointer;
+}
+
+.sh-room-settings__section {
+  margin-bottom: var(--space-4);
+}
+
+.sh-room-settings__section label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--text);
+  margin-bottom: var(--space-1-5);
+}
+
+.sh-room-settings__invite {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.sh-room-settings__invite code {
+  padding: var(--space-1-5) var(--space-3);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs, 6px);
+  color: var(--accent-2);
+  font-size: var(--text-sm);
+  font-family: monospace;
+}
+
+.sh-room-settings__invite button {
+  padding: var(--space-1) var(--space-2);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs, 6px);
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.sh-room-settings__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
+.sh-room-settings__btn {
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  border-radius: var(--radius-xs, 6px);
+  font-size: var(--text-sm);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.sh-room-settings__btn--danger {
+  background: rgba(237, 66, 69, 0.1);
+  color: var(--danger);
+  border: 1px solid rgba(237, 66, 69, 0.2);
+}
+
+.sh-room-settings__btn--danger:hover {
+  background: rgba(237, 66, 69, 0.2);
+}

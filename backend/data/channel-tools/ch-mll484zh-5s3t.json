@@ -1,0 +1,155 @@
+{
+  "channelId": "ch-mll484zh-5s3t",
+  "toolType": "",
+  "quiz": {
+    "questions": [
+      {
+        "id": "mll495jidr7tst",
+        "question": "In a relational database schema for a `quizsoruları` system, what is the most appropriate relationship type between a `Quiz` entity and a `Question` entity, given that a quiz can contain multiple questions, and a single question can be reused across different quizzes?",
+        "options": [
+          "One-to-One",
+          "One-to-Many",
+          "Many-to-One",
+          "Many-to-Many"
+        ],
+        "correctIndex": 3,
+        "explanation": "A Many-to-Many relationship is required here because a single `Quiz` can be associated with multiple `Question` entities, and conversely, a single `Question` can be associated with multiple `Quiz` entities. This is typically implemented using a separate 'junction' or 'associative' table (e.g., `QuizQuestions`) that links the primary keys of both entities.",
+        "type": "mc",
+        "difficulty": "medium"
+      },
+      {
+        "id": "mll495jixsn558",
+        "question": "For storing the response options for a multiple-choice question within a `quizsoruları` system, which data structure generally offers the most straightforward and efficient access for presentation and selection by a user, assuming a fixed number of options per question?",
+        "options": [
+          "Linked List",
+          "Array",
+          "Stack",
+          "Queue"
+        ],
+        "correctIndex": 1,
+        "explanation": "An Array is generally the most efficient data structure for storing a fixed, small number of options (like 4-5 for an MCQ). It allows for direct, O(1) access to any option by index, which is ideal for displaying options in a specific order and processing user selections. While other structures can store them, arrays offer superior performance for this common use case.",
+        "type": "mc",
+        "difficulty": "medium"
+      },
+      {
+        "id": "mll495jiafd2nf",
+        "question": "True/False: Storing the correct answer index or value solely on the client-side (e.g., in JavaScript variables or hidden HTML fields) is a recommended security practice for a `quizsoruları` web application to prevent cheating.",
+        "options": [
+          "True",
+          "False"
+        ],
+        "correctIndex": 1,
+        "explanation": "False. Storing correct answers on the client-side is a major security vulnerability. Malicious users can easily inspect client-side code, uncover the answers, and potentially cheat. All critical validation and scoring logic, including correct answers, must reside on the server-side to ensure integrity and prevent manipulation.",
+        "type": "tf",
+        "difficulty": "medium"
+      },
+      {
+        "id": "mll495jivqdpbl",
+        "question": "When designing the backend logic for randomly selecting questions for a `quizsoruları` session, which of the following is LEAST likely to be a primary consideration for ensuring the *quality and fairness* of the quiz content itself?",
+        "options": [
+          "Ensuring an even distribution across different topics/tags",
+          "Implementing a robust pseudo-random number generator",
+          "Filtering out questions recently answered incorrectly by the user",
+          "Optimizing database query execution time for question fetching"
+        ],
+        "correctIndex": 3,
+        "explanation": "While optimizing database query execution time is crucial for system performance and scalability, it primarily impacts *how fast* questions are fetched, not the *quality, fairness, or diversity* of the questions chosen. The other options directly relate to the content selection process to ensure a good quiz experience.",
+        "type": "mc",
+        "difficulty": "medium"
+      },
+      {
+        "id": "mll495jibmzq1p",
+        "question": "True/False: In a robust web-based `quizsoruları` system, after a user submits their answers, the scoring and validation logic should ideally be performed on the server-side rather than exclusively on the client-side.",
+        "options": [
+          "True",
+          "False"
+        ],
+        "correctIndex": 0,
+        "explanation": "True. Performing scoring and validation on the server-side is critical for data integrity and security. Client-side validation can be bypassed by malicious users, leading to incorrect scores or manipulation. The server-side acts as the authoritative source for truth and ensures consistent, secure processing of results.",
+        "type": "tf",
+        "difficulty": "medium"
+      },
+      {
+        "id": "mll495jiem3eru",
+        "question": "If a `quizsoruları` system experiences a sudden surge of thousands of concurrent users attempting to take quizzes, which component is MOST likely to become a performance bottleneck if not adequately designed for scalability?",
+        "options": [
+          "Static HTML/CSS files hosted on a CDN",
+          "Client-side JavaScript executing in user browsers",
+          "Database server managing question data and user scores",
+          "User's local browser caching mechanism"
+        ],
+        "correctIndex": 2,
+        "explanation": "The database server is most susceptible to becoming a bottleneck during high concurrent load. It handles numerous read operations for fetching questions and options, and write operations for storing user answers and scores. Each of these requests consumes database resources, and without proper indexing, connection pooling, and scaling, it can quickly overload.",
+        "type": "mc",
+        "difficulty": "medium"
+      },
+      {
+        "id": "mll495jinvvufu",
+        "question": "True/False: When crafting effective multiple-choice `quizsoruları` questions, distractors (incorrect options) should be designed to be completely implausible or obviously incorrect to minimize ambiguity.",
+        "options": [
+          "True",
+          "False"
+        ],
+        "correctIndex": 1,
+        "explanation": "False. Effective distractors should be plausible and appealing to someone who lacks complete understanding of the topic, but definitively incorrect. Making them obviously wrong reduces the question's discriminatory power, making it too easy and failing to assess nuanced understanding.",
+        "type": "tf",
+        "difficulty": "medium"
+      },
+      {
+        "id": "mll495jiz1oja1",
+        "question": "A `quizsoruları` system allows instructors to create and modify questions. If an instructor updates a question that is currently part of several quizzes already in progress by users, what is the most appropriate strategy to ensure data integrity for ongoing quiz attempts while allowing new quizzes to use the updated version?",
+        "options": [
+          "Immediately apply the updated question to all active quizzes",
+          "Prevent any edits to questions that are part of active quizzes",
+          "Create a new version of the question, linking ongoing quizzes to the original, and new quizzes to the updated version",
+          "Delete the original question and replace it with the new one, forcing active quizzes to reload"
+        ],
+        "correctIndex": 2,
+        "explanation": "Creating a new version ensures that quizzes already in progress continue to use the question as it was when they started, preserving their integrity. New quizzes can then be linked to the updated question. This versioning approach prevents disruption and maintains consistency across different quiz attempts.",
+        "type": "mc",
+        "difficulty": "medium"
+      },
+      {
+        "id": "mll495jiqxrdpo",
+        "question": "When designing a RESTful API for a `quizsoruları` system, which HTTP method is most semantically appropriate for a client to submit a user's answers for a completed quiz attempt to the server?",
+        "options": [
+          "GET",
+          "POST",
+          "PUT",
+          "DELETE"
+        ],
+        "correctIndex": 1,
+        "explanation": "The `POST` method is semantically appropriate for submitting a user's answers. This action typically involves creating a new resource on the server, such as a 'quiz attempt record' or 'submission record,' or updating the state of a resource (the quiz itself) in a non-idempotent way. `GET` is for retrieval, `PUT` for complete replacement, and `DELETE` for removal.",
+        "type": "mc",
+        "difficulty": "medium"
+      },
+      {
+        "id": "mll495ji8pxbyv",
+        "question": "To enhance accessibility for users with visual impairments navigating a `quizsoruları` interface, which HTML attribute or element is most crucial for associating descriptive text with interactive elements like radio buttons for quiz options, enabling screen readers to announce their purpose clearly?",
+        "options": [
+          "`id` attribute on the input",
+          "`name` attribute on the input",
+          "`<label>` element associated with the input",
+          "`value` attribute on the input"
+        ],
+        "correctIndex": 2,
+        "explanation": "The `<label>` element is crucial for accessibility. When correctly associated with an input (using `for` and `id`), it allows screen readers to announce the label text when the input receives focus, providing context for users who cannot see the visual layout. While `id`, `name`, and `value` are important for functionality, they don't directly provide the descriptive text for screen readers like a `label` does.",
+        "type": "mc",
+        "difficulty": "medium"
+      }
+    ],
+    "scores": {
+      "u-mll3yx6d-2zaw": {
+        "correct": 3,
+        "total": 10,
+        "nickname": "Enes"
+      },
+      "u-mll3zw79-83n2": {
+        "correct": 0,
+        "total": 1,
+        "nickname": "enes"
+      }
+    },
+    "generatedAt": "2026-02-13T16:42:54.414Z"
+  }
+}

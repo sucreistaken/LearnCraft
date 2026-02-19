@@ -1,0 +1,111 @@
+[
+  {
+    "id": "ch-mlk2dkre-3544",
+    "serverId": "srv-mlk2dkrd-3365",
+    "categoryId": "cat-mlk2dkrc-8k",
+    "name": "genel",
+    "type": "text",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-12T23:02:35.380Z",
+    "createdAt": "2026-02-12T23:02:35.354Z"
+  },
+  {
+    "id": "ch-mlk2dkrn-kxxg",
+    "serverId": "srv-mlk2dkrd-3365",
+    "categoryId": "cat-mlk2dkrc-8k",
+    "name": "duyurular",
+    "type": "announcement",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-12T23:02:35.363Z",
+    "createdAt": "2026-02-12T23:02:35.363Z"
+  },
+  {
+    "id": "ch-mlk2dkrp-3i85",
+    "serverId": "srv-mlk2dkrd-3365",
+    "categoryId": "cat-mlk2dkrc-8k",
+    "name": "kaynaklar",
+    "type": "text",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-12T23:02:35.365Z",
+    "createdAt": "2026-02-12T23:02:35.365Z"
+  },
+  {
+    "id": "ch-mlk2dkrp-j5us",
+    "serverId": "srv-mlk2dkrd-3365",
+    "categoryId": "cat-mlk2dkrd-bd",
+    "name": "deep-dive",
+    "type": "study-tool",
+    "toolType": "deep-dive",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-12T23:02:35.365Z",
+    "createdAt": "2026-02-12T23:02:35.365Z",
+    "lessonId": "lec-1764808314795",
+    "lessonTitle": "Lecture 07.12.2025"
+  },
+  {
+    "id": "ch-mlk2dkrq-8f8t",
+    "serverId": "srv-mlk2dkrd-3365",
+    "categoryId": "cat-mlk2dkrd-bd",
+    "name": "flashcards",
+    "type": "study-tool",
+    "toolType": "flashcards",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-12T23:02:35.366Z",
+    "createdAt": "2026-02-12T23:02:35.366Z"
+  },
+  {
+    "id": "ch-mlk2dkrr-ghpj",
+    "serverId": "srv-mlk2dkrd-3365",
+    "categoryId": "cat-mlk2dkrd-bd",
+    "name": "quiz-yarışması",
+    "type": "study-tool",
+    "toolType": "quiz",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-12T23:02:35.368Z",
+    "createdAt": "2026-02-12T23:02:35.368Z"
+  },
+  {
+    "id": "ch-mlk2dkrt-crzn",
+    "serverId": "srv-mlk2dkrd-3365",
+    "categoryId": "cat-mlk2dkrd-bd",
+    "name": "zihin-haritası",
+    "type": "study-tool",
+    "toolType": "mind-map",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-12T23:02:35.369Z",
+    "createdAt": "2026-02-12T23:02:35.369Z",
+    "lessonId": "lec-1768448481012",
+    "lessonTitle": "ce 323"
+  },
+  {
+    "id": "ch-mlk2dkru-cxpy",
+    "serverId": "srv-mlk2dkrd-3365",
+    "categoryId": "cat-mlk2dkrd-6b",
+    "name": "pomodoro",
+    "type": "study-tool",
+    "toolType": "sprint",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-12T23:02:35.370Z",
+    "createdAt": "2026-02-12T23:02:35.370Z"
+  },
+  {
+    "id": "ch-mlk2dkrv-9sl5",
+    "serverId": "srv-mlk2dkrd-3365",
+    "categoryId": "cat-mlk2dkrd-6b",
+    "name": "notlar",
+    "type": "study-tool",
+    "toolType": "notes",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-12T23:02:35.371Z",
+    "createdAt": "2026-02-12T23:02:35.371Z"
+  }
+]

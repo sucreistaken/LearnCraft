@@ -1,5 +1,31 @@
 [
   {
+    "id": "room-mlhb2cx3-3izw",
+    "name": "fgdfgfdgdfgde",
+    "code": "RHSA67",
+    "hostId": "u-ml2mhsxz-sg8g",
+    "settings": {
+      "maxParticipants": 10,
+      "allowChat": true,
+      "lessonId": "lec-1768462362982"
+    },
+    "participants": [],
+    "members": [
+      {
+        "userId": "u-ml2mhsxz-sg8g",
+        "nickname": "kadir",
+        "avatar": "#db2777",
+        "joinedAt": "2026-02-11T00:42:29.993Z",
+        "lastSeenAt": "2026-02-11T00:55:53.508Z",
+        "contributionCount": 0
+      }
+    ],
+    "lessonId": "lec-1768462362982",
+    "lessonTitle": "ce 323 -1",
+    "activity": null,
+    "createdAt": "2026-02-11T00:42:29.991Z"
+  },
+  {
     "id": "room-ml5lor7j-gn22",
     "name": "ol",
     "code": "TRKV72",

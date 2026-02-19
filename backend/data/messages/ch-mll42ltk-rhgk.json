@@ -1,0 +1,69 @@
+[
+  {
+    "id": "msg-mll42ltw-21rp",
+    "channelId": "ch-mll42ltk-rhgk",
+    "authorId": "system",
+    "content": "enes sunucuya katıldı!",
+    "type": "system",
+    "embeds": [],
+    "mentions": [],
+    "reactions": [],
+    "replyCount": 0,
+    "pinned": false,
+    "edited": false,
+    "deleted": false,
+    "createdAt": "2026-02-13T16:37:48.932Z"
+  },
+  {
+    "id": "msg-mll4324u-g0yj",
+    "channelId": "ch-mll42ltk-rhgk",
+    "authorId": "system",
+    "content": "Enes sunucuya katıldı!",
+    "type": "system",
+    "embeds": [],
+    "mentions": [],
+    "reactions": [],
+    "replyCount": 0,
+    "pinned": false,
+    "edited": false,
+    "deleted": false,
+    "createdAt": "2026-02-13T16:38:10.062Z"
+  },
+  {
+    "id": "msg-mll45goq-x5nq",
+    "channelId": "ch-mll42ltk-rhgk",
+    "authorId": "u-mll3yx6d-2zaw",
+    "content": "amınakoym hic mi yapamayız",
+    "type": "text",
+    "embeds": [],
+    "mentions": [],
+    "reactions": [
+      {
+        "emoji": "🤔",
+        "userIds": [
+          "u-mll3yx6d-2zaw"
+        ]
+      }
+    ],
+    "replyCount": 0,
+    "pinned": false,
+    "edited": false,
+    "deleted": false,
+    "createdAt": "2026-02-13T16:40:02.234Z"
+  },
+  {
+    "id": "msg-mls2qtku-v26f",
+    "channelId": "ch-mll42ltk-rhgk",
+    "authorId": "system",
+    "content": "Kadir sunucuya katıldı!",
+    "type": "system",
+    "embeds": [],
+    "mentions": [],
+    "reactions": [],
+    "replyCount": 0,
+    "pinned": false,
+    "edited": false,
+    "deleted": false,
+    "createdAt": "2026-02-18T13:35:02.718Z"
+  }
+]

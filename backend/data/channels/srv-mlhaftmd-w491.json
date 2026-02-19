@@ -1,0 +1,95 @@
+[
+  {
+    "id": "ch-mlhaftmf-xncl",
+    "serverId": "srv-mlhaftmd-w491",
+    "categoryId": "cat-mlhaftmd-wt",
+    "name": "genel",
+    "type": "text",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-11T00:24:58.568Z",
+    "createdAt": "2026-02-11T00:24:58.551Z"
+  },
+  {
+    "id": "ch-mlhaftmh-m89f",
+    "serverId": "srv-mlhaftmd-w491",
+    "categoryId": "cat-mlhaftmd-wt",
+    "name": "sınav-tarihi",
+    "type": "announcement",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-11T00:24:58.553Z",
+    "createdAt": "2026-02-11T00:24:58.553Z"
+  },
+  {
+    "id": "ch-mlhaftmi-y5zg",
+    "serverId": "srv-mlhaftmd-w491",
+    "categoryId": "cat-mlhaftmd-bv",
+    "name": "soru-cevap",
+    "type": "text",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-11T00:24:58.554Z",
+    "createdAt": "2026-02-11T00:24:58.554Z"
+  },
+  {
+    "id": "ch-mlhaftmk-496v",
+    "serverId": "srv-mlhaftmd-w491",
+    "categoryId": "cat-mlhaftmd-bv",
+    "name": "deep-dive",
+    "type": "study-tool",
+    "toolType": "deep-dive",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-11T00:24:58.556Z",
+    "createdAt": "2026-02-11T00:24:58.556Z"
+  },
+  {
+    "id": "ch-mlhaftml-7uug",
+    "serverId": "srv-mlhaftmd-w491",
+    "categoryId": "cat-mlhaftmd-mr",
+    "name": "quiz-yarışması",
+    "type": "study-tool",
+    "toolType": "quiz",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-11T00:24:58.557Z",
+    "createdAt": "2026-02-11T00:24:58.557Z"
+  },
+  {
+    "id": "ch-mlhaftmm-3b0e",
+    "serverId": "srv-mlhaftmd-w491",
+    "categoryId": "cat-mlhaftmd-mr",
+    "name": "flashcards",
+    "type": "study-tool",
+    "toolType": "flashcards",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-11T00:24:58.558Z",
+    "createdAt": "2026-02-11T00:24:58.558Z"
+  },
+  {
+    "id": "ch-mlhaftmn-jdci",
+    "serverId": "srv-mlhaftmd-w491",
+    "categoryId": "cat-mlhaftmd-bj",
+    "name": "notlar",
+    "type": "study-tool",
+    "toolType": "notes",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-11T00:24:58.559Z",
+    "createdAt": "2026-02-11T00:24:58.559Z"
+  },
+  {
+    "id": "ch-mlhaftmo-25hg",
+    "serverId": "srv-mlhaftmd-w491",
+    "categoryId": "cat-mlhaftmd-bj",
+    "name": "zihin-haritası",
+    "type": "study-tool",
+    "toolType": "mind-map",
+    "permissionOverrides": [],
+    "pinnedMessageIds": [],
+    "lastMessageAt": "2026-02-11T00:24:58.560Z",
+    "createdAt": "2026-02-11T00:24:58.560Z"
+  }
+]

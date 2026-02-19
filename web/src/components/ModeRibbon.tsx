@@ -52,6 +52,7 @@ const GROUPS: TabGroup[] = [
     tabs: [
       { id: "history", label: "Lessons" },
       { id: "study-room", label: "Room" },
+      { id: "study-hub", label: "Study Hub" },
     ],
   },
 ];

@@ -24,9 +24,9 @@
   --space-20: 80px;
 
   /* --- Typography Scale --- */
-  --text-xs: 11px;
-  --text-sm: 13px;
-  --text-base: 14px;
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 15px;
   --text-md: 16px;
   --text-lg: 18px;
   --text-xl: 20px;
@@ -84,9 +84,58 @@
   --z-overlay: 100;
   --z-modal: 1000;
   --z-toast: 1100;
+
+  /* --- Neubrutalism Tokens --- */
+
+  /* Border */
+  --nb-border-width: 2.5px;
+  --nb-border-thick: 3px;
+  --nb-border-color: var(--text);
+
+  /* Shadow (flat, no-blur) */
+  --nb-shadow-color: var(--text);
+  --nb-shadow-sm: 2px 2px 0 var(--nb-shadow-color);
+  --nb-shadow-md: 4px 4px 0 var(--nb-shadow-color);
+  --nb-shadow-lg: 6px 6px 0 var(--nb-shadow-color);
+  --nb-shadow-xl: 8px 8px 0 var(--nb-shadow-color);
+  --nb-shadow-pressed: 1px 1px 0 var(--nb-shadow-color);
+
+  /* Bold Palette */
+  --nb-yellow: #FFE66D;
+  --nb-pink: #FF6B9D;
+  --nb-green: #4ECDC4;
+  --nb-blue: #45B7D1;
+  --nb-orange: #F7A072;
+  --nb-purple: #A855F7;
+  --nb-red: #FF6B6B;
+  --nb-lime: #C8E64E;
+
+  /* Radius */
+  --nb-radius: 10px;
+  --nb-radius-sm: 8px;
+  --nb-radius-lg: 14px;
+
+  /* Typography */
+  --nb-font-heading: 800;
+  --nb-font-label: 700;
+
+  /* Motion */
+  --nb-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --nb-duration-press: 100ms;
+  --nb-duration-hover: 150ms;
 }
 
 .dark {
+  --nb-shadow-color: rgba(255, 255, 255, 0.2);
+  --nb-yellow: #FFE66D;
+  --nb-pink: #FF85B3;
+  --nb-green: #5EDDD4;
+  --nb-blue: #5DC7E1;
+  --nb-orange: #FFBB99;
+  --nb-purple: #BB77FF;
+  --nb-red: #FF8585;
+  --nb-lime: #D4F060;
+
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.15);
   --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.3);
@@ -97,6 +146,16 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
+    --nb-shadow-color: rgba(255, 255, 255, 0.2);
+    --nb-yellow: #FFE66D;
+    --nb-pink: #FF85B3;
+    --nb-green: #5EDDD4;
+    --nb-blue: #5DC7E1;
+    --nb-orange: #FFBB99;
+    --nb-purple: #BB77FF;
+    --nb-red: #FF8585;
+    --nb-lime: #D4F060;
+
     --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.15);
     --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.2);
     --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.3);

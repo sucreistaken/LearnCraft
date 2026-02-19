@@ -1,0 +1,24 @@
+{
+  "channelId": "ch-mll42ltp-upzt",
+  "toolType": "",
+  "sprint": {
+    "phase": "studying",
+    "studyDurationMin": 25,
+    "breakDurationMin": 5,
+    "startedAt": "2026-02-13T16:39:36.817Z",
+    "currentPhaseStartedAt": "2026-02-13T16:39:36.817Z",
+    "pomodorosCompleted": 0,
+    "members": {
+      "u-mll3zw79-83n2": {
+        "status": "studying",
+        "lastUpdate": "2026-02-13T16:39:36.817Z",
+        "nickname": "enes"
+      },
+      "u-mll3yx6d-2zaw": {
+        "status": "break",
+        "lastUpdate": "2026-02-13T16:39:53.233Z",
+        "nickname": "Enes"
+      }
+    }
+  }
+}
