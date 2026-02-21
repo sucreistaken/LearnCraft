@@ -29,6 +29,9 @@ import IdentityBadge from "./components/ui/IdentityBadge";
 import NotificationBell from "./components/ui/NotificationBell";
 import SchedulerWidget from "./components/SchedulerWidget";
 import AuthGuard from "./components/auth/AuthGuard";
+import AmbientBackground from "./components/ui/AmbientBackground";
+import CursorGlow from "./components/ui/CursorGlow";
+import ParticleField from "./components/ui/ParticleField";
 
 const SettingsPage = lazy(() => import("./components/settings/SettingsPage"));
 
@@ -298,7 +301,10 @@ export default function App() {
 
   return (
     <AuthGuard>
-    <div className="page">
+    <AmbientBackground />
+    <CursorGlow />
+    <ParticleField />
+    <div className="page" style={{ position: "relative", zIndex: 1 }}>
       {/* Navbar */}
       <nav className="nav" role="navigation" aria-label="Ana navigasyon">
         <div className="nav-inner">

@@ -153,11 +153,11 @@ export default function LessonsHistoryPane({ setMode, setQuiz, onSelectLesson, c
         </div>
         <div className="mt-3 flex gap-2" onClick={() => onSelectLesson(l.id)}>
           {l.highlights?.length > 0 && (
-            <span className="text-xs bg-gray-100 px-2 py-1 rounded">
+            <span className="text-xs lh-badge-concept">
               ✨ {l.highlights.length} Kavram
             </span>
           )}
-          <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded ml-auto">
+          <span className="text-xs lh-badge-action">
             {isActive ? "Açık" : "İncele →"}
           </span>
         </div>
@@ -190,7 +190,7 @@ export default function LessonsHistoryPane({ setMode, setQuiz, onSelectLesson, c
       {/* Liste */}
       <div className="grid-gap-12">
         {filtered.length === 0 && !loading && (
-          <div className="p-4 border rounded text-center op-60 bg-gray-50">
+          <div className="p-4 border rounded text-center op-60 lh-empty">
             {search ? "Ders bulunamadı." : "Henüz hiç dersin yok."}
           </div>
         )}
@@ -199,6 +199,7 @@ export default function LessonsHistoryPane({ setMode, setQuiz, onSelectLesson, c
         {grouped.map((group) => (
           <div key={group.courseId} style={{ marginBottom: 8 }}>
             <div
+              className="lh-course-header"
               style={{
                 display: "flex",
                 alignItems: "center",

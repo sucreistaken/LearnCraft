@@ -201,6 +201,7 @@ export default function LoStudyPane({ modules }: Props) {
               return (
                 <div
                   key={m.loId}
+                  className={`lo-sidebar-item ${isActive ? 'lo-sidebar-item--active' : ''}`}
                   onClick={() => {
                     setActiveLoId(m.loId);
                     setQuizRevealed({});
@@ -333,7 +334,7 @@ export default function LoStudyPane({ modules }: Props) {
 
           <Section id="remember" title="Must Remember" icon="⚡">
             {active.mustRemember.map((item, i) => (
-              <div key={i} style={{
+              <div key={i} className="lo-remember-item" style={{
                 padding: '10px 12px',
                 marginBottom: 8,
                 borderRadius: 8,
@@ -381,7 +382,7 @@ export default function LoStudyPane({ modules }: Props) {
           {active.commonTraps?.length > 0 && (
             <Section id="traps" title="Common Mistakes" icon="⚠️">
               {active.commonTraps.map((trap, i) => (
-                <div key={i} style={{
+                <div key={i} className="lo-trap-item" style={{
                   padding: '10px 12px',
                   marginBottom: 8,
                   borderRadius: 8,
@@ -443,7 +444,7 @@ export default function LoStudyPane({ modules }: Props) {
                   </button>
 
                   {quizRevealed[i] && (
-                    <div style={{
+                    <div className="lo-quiz-answer" style={{
                       padding: '10px 12px',
                       borderRadius: 8,
                       background: 'rgba(34,197,94,0.06)',

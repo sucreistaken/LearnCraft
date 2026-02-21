@@ -15,7 +15,14 @@ function ReviewMode() {
   if (!dueCards.length) {
     return (
       <div className="pane-empty">
-        <div className="pane-empty__icon">&#10003;</div>
+        <motion.div
+          className="pane-empty__icon"
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", damping: 12, stiffness: 200 }}
+        >
+          &#10003;
+        </motion.div>
         <div className="pane-empty__title">All caught up!</div>
         <div className="pane-empty__desc">
           No cards are due for review right now. Check back later.
@@ -27,16 +34,20 @@ function ReviewMode() {
   if (!card) return null;
 
   const qualityButtons = [
-    { q: 1, label: "Again", color: "var(--danger)" },
-    { q: 2, label: "Hard", color: "var(--warning)" },
-    { q: 3, label: "Good", color: "var(--accent-2)" },
-    { q: 5, label: "Easy", color: "var(--success)" },
+    { q: 1, label: "Again", color: "var(--danger)", dataQ: "again" },
+    { q: 2, label: "Hard", color: "var(--warning)", dataQ: "hard" },
+    { q: 3, label: "Good", color: "var(--accent-2)", dataQ: "good" },
+    { q: 5, label: "Easy", color: "var(--success)", dataQ: "easy" },
   ];
 
   const progressPct = ((currentIndex + 1) / dueCards.length) * 100;
 
   return (
-    <div>
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+    >
       {/* Progress */}
       <div className="fc-progress-label">
         <span className="small" style={{ color: "var(--muted)" }}>
@@ -47,18 +58,23 @@ function ReviewMode() {
         </span>
       </div>
       <div className="fc-progress-track">
-        <div className="fc-progress-fill" style={{ width: `${progressPct}%` }} />
+        <motion.div
+          className="fc-progress-fill"
+          initial={{ width: 0 }}
+          animate={{ width: `${progressPct}%` }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        />
       </div>
 
-      {/* Card */}
+      {/* Card with 3D flip */}
       <div className="fc-card-wrapper" onClick={() => setFlipped(!isFlipped)}>
         <AnimatePresence mode="wait">
           <motion.div
             key={isFlipped ? "back" : "front"}
-            initial={{ rotateY: 90, opacity: 0 }}
-            animate={{ rotateY: 0, opacity: 1 }}
-            exit={{ rotateY: -90, opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            initial={{ rotateY: 90, opacity: 0, scale: 0.95 }}
+            animate={{ rotateY: 0, opacity: 1, scale: 1 }}
+            exit={{ rotateY: -90, opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
             className={`fc-card${isFlipped ? " fc-card--back" : ""}`}
           >
             <div className="fc-card__label">
@@ -77,28 +93,38 @@ function ReviewMode() {
       </div>
 
       {/* Rating Buttons */}
-      {isFlipped && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="fc-quality-group"
-        >
-          {qualityButtons.map(({ q, label, color }) => (
-            <button
-              key={q}
-              className="fc-quality-btn"
-              style={{ background: color }}
-              onClick={(e) => {
-                e.stopPropagation();
-                review(card.id, q);
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </motion.div>
-      )}
-    </div>
+      <AnimatePresence>
+        {isFlipped && (
+          <motion.div
+            initial={{ opacity: 0, y: 16, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="fc-quality-group"
+          >
+            {qualityButtons.map(({ q, label, color, dataQ }, i) => (
+              <motion.button
+                key={q}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05, duration: 0.3 }}
+                className="fc-quality-btn"
+                data-quality={dataQ}
+                style={{ background: color }}
+                whileHover={{ y: -3, scale: 1.02 }}
+                whileTap={{ scale: 0.95, y: 0 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  review(card.id, q);
+                }}
+              >
+                {label}
+              </motion.button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
 
@@ -172,29 +198,45 @@ function BrowseMode() {
           </div>
         </div>
       ) : (
-        <div style={{ display: "grid", gap: 8 }}>
+        <motion.div
+          initial="hidden"
+          animate="show"
+          variants={{
+            hidden: { opacity: 0 },
+            show: { opacity: 1, transition: { staggerChildren: 0.04 } },
+          }}
+          style={{ display: "grid", gap: 8 }}
+        >
           {filtered.map((card) => (
-            <div key={card.id} className="fc-browse-card">
-              <div className="fc-browse-header">
-                <span className={`status-badge ${stateStyle[card.state] || "status-badge--muted"}`}>
-                  {card.state}
-                </span>
-                <button className="fc-delete-btn" onClick={() => deleteCard(card.id)}>
-                  Delete
-                </button>
+            <motion.div
+              key={card.id}
+              variants={{
+                hidden: { opacity: 0, y: 12 },
+                show: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+              }}
+            >
+              <div className="fc-browse-card">
+                <div className="fc-browse-header">
+                  <span className={`status-badge ${stateStyle[card.state] || "status-badge--muted"}`}>
+                    {card.state}
+                  </span>
+                  <button className="fc-delete-btn" onClick={() => deleteCard(card.id)}>
+                    Delete
+                  </button>
+                </div>
+                <div className="fc-browse-front">{card.front}</div>
+                <div className="fc-browse-back">{card.back}</div>
+                <div className="fc-browse-meta">
+                  <span>{card.topicName}</span>
+                  <span className="fc-card__meta-sep" />
+                  <span>EF: {card.easeFactor.toFixed(2)}</span>
+                  <span className="fc-card__meta-sep" />
+                  <span>Interval: {card.interval}d</span>
+                </div>
               </div>
-              <div className="fc-browse-front">{card.front}</div>
-              <div className="fc-browse-back">{card.back}</div>
-              <div className="fc-browse-meta">
-                <span>{card.topicName}</span>
-                <span className="fc-card__meta-sep" />
-                <span>EF: {card.easeFactor.toFixed(2)}</span>
-                <span className="fc-card__meta-sep" />
-                <span>Interval: {card.interval}d</span>
-              </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
     </div>
   );
@@ -214,7 +256,12 @@ export default function FlashcardPane() {
   };
 
   return (
-    <div className="grid-gap-12">
+    <motion.div
+      className="grid-gap-12"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+    >
       {/* Header */}
       <section className="lc-section">
         <div className="pane-header" style={{ marginBottom: 14 }}>
@@ -226,41 +273,55 @@ export default function FlashcardPane() {
           </div>
           <div className="pane-header__actions">
             {currentLessonId && (
-              <button className="btn" onClick={handleGenerate} disabled={loading}>
+              <motion.button
+                className="btn"
+                onClick={handleGenerate}
+                disabled={loading}
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.95 }}
+              >
                 {loading ? "Generating..." : "Generate Cards"}
-              </button>
+              </motion.button>
             )}
           </div>
         </div>
 
         {/* Stats */}
         {stats && (
-          <div className="fc-stat-grid" style={{ marginBottom: 14 }}>
-            <div className="fc-stat-card">
-              <div className="fc-stat-value" style={{ color: "var(--text)" }}>{stats.total}</div>
-              <div className="fc-stat-label">Total</div>
-            </div>
-            <div className="fc-stat-card">
-              <div className="fc-stat-value" style={{ color: "var(--accent-2)" }}>{stats.new}</div>
-              <div className="fc-stat-label">New</div>
-            </div>
-            <div className="fc-stat-card">
-              <div className="fc-stat-value" style={{ color: "var(--warning)" }}>{stats.learning}</div>
-              <div className="fc-stat-label">Learning</div>
-            </div>
-            <div className="fc-stat-card">
-              <div className="fc-stat-value" style={{ color: "var(--accent-2)" }}>{stats.review}</div>
-              <div className="fc-stat-label">Review</div>
-            </div>
-            <div className="fc-stat-card">
-              <div className="fc-stat-value" style={{ color: "var(--success)" }}>{stats.graduated}</div>
-              <div className="fc-stat-label">Graduated</div>
-            </div>
-            <div className="fc-stat-card">
-              <div className="fc-stat-value" style={{ color: "var(--danger)" }}>{stats.dueToday}</div>
-              <div className="fc-stat-label">Due Today</div>
-            </div>
-          </div>
+          <motion.div
+            className="fc-stat-grid"
+            style={{ marginBottom: 14 }}
+            initial="hidden"
+            animate="show"
+            variants={{
+              hidden: { opacity: 0 },
+              show: { opacity: 1, transition: { staggerChildren: 0.06 } },
+            }}
+          >
+            {[
+              { key: "total", label: "Total", color: "var(--text)" },
+              { key: "new", label: "New", color: "var(--accent-2)" },
+              { key: "learning", label: "Learning", color: "var(--warning)" },
+              { key: "review", label: "Review", color: "var(--accent-2)" },
+              { key: "graduated", label: "Graduated", color: "var(--success)" },
+              { key: "dueToday", label: "Due Today", color: "var(--danger)" },
+            ].map(({ key, label, color }) => (
+              <motion.div
+                key={key}
+                className="fc-stat-card"
+                variants={{
+                  hidden: { opacity: 0, y: 12, scale: 0.95 },
+                  show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4 } },
+                }}
+                whileHover={{ y: -3, scale: 1.02 }}
+              >
+                <div className="fc-stat-value" style={{ color }}>
+                  {(stats as unknown as Record<string, number>)[key]}
+                </div>
+                <div className="fc-stat-label">{label}</div>
+              </motion.div>
+            ))}
+          </motion.div>
         )}
 
         {/* View Toggle */}
@@ -280,10 +341,20 @@ export default function FlashcardPane() {
         </div>
       </section>
 
-      {/* Content */}
+      {/* Content with transition */}
       <section className="lc-section">
-        {viewMode === "review" ? <ReviewMode /> : <BrowseMode />}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={viewMode}
+            initial={{ opacity: 0, x: viewMode === "review" ? -16 : 16 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: viewMode === "review" ? 16 : -16 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          >
+            {viewMode === "review" ? <ReviewMode /> : <BrowseMode />}
+          </motion.div>
+        </AnimatePresence>
       </section>
-    </div>
+    </motion.div>
   );
 }

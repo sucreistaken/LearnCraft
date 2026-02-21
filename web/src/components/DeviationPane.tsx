@@ -74,11 +74,12 @@ function clamp(n: number, a = 0, b = 100) {
 /** Basit gauge — dışarıdan ScoreGauge yoksa patlamasın diye buraya aldım */
 function ScoreGauge({ score }: { score: number }) {
     const v = clamp(Math.round(score ?? 0), 0, 100);
-    const ring = `conic-gradient(#10b981 ${v * 3.6}deg, rgba(255,255,255,0.08) 0deg)`;
+    const ring = `conic-gradient(#10b981 ${v * 3.6}deg, var(--border) 0deg)`;
 
     return (
         <div style={{ display: "grid", placeItems: "center" }}>
             <div
+                className="dv-gauge-ring"
                 style={{
                     width: 120,
                     height: 120,
@@ -90,6 +91,7 @@ function ScoreGauge({ score }: { score: number }) {
                 }}
             >
                 <div
+                    className="dv-gauge-inner"
                     style={{
                         width: "100%",
                         height: "100%",
@@ -97,7 +99,7 @@ function ScoreGauge({ score }: { score: number }) {
                         background: "var(--bg)",
                         display: "grid",
                         placeItems: "center",
-                        border: "1px solid rgba(255,255,255,0.08)",
+                        border: "1px solid var(--border)",
                     }}
                 >
                     <div style={{ textAlign: "center" }}>
@@ -268,6 +270,7 @@ export default function DeviationPane({
                 {/* Deck mismatch uyarısı */}
                 {summary?.isDeckMismatch && (
                     <div
+                        className="dv-mismatch"
                         style={{
                             padding: 14,
                             borderRadius: 14,
@@ -344,16 +347,7 @@ export default function DeviationPane({
                                     {summary.missedTopics.map((t, i) => (
                                         <span
                                             key={i}
-                                            className="pill"
-                                            style={{
-                                                background: "#fff1f2",
-                                                color: "#be123c",
-                                                border: "1px solid #fda4af",
-                                                padding: "4px 10px",
-                                                borderRadius: 999,
-                                                fontSize: 12,
-                                                fontWeight: 700,
-                                            }}
+                                            className="pill dv-pill-missed"
                                         >
                                             {t}
                                         </span>
@@ -369,16 +363,7 @@ export default function DeviationPane({
                                     {summary.extraTopics.map((t, i) => (
                                         <span
                                             key={i}
-                                            className="pill"
-                                            style={{
-                                                background: "#eff6ff",
-                                                color: "#1d4ed8",
-                                                border: "1px solid #93c5fd",
-                                                padding: "4px 10px",
-                                                borderRadius: 999,
-                                                fontSize: 12,
-                                                fontWeight: 700,
-                                            }}
+                                            className="pill dv-pill-extra"
                                         >
                                             {t}
                                         </span>
@@ -405,6 +390,7 @@ export default function DeviationPane({
                             return (
                                 <motion.div
                                     key={seg?.index ?? i}
+                                    className="dv-timeline-seg"
                                     initial={{ opacity: 0, y: 10 }}
                                     whileInView={{ opacity: 1, y: 0 }}
                                     viewport={{ once: true }}
@@ -412,7 +398,7 @@ export default function DeviationPane({
                                         padding: 16,
                                         borderRadius: 16,
                                         background: "var(--bg)",
-                                        borderLeft: `4px solid ${conf.color}`, // ✅ burada artık undefined.color patlamaz
+                                        borderLeft: `4px solid ${conf.color}`,
                                     }}
                                 >
                                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, gap: 12, flexWrap: "wrap" }}>

@@ -672,7 +672,7 @@ export default function MindMapPane() {
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: code ? 'flex-start' : 'center',
-                    background: code ? '#fafbfc' : 'var(--bg-secondary)',
+                    background: code ? 'var(--mm-bg, #fafbfc)' : 'var(--bg-secondary)',
                     borderRadius: 16,
                     border: '1px solid var(--border)',
                     position: 'relative',
