@@ -1,5 +1,36 @@
 [
   {
+    "id": "notif-1771698699434-669iwz",
+    "type": "weakness-alert",
+    "title": "Weak Topics Detected",
+    "message": "\"Lesson 1.1: Introduction to Declarative Programming\" is at 20%. 46 more weak topics.",
+    "severity": "critical",
+    "dismissed": false,
+    "createdAt": "2026-02-21T18:31:39.434Z",
+    "actionTarget": {
+      "mode": "weakness"
+    },
+    "metadata": {
+      "topicCount": 47,
+      "worstRatio": 0.2
+    }
+  },
+  {
+    "id": "notif-1771698699428-wwhoii",
+    "type": "flashcard-due",
+    "title": "Flashcards Due",
+    "message": "You have 15 flashcards waiting for review.",
+    "severity": "warning",
+    "dismissed": false,
+    "createdAt": "2026-02-21T18:31:39.428Z",
+    "actionTarget": {
+      "mode": "flashcards"
+    },
+    "metadata": {
+      "count": 15
+    }
+  },
+  {
     "id": "notif-1771421092926-5d3v84",
     "type": "weakness-alert",
     "title": "Weak Topics Detected",

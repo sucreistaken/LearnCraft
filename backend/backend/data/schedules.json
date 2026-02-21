@@ -293,6 +293,55 @@
       ],
       "totalEstimatedMinutes": 120,
       "summary": "4 tasks planned: Module 3: Data Management in Declarative UIs, The live lecture is the primary and most important source of..., HDD Fundamentals and Performance..."
+    },
+    {
+      "id": "plan-1771698701700",
+      "date": "2026-02-21",
+      "generatedAt": "2026-02-21T18:31:41.700Z",
+      "tasks": [
+        {
+          "id": "task-1771698701677-4zm57l",
+          "lessonId": "lec-1764808314795",
+          "topicName": "Module 3: Data Management in Declarative UIs",
+          "taskType": "deep-dive",
+          "reason": "Critical weakness (20% score). Deep study recommended.",
+          "estimatedMinutes": 30,
+          "score": 9,
+          "completed": false
+        },
+        {
+          "id": "task-1771698701677-dz1m3r",
+          "lessonId": "lec-1764808314795",
+          "topicName": "The live lecture is the primary and most important source of...",
+          "taskType": "deep-dive",
+          "reason": "Critical weakness (20% score). Deep study recommended.",
+          "estimatedMinutes": 30,
+          "score": 9,
+          "completed": false
+        },
+        {
+          "id": "task-1771698701678-n03gfg",
+          "lessonId": "lec-1768448481012",
+          "topicName": "HDD Fundamentals and Performance",
+          "taskType": "deep-dive",
+          "reason": "Critical weakness (20% score). Deep study recommended.",
+          "estimatedMinutes": 30,
+          "score": 9,
+          "completed": false
+        },
+        {
+          "id": "task-1771698701678-aqbi05",
+          "lessonId": "lec-1768448481012",
+          "topicName": "HDD Performance Metrics",
+          "taskType": "deep-dive",
+          "reason": "Critical weakness (20% score). Deep study recommended.",
+          "estimatedMinutes": 30,
+          "score": 9,
+          "completed": false
+        }
+      ],
+      "totalEstimatedMinutes": 120,
+      "summary": "4 tasks planned: Module 3: Data Management in Declarative UIs, The live lecture is the primary and most important source of..., HDD Fundamentals and Performance..."
     }
   ],
   "streak": {
